@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="Dashboard administrativo Run & Samba CRM 2026."
+    >
+
+    <title>Dashboard | Run & Samba CRM</title>
+
+    <link
+        rel="stylesheet"
+        href="css/crm.css"
+    >
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script src="js/config.js"></script>
+
+    <script src="js/auth.js"></script>
+
+    <script
+        src="js/dashboard.js"
+        defer
+    ></script>
+
+</head>
+
+
+<body>
+
+<div class="app">
+
+
+    <!-- SIDEBAR -->
+
+    <aside class="sidebar">
+
+        <div class="brand">
+
+            <div class="logo">
+                RUN <span>&</span> SAMBA
+            </div>
+
+            <div class="side-label">
+                CRM 2026
+            </div>
+
+        </div>
+
+
+        <div class="sidebar-section">
+
+            <span class="sidebar-heading">
+                GESTÃO
+            </span>
+
+            <nav>
+
+                <a
+                    class="active"
+                    href="dashboard.html"
+                >
+                    <span class="nav-icon">◈</span>
+                    Dashboard
+                </a>
+
+
+                <a href="inscritos.html">
+                    <span class="nav-icon">◉</span>
+                    Inscritos
+                </a>
+
+
+                <a href="marketing.html">
+                    <span class="nav-icon">✦</span>
+                    Marketing
+                </a>
+
+            </nav>
+
+        </div>
+
+
+        <div class="sidebar-bottom">
+
+            <div class="event-mini">
+
+                <span>
+                    EVENTO
+                </span>
+
+                <strong>
+                    RUN & SAMBA
+                </strong>
+
+                <small>
+                    2ª EDIÇÃO • 2026
+                </small>
+
+            </div>
+
+
+            <button
+                id="logoutBtn"
+                class="logout"
+            >
+                SAIR
+            </button>
+
+        </div>
+
+    </aside>
+
+
+
+    <!-- CONTEÚDO -->
+
+    <main class="content">
+
+
+        <!-- HEADER -->
+
+        <header class="topbar">
+
+            <div>
+
+                <span class="eyebrow">
+                    RUN & SAMBA • 2026
+                </span>
+
+                <h1>
+                    Dashboard
+                </h1>
+
+                <p class="subtitle">
+                    Visão geral da operação, inscrições e financeiro.
+                </p>
+
+            </div>
+
+
+            <div class="top-actions">
+
+                <a
+                    class="outline-btn"
+                    href="inscritos.html"
+                >
+                    GERENCIAR INSCRITOS
+                    <span>→</span>
+                </a>
+
+            </div>
+
+        </header>
+
+
+
+        <!-- INDICADORES -->
+
+        <section class="stats">
+
+
+            <article class="stat-card">
+
+                <div class="stat-head">
+
+                    <span class="stat-label">
+                        INSCRITOS
+                    </span>
+
+                    <span class="stat-icon">
+                        ◉
+                    </span>
+
+                </div>
+
+                <strong
+                    id="total"
+                    class="stat-value"
+                >
+                    —
+                </strong>
+
+                <span class="stat-description">
+                    participantes cadastrados
+                </span>
+
+            </article>
+
+
+
+            <article class="stat-card financial received">
+
+                <div class="stat-head">
+
+                    <span class="stat-label">
+                        RECEBIDO
+                    </span>
+
+                    <span class="stat-icon">
+                        R$
+                    </span>
+
+                </div>
+
+                <strong
+                    id="paidValue"
+                    class="stat-value"
+                >
+                    R$ 0,00
+                </strong>
+
+                <span class="stat-description">
+                    pagamentos confirmados
+                </span>
+
+            </article>
+
+
+
+            <article class="stat-card financial pending-value">
+
+                <div class="stat-head">
+
+                    <span class="stat-label">
+                        A RECEBER
+                    </span>
+
+                    <span class="stat-icon">
+                        ◷
+                    </span>
+
+                </div>
+
+                <strong
+                    id="pendingValue"
+                    class="stat-value"
+                >
+                    R$ 0,00
+                </strong>
+
+                <span class="stat-description">
+                    pagamentos pendentes
+                </span>
+
+            </article>
+
+
+
+            <article class="stat-card">
+
+                <div class="stat-head">
+
+                    <span class="stat-label">
+                        CANCELADOS
+                    </span>
+
+                    <span class="stat-icon">
+                        ×
+                    </span>
+
+                </div>
+
+                <strong
+                    id="cancelled"
+                    class="stat-value"
+                >
+                    —
+                </strong>
+
+                <span class="stat-description">
+                    inscrições canceladas
+                </span>
+
+            </article>
+
+        </section>
+
+
+
+        <!-- FINANCEIRO -->
+
+        <section class="financial-summary">
+
+            <div class="finance-main">
+
+                <div>
+
+                    <span class="eyebrow">
+                        FINANCEIRO
+                    </span>
+
+                    <h2>
+                        Visão financeira
+                    </h2>
+
+                </div>
+
+
+                <div class="finance-total">
+
+                    <span>
+                        VALOR TOTAL DAS INSCRIÇÕES
+                    </span>
+
+                    <strong id="totalValue">
+                        R$ 0,00
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="finance-progress">
+
+                <div class="progress-header">
+
+                    <span>
+                        RECEBIMENTO
+                    </span>
+
+                    <strong id="paidPercent">
+                        0%
+                    </strong>
+
+                </div>
+
+
+                <div class="progress">
+
+                    <div
+                        id="paidProgress"
+                        class="progress-bar"
+                    ></div>
+
+                </div>
+
+
+                <div class="progress-footer">
+
+                    <span>
+                        <b id="paidCount">0</b>
+                        pagos
+                    </span>
+
+                    <span>
+                        <b id="pendingCount">0</b>
+                        pendentes
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- GRÁFICOS -->
+
+        <section class="dashboard-grid">
+
+
+            <!-- PERCURSOS -->
+
+            <article class="panel chart-panel">
+
+                <div class="panel-title">
+
+                    <div>
+
+                        <span class="eyebrow">
+                            PARTICIPAÇÃO
+                        </span>
+
+                        <h2>
+                            Percursos
+                        </h2>
+
+                    </div>
+
+                    <span class="panel-caption">
+                        Distribuição dos atletas
+                    </span>
+
+                </div>
+
+
+                <div class="route-chart">
+
+                    <div class="donut">
+
+                        <div class="donut-center">
+
+                            <strong id="routeTotal">
+                                0
+                            </strong>
+
+                            <span>
+                                atletas
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="chart-legend">
+
+                        <div class="legend-item">
+
+                            <span class="legend-dot km5-dot"></span>
+
+                            <div>
+
+                                <strong>
+                                    5 KM
+                                </strong>
+
+                                <span>
+                                    <b id="km5">0</b>
+                                    participantes
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="legend-item">
+
+                            <span class="legend-dot km10-dot"></span>
+
+                            <div>
+
+                                <strong>
+                                    10 KM
+                                </strong>
+
+                                <span>
+                                    <b id="km10">0</b>
+                                    participantes
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </article>
+
+
+
+            <!-- PAGAMENTOS -->
+
+            <article class="panel chart-panel">
+
+                <div class="panel-title">
+
+                    <div>
+
+                        <span class="eyebrow">
+                            FINANCEIRO
+                        </span>
+
+                        <h2>
+                            Status dos pagamentos
+                        </h2>
+
+                    </div>
+
+                </div>
+
+
+                <div class="payment-chart">
+
+
+                    <div class="payment-item">
+
+                        <div class="payment-info">
+
+                            <span>
+                                Pagos
+                            </span>
+
+                            <strong id="paid">
+                                0
+                            </strong>
+
+                        </div>
+
+                        <div class="payment-track">
+
+                            <div
+                                id="paidBar"
+                                class="payment-bar paid-bar"
+                            ></div>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <div class="payment-item">
+
+                        <div class="payment-info">
+
+                            <span>
+                                Pendentes
+                            </span>
+
+                            <strong id="pending">
+                                0
+                            </strong>
+
+                        </div>
+
+                        <div class="payment-track">
+
+                            <div
+                                id="pendingBar"
+                                class="payment-bar pending-bar"
+                            ></div>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <div class="payment-item">
+
+                        <div class="payment-info">
+
+                            <span>
+                                Cancelados
+                            </span>
+
+                            <strong id="cancelledChart">
+                                0
+                            </strong>
+
+                        </div>
+
+                        <div class="payment-track">
+
+                            <div
+                                id="cancelledBar"
+                                class="payment-bar cancelled-bar"
+                            ></div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </article>
+
+
+
+            <!-- CAMISETAS -->
+
+            <article class="panel chart-panel shirt-panel">
+
+                <div class="panel-title">
+
+                    <div>
+
+                        <span class="eyebrow">
+                            PRODUÇÃO
+                        </span>
+
+                        <h2>
+                            Camisetas
+                        </h2>
+
+                    </div>
+
+                    <span class="panel-caption">
+                        Distribuição por tamanho
+                    </span>
+
+                </div>
+
+
+                <div class="shirt-grid premium">
+
+                    <div class="shirt-card">
+                        <span>P</span>
+                        <strong id="shirtP">0</strong>
+                    </div>
+
+                    <div class="shirt-card">
+                        <span>M</span>
+                        <strong id="shirtM">0</strong>
+                    </div>
+
+                    <div class="shirt-card">
+                        <span>G</span>
+                        <strong id="shirtG">0</strong>
+                    </div>
+
+                    <div class="shirt-card">
+                        <span>GG</span>
+                        <strong id="shirtGG">0</strong>
+                    </div>
+
+                </div>
+
+            </article>
+
+
+
+            <!-- OPERAÇÃO -->
+
+            <article class="panel operation-panel">
+
+                <div class="panel-title">
+
+                    <div>
+
+                        <span class="eyebrow">
+                            OPERAÇÃO
+                        </span>
+
+                        <h2>
+                            Resumo da corrida
+                        </h2>
+
+                    </div>
+
+                </div>
+
+
+                <div class="operation-list">
+
+
+                    <div class="operation-row">
+
+                        <div>
+                            <span>Participantes</span>
+                            <small>Total de inscritos</small>
+                        </div>
+
+                        <strong id="operationTotal">
+                            0
+                        </strong>
+
+                    </div>
+
+
+                    <div class="operation-row">
+
+                        <div>
+                            <span>5 KM</span>
+                            <small>Percurso curto</small>
+                        </div>
+
+                        <strong id="operation5km">
+                            0
+                        </strong>
+
+                    </div>
+
+
+                    <div class="operation-row">
+
+                        <div>
+                            <span>10 KM</span>
+                            <small>Percurso principal</small>
+                        </div>
+
+                        <strong id="operation10km">
+                            0
+                        </strong>
+
+                    </div>
+
+
+                    <div class="operation-row">
+
+                        <div>
+                            <span>Pagamentos</span>
+                            <small>Confirmados</small>
+                        </div>
+
+                        <strong id="operationPaid">
+                            0
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </article>
+
+        </section>
+
+
+
+        <!-- CTA -->
+
+        <section class="dashboard-cta">
+
+            <div>
+
+                <span class="eyebrow">
+                    GESTÃO DE PARTICIPANTES
+                </span>
+
+                <h2>
+                    Tenha controle total das inscrições.
+                </h2>
+
+                <p>
+                    Consulte participantes, atualize pagamentos,
+                    filtre dados e exporte sua base.
+                </p>
+
+            </div>
+
+
+            <a
+                href="inscritos.html"
+                class="primary-btn"
+            >
+                ACESSAR INSCRITOS
+                <span>→</span>
+            </a>
+
+        </section>
+
+
+        <div
+            id="dashboardMessage"
+            class="message"
+        ></div>
+
+
+    </main>
+
+</div>
+
+</body>
+</html>
