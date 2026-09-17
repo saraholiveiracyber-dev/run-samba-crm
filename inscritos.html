@@ -15,18 +15,50 @@
         content="Gestão de participantes da Run & Samba 2026."
     >
 
+    <meta
+        name="theme-color"
+        content="#050505"
+    >
+
     <title>Inscritos | Run & Samba CRM</title>
+
+
+    <!-- =====================================================
+         CSS DA PÁGINA
+    ====================================================== -->
 
     <link
         rel="stylesheet"
-        href="css/crm.css"
+        href="css/inscritos.css"
     >
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- =====================================================
+         SUPABASE
+    ====================================================== -->
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+    ></script>
+
+
+    <!-- =====================================================
+         CONFIGURAÇÃO
+    ====================================================== -->
 
     <script src="js/config.js"></script>
 
+
+    <!-- =====================================================
+         AUTENTICAÇÃO
+    ====================================================== -->
+
     <script src="js/auth.js"></script>
+
+
+    <!-- =====================================================
+         SCRIPT DA PÁGINA
+    ====================================================== -->
 
     <script
         src="js/inscritos.js"
@@ -38,12 +70,18 @@
 
 <body>
 
+
 <div class="app">
 
 
-    <!-- SIDEBAR -->
+    <!-- =====================================================
+         SIDEBAR
+    ====================================================== -->
 
     <aside class="sidebar">
+
+
+        <!-- MARCA -->
 
         <div class="brand">
 
@@ -58,13 +96,19 @@
         </div>
 
 
+        <!-- NAVEGAÇÃO -->
+
         <div class="sidebar-section">
 
             <span class="sidebar-heading">
                 GESTÃO
             </span>
 
+
             <nav>
+
+
+                <!-- DASHBOARD -->
 
                 <a href="dashboard.html">
 
@@ -72,24 +116,33 @@
                         ◈
                     </span>
 
-                    Dashboard
+                    <span>
+                        Dashboard
+                    </span>
 
                 </a>
 
 
+                <!-- INSCRITOS -->
+
                 <a
-                    class="active"
                     href="inscritos.html"
+                    class="active"
+                    aria-current="page"
                 >
 
                     <span class="nav-icon">
                         ◉
                     </span>
 
-                    Inscritos
+                    <span>
+                        Inscritos
+                    </span>
 
                 </a>
 
+
+                <!-- MARKETING -->
 
                 <a href="marketing.html">
 
@@ -97,16 +150,24 @@
                         ✦
                     </span>
 
-                    Marketing
+                    <span>
+                        Marketing
+                    </span>
 
                 </a>
+
 
             </nav>
 
         </div>
 
 
+        <!-- =================================================
+             RODAPÉ
+        ================================================== -->
+
         <div class="sidebar-bottom">
+
 
             <div class="event-mini">
 
@@ -128,26 +189,35 @@
             <button
                 id="logoutBtn"
                 class="logout"
+                type="button"
             >
+
                 SAIR
+
             </button>
 
+
         </div>
+
 
     </aside>
 
 
-
-    <!-- CONTEÚDO -->
+    <!-- =====================================================
+         CONTEÚDO
+    ====================================================== -->
 
     <main class="content">
 
 
-        <!-- HEADER -->
+        <!-- =================================================
+             HEADER
+        ================================================== -->
 
         <header class="topbar">
 
-            <div>
+
+            <div class="page-heading">
 
                 <span class="eyebrow">
                     GESTÃO • PARTICIPANTES
@@ -164,35 +234,63 @@
             </div>
 
 
-            <button
-                id="exportBtn"
-                class="outline-btn"
-            >
+            <!-- EXPORTAR -->
 
-                EXPORTAR CSV
+            <div class="top-actions">
 
-                <span>
-                    ↓
-                </span>
+                <button
+                    id="exportBtn"
+                    class="outline-btn"
+                    type="button"
+                >
 
-            </button>
+                    <span>
+                        EXPORTAR CSV
+                    </span>
+
+                    <span class="button-arrow">
+                        ↓
+                    </span>
+
+                </button>
+
+            </div>
+
 
         </header>
 
 
+        <!-- =================================================
+             FILTROS
+        ================================================== -->
 
-        <!-- FILTROS -->
+        <section
+            class="toolbar"
+            aria-label="Filtros de participantes"
+        >
 
-        <section class="toolbar">
 
-            <input
-                id="search"
-                type="search"
-                placeholder="Buscar nome, CPF, e-mail ou telefone..."
+            <div class="filter-search">
+
+                <span class="search-icon">
+                    ⌕
+                </span>
+
+                <input
+                    id="search"
+                    type="search"
+                    autocomplete="off"
+                    placeholder="Buscar nome, CPF, e-mail ou telefone..."
+                    aria-label="Buscar participante"
+                >
+
+            </div>
+
+
+            <select
+                id="paymentFilter"
+                aria-label="Filtrar por pagamento"
             >
-
-
-            <select id="paymentFilter">
 
                 <option value="">
                     Todos os pagamentos
@@ -213,7 +311,10 @@
             </select>
 
 
-            <select id="routeFilter">
+            <select
+                id="routeFilter"
+                aria-label="Filtrar por percurso"
+            >
 
                 <option value="">
                     Todos os percursos
@@ -230,7 +331,10 @@
             </select>
 
 
-            <select id="shirtFilter">
+            <select
+                id="shirtFilter"
+                aria-label="Filtrar por camiseta"
+            >
 
                 <option value="">
                     Todas as camisetas
@@ -254,17 +358,23 @@
 
             </select>
 
+
         </section>
 
 
-
-        <!-- TABELA -->
+        <!-- =================================================
+             PAINEL DA TABELA
+        ================================================== -->
 
         <section class="panel">
 
+
+            <!-- CABEÇALHO -->
+
             <div class="table-meta">
 
-                <div>
+
+                <div class="table-title">
 
                     <span class="eyebrow">
                         BASE DE PARTICIPANTES
@@ -277,11 +387,17 @@
                 </div>
 
 
-                <span id="loading">
-                </span>
+                <span
+                    id="loading"
+                    class="loading"
+                    aria-live="polite"
+                ></span>
+
 
             </div>
 
+
+            <!-- TABELA -->
 
             <div class="table-wrap">
 
@@ -328,7 +444,7 @@
 
                         <tr>
 
-                            <td colspan="7">
+                            <td colspan="7" class="empty-cell">
 
                                 Carregando participantes...
 
@@ -342,31 +458,49 @@
 
             </div>
 
+
         </section>
 
 
+        <!-- =================================================
+             MENSAGEM
+        ================================================== -->
 
         <div
             id="message"
             class="message"
+            role="status"
+            aria-live="polite"
         ></div>
 
 
     </main>
 
+
 </div>
 
 
 
-<!-- MODAL PARTICIPANTE -->
+<!-- =========================================================
+     MODAL
+========================================================== -->
 
 <div
     id="editModal"
     class="modal hidden"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modalName"
 >
+
+
+    <div class="modal-overlay"></div>
+
 
     <div class="modal-box">
 
+
+        <!-- FECHAR -->
 
         <button
             id="closeModal"
@@ -374,19 +508,28 @@
             type="button"
             aria-label="Fechar"
         >
+
             ×
+
         </button>
 
 
-        <span class="eyebrow">
-            PARTICIPANTE
-        </span>
+        <!-- CABEÇALHO -->
+
+        <div class="modal-header">
+
+            <span class="eyebrow">
+                PARTICIPANTE
+            </span>
+
+            <h2 id="modalName">
+                Inscrição
+            </h2>
+
+        </div>
 
 
-        <h2 id="modalName">
-            Inscrição
-        </h2>
-
+        <!-- DADOS -->
 
         <div
             id="modalData"
@@ -394,10 +537,13 @@
         ></div>
 
 
+        <!-- STATUS -->
 
-        <label>
+        <div class="payment-editor">
 
-            STATUS DO PAGAMENTO
+            <label for="modalPayment">
+                STATUS DO PAGAMENTO
+            </label>
 
             <select id="modalPayment">
 
@@ -415,34 +561,149 @@
 
             </select>
 
-        </label>
+        </div>
 
 
+        <!-- AÇÃO -->
 
         <div class="modal-actions">
-
 
             <button
                 id="savePayment"
                 class="primary-btn"
                 type="button"
             >
+
                 SALVAR PAGAMENTO
+
             </button>
-
-
-            <a
-                id="whatsappBtn"
-                class="whatsapp-btn"
-                target="_blank"
-                rel="noopener noreferrer"
-            >
-                ABRIR WHATSAPP ↗
-            </a>
 
         </div>
 
+
+        <!-- =================================================
+             COMUNICAÇÃO
+        ================================================== -->
+
+        <section
+            id="pendingCommunication"
+            class="pending-communication hidden"
+            aria-label="Comunicação com participante"
+        >
+
+
+            <div class="communication-header">
+
+                <span class="eyebrow">
+                    INSCRIÇÃO PENDENTE
+                </span>
+
+                <h3>
+                    Entrar em contato
+                </h3>
+
+                <p>
+                    O participante realizou a inscrição,
+                    mas o pagamento ainda está pendente.
+                </p>
+
+                <p>
+                    Envie uma mensagem informando que
+                    o segundo lote estará disponível em breve.
+                </p>
+
+            </div>
+
+
+            <div class="communication-actions">
+
+
+                <!-- WHATSAPP -->
+
+                <a
+                    id="whatsappBtn"
+                    class="communication-btn whatsapp-btn"
+                    href="#"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Enviar mensagem pelo WhatsApp"
+                >
+
+                    <span
+                        class="communication-icon"
+                        aria-hidden="true"
+                    >
+                        ☎
+                    </span>
+
+                    <span class="communication-text">
+
+                        <strong>
+                            WhatsApp
+                        </strong>
+
+                        <small>
+                            Enviar mensagem
+                        </small>
+
+                    </span>
+
+                    <span
+                        class="communication-arrow"
+                        aria-hidden="true"
+                    >
+                        ↗
+                    </span>
+
+                </a>
+
+
+                <!-- E-MAIL -->
+
+                <a
+                    id="emailBtn"
+                    class="communication-btn email-btn"
+                    href="#"
+                    aria-label="Enviar e-mail"
+                >
+
+                    <span
+                        class="communication-icon"
+                        aria-hidden="true"
+                    >
+                        ✉
+                    </span>
+
+                    <span class="communication-text">
+
+                        <strong>
+                            E-mail
+                        </strong>
+
+                        <small>
+                            Enviar mensagem
+                        </small>
+
+                    </span>
+
+                    <span
+                        class="communication-arrow"
+                        aria-hidden="true"
+                    >
+                        ↗
+                    </span>
+
+                </a>
+
+
+            </div>
+
+
+        </section>
+
+
     </div>
+
 
 </div>
 

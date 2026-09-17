@@ -1,19 +1,57 @@
+/* =========================================================
+   RUN & SAMBA CRM
+   MARKETING & CONTEÚDO
+   CALENDÁRIO + CONTEÚDOS + PRODUÇÃO + IDEIAS
+
+   TABELAS:
+   - conteudos_marketing
+   - ideias_posts
+   - tarefas_marketing
+
+   FUNÇÕES:
+   - Criar conteúdo
+   - Editar conteúdo
+   - Visualizar conteúdo
+   - Excluir conteúdo
+   - Calendário mensal
+   - Calendário semanal
+   - Agenda
+   - Clicar no dia para criar conteúdo
+   - Produção / tarefas
+   - Ideias da equipe
+   - Transformar ideia em conteúdo
+   - Filtros
+   - Resumo
+========================================================= */
+
+"use strict";
+
+/* =========================================================
+   SUPABASE
+========================================================= */
+
 const db = window.supabaseClient;
 
-
-// ========================================
-// ESTADO DO CALENDÁRIO
-// ========================================
+/* =========================================================
+   ESTADO
+========================================================= */
 
 let currentDate = new Date();
 
 let contents = [];
 let ideas = [];
+let tasks = [];
 
+let currentEditingContent = null;
+let currentViewingContent = null;
+let currentEditingTask = null;
 
-// ========================================
-// INICIAR
-// ========================================
+let activeIdeaFilter = "todos";
+let activeCalendarView = "month";
+
+/* =========================================================
+   INICIAR
+========================================================= */
 
 async function initMarketing() {
 
@@ -29,18 +67,14 @@ async function initMarketing() {
             );
 
             return;
-
         }
-
 
         const session =
             await window.crmAuth.requireAuth();
 
-
         if (!session) {
             return;
         }
-
 
         if (!db) {
 
@@ -49,14 +83,11 @@ async function initMarketing() {
             );
 
             return;
-
         }
-
 
         bindEvents();
 
         await loadMarketing();
-
 
     } catch (error) {
 
@@ -67,18 +98,14 @@ async function initMarketing() {
 
         showMessage(
             "Erro ao iniciar marketing: " +
-            error.message
+            getErrorMessage(error)
         );
-
     }
-
 }
 
-
-
-// ========================================
-// CARREGAR MARKETING
-// ========================================
+/* =========================================================
+   CARREGAR DADOS
+========================================================= */
 
 async function loadMarketing() {
 
@@ -86,10 +113,9 @@ async function loadMarketing() {
 
         showLoading();
 
-
-        // =================================
-        // CONTEÚDOS
-        // =================================
+        /* =====================================================
+           CONTEÚDOS
+        ===================================================== */
 
         const contentResult =
             await db
@@ -102,7 +128,6 @@ async function loadMarketing() {
                     }
                 );
 
-
         if (contentResult.error) {
 
             console.error(
@@ -111,17 +136,14 @@ async function loadMarketing() {
             );
 
             throw contentResult.error;
-
         }
-
 
         contents =
             contentResult.data || [];
 
-
-        // =================================
-        // IDEIAS
-        // =================================
+        /* =====================================================
+           IDEIAS
+        ===================================================== */
 
         const ideasResult =
             await db
@@ -134,7 +156,6 @@ async function loadMarketing() {
                     }
                 );
 
-
         if (ideasResult.error) {
 
             console.error(
@@ -143,26 +164,60 @@ async function loadMarketing() {
             );
 
             throw ideasResult.error;
-
         }
-
 
         ideas =
             ideasResult.data || [];
 
+        /* =====================================================
+           TAREFAS
+        ===================================================== */
 
-        // =================================
-        // RENDERIZAR
-        // =================================
+        const tasksResult =
+            await db
+                .from("tarefas_marketing")
+                .select("*")
+                .order(
+                    "data_tarefa",
+                    {
+                        ascending: true
+                    }
+                );
+
+        if (tasksResult.error) {
+
+            console.warn(
+                "Tabela tarefas_marketing não disponível:",
+                tasksResult.error.message
+            );
+
+            tasks = [];
+
+        } else {
+
+            tasks =
+                tasksResult.data || [];
+        }
+
+        /* =====================================================
+           RESPONSÁVEIS
+        ===================================================== */
+
+        populateResponsibleFilter();
+
+        /* =====================================================
+           RENDER
+        ===================================================== */
 
         updateSummary();
 
         renderCalendar();
 
+        renderUpcoming();
+
         renderIdeas();
 
         hideMessage();
-
 
     } catch (error) {
 
@@ -171,117 +226,365 @@ async function loadMarketing() {
             error
         );
 
-
         showMessage(
             "Erro ao carregar marketing: " +
-            error.message
+            getErrorMessage(error)
         );
-
-
     }
-
 }
 
-
-
-// ========================================
-// RESUMO
-// ========================================
+/* =========================================================
+   RESUMO
+========================================================= */
 
 function updateSummary() {
 
-    const total =
-        contents.length;
+    const today =
+        new Date();
 
+    const startToday =
+        startOfDay(today);
 
-    const planned =
+    const endToday =
+        endOfDay(today);
+
+    const nextWeek =
+        new Date(today);
+
+    nextWeek.setDate(
+        nextWeek.getDate() + 7
+    );
+
+    const todayCount =
         contents.filter(
-            item =>
-                upper(item.status) ===
-                "PLANEJADO"
+            item => {
+
+                const date =
+                    parseDate(
+                        item.data_publicacao
+                    );
+
+                return (
+                    date &&
+                    date >= startToday &&
+                    date <= endToday
+                );
+            }
         ).length;
 
+    const weekCount =
+        contents.filter(
+            item => {
 
-    const published =
+                const date =
+                    parseDate(
+                        item.data_publicacao
+                    );
+
+                return (
+                    date &&
+                    date >= startToday &&
+                    date <= nextWeek
+                );
+            }
+        ).length;
+
+    const pendingTaskCount =
+        tasks.filter(
+            task =>
+                upper(task.status) !==
+                "CONCLUIDA" &&
+                upper(task.status) !==
+                "CONCLUÍDA"
+        ).length;
+
+    const publishedCount =
         contents.filter(
             item =>
                 upper(item.status) ===
                 "PUBLICADO"
         ).length;
 
-
-    const month =
-        contents.filter(
-            item =>
-                isCurrentMonth(
-                    item.data_publicacao
-                )
-        ).length;
-
-
     setText(
-        "totalContents",
-        total
+        "todayContents",
+        todayCount
     );
 
-
     setText(
-        "plannedContents",
-        planned
+        "weekContents",
+        weekCount
     );
 
+    setText(
+        "pendingTasks",
+        pendingTaskCount
+    );
 
     setText(
         "publishedContents",
-        published
+        publishedCount
     );
-
-
-    setText(
-        "monthContents",
-        month
-    );
-
 
     setText(
         "totalIdeas",
         ideas.length
     );
 
+    /* Compatibilidade */
+
+    setText(
+        "totalContents",
+        contents.length
+    );
+
+    setText(
+        "plannedContents",
+        contents.filter(
+            item =>
+                upper(item.status) ===
+                "PLANEJADO"
+        ).length
+    );
+
+    setText(
+        "monthContents",
+        contents.filter(
+            item =>
+                isCurrentMonth(
+                    item.data_publicacao
+                )
+        ).length
+    );
 }
 
+/* =========================================================
+   FILTROS ATIVOS
+========================================================= */
 
+function getFilteredContents() {
 
-// ========================================
-// CALENDÁRIO
-// ========================================
+    const type =
+        upper(
+            getValue(
+                "contentTypeFilter"
+            )
+        );
+
+    const status =
+        upper(
+            getValue(
+                "contentStatusFilter"
+            )
+        );
+
+    const responsible =
+        getValue(
+            "contentResponsibleFilter"
+        );
+
+    return contents.filter(
+        content => {
+
+            const contentType =
+                upper(
+                    content.tipo ||
+                    content.type ||
+                    content.formato ||
+                    ""
+                );
+
+            const contentStatus =
+                upper(
+                    content.status ||
+                    ""
+                );
+
+            const contentResponsible =
+                String(
+                    content.responsavel ||
+                    ""
+                ).trim();
+
+            const typeOK =
+                type === "TODOS" ||
+                type === "" ||
+                contentType === type;
+
+            const statusOK =
+                status === "TODOS" ||
+                status === "" ||
+                contentStatus === status;
+
+            const responsibleOK =
+                responsible === "todos" ||
+                responsible === "" ||
+                contentResponsible === responsible;
+
+            return (
+                typeOK &&
+                statusOK &&
+                responsibleOK
+            );
+        }
+    );
+}
+
+/* =========================================================
+   POPULAR RESPONSÁVEIS
+========================================================= */
+
+function populateResponsibleFilter() {
+
+    const select =
+        document.getElementById(
+            "contentResponsibleFilter"
+        );
+
+    if (!select) {
+        return;
+    }
+
+    const currentValue =
+        select.value;
+
+    const names = new Set();
+
+    contents.forEach(
+        item => {
+
+            if (
+                item.responsavel &&
+                String(item.responsavel).trim()
+            ) {
+
+                names.add(
+                    String(
+                        item.responsavel
+                    ).trim()
+                );
+            }
+        }
+    );
+
+    tasks.forEach(
+        item => {
+
+            if (
+                item.responsavel &&
+                String(item.responsavel).trim()
+            ) {
+
+                names.add(
+                    String(
+                        item.responsavel
+                    ).trim()
+                );
+            }
+        }
+    );
+
+    const sortedNames =
+        [...names].sort(
+            (a, b) =>
+                a.localeCompare(
+                    b,
+                    "pt-BR"
+                )
+        );
+
+    select.innerHTML =
+        `<option value="todos">Todos os responsáveis</option>`;
+
+    sortedNames.forEach(
+        name => {
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+            option.value =
+                name;
+
+            option.textContent =
+                name;
+
+            select.appendChild(
+                option
+            );
+        }
+    );
+
+    if (
+        sortedNames.includes(
+            currentValue
+        )
+    ) {
+
+        select.value =
+            currentValue;
+
+    } else {
+
+        select.value =
+            "todos";
+    }
+}
+
+/* =========================================================
+   CALENDÁRIO
+========================================================= */
 
 function renderCalendar() {
+
+    if (
+        activeCalendarView ===
+        "week"
+    ) {
+
+        renderWeekCalendar();
+
+        return;
+    }
+
+    if (
+        activeCalendarView ===
+        "agenda"
+    ) {
+
+        renderAgenda();
+
+        return;
+    }
+
+    renderMonthCalendar();
+}
+
+/* =========================================================
+   CALENDÁRIO MENSAL
+========================================================= */
+
+function renderMonthCalendar() {
 
     const grid =
         document.getElementById(
             "calendarGrid"
         );
 
-
     const title =
         document.getElementById(
             "calendarMonth"
         );
 
-
     if (!grid) {
         return;
     }
 
-
     const year =
         currentDate.getFullYear();
 
-
     const month =
         currentDate.getMonth();
-
 
     const monthName =
         currentDate.toLocaleDateString(
@@ -292,17 +595,15 @@ function renderCalendar() {
             }
         );
 
-
     if (title) {
 
         title.textContent =
-            capitalize(monthName);
-
+            capitalize(
+                monthName
+            );
     }
 
-
     grid.innerHTML = "";
-
 
     const firstDay =
         new Date(
@@ -311,7 +612,6 @@ function renderCalendar() {
             1
         );
 
-
     const lastDay =
         new Date(
             year,
@@ -319,24 +619,15 @@ function renderCalendar() {
             0
         );
 
-
-    // Segunda-feira = 0
     let startDay =
         firstDay.getDay() - 1;
-
 
     if (startDay < 0) {
         startDay = 6;
     }
 
-
     const days =
         lastDay.getDate();
-
-
-    // =================================
-    // DIAS DO MÊS ANTERIOR
-    // =================================
 
     const previousLastDay =
         new Date(
@@ -345,6 +636,7 @@ function renderCalendar() {
             0
         ).getDate();
 
+    /* Dias anteriores */
 
     for (
         let i = startDay - 1;
@@ -355,17 +647,16 @@ function renderCalendar() {
         const cell =
             createCalendarDay(
                 previousLastDay - i,
-                true
+                true,
+                -1
             );
 
-        grid.appendChild(cell);
-
+        grid.appendChild(
+            cell
+        );
     }
 
-
-    // =================================
-    // DIAS DO MÊS
-    // =================================
+    /* Dias atuais */
 
     for (
         let day = 1;
@@ -376,55 +667,47 @@ function renderCalendar() {
         const cell =
             createCalendarDay(
                 day,
-                false
+                false,
+                0
             );
 
-        grid.appendChild(cell);
-
+        grid.appendChild(
+            cell
+        );
     }
 
-
-    // =================================
-    // DIAS DO PRÓXIMO MÊS
-    // =================================
-
-    const totalCells =
-        Math.ceil(
-            grid.children.length / 7
-        ) * 7;
-
-
-    let nextDay = 1;
-
+    /* Dias posteriores */
 
     while (
-        grid.children.length <
-        totalCells
+        grid.children.length % 7 !== 0
     ) {
+
+        const nextDay =
+            grid.children.length -
+            (startDay + days) +
+            1;
 
         const cell =
             createCalendarDay(
                 nextDay,
-                true
+                true,
+                1
             );
 
-        grid.appendChild(cell);
-
-        nextDay++;
-
+        grid.appendChild(
+            cell
+        );
     }
-
 }
 
-
-
-// ========================================
-// CRIAR DIA
-// ========================================
+/* =========================================================
+   CRIAR DIA
+========================================================= */
 
 function createCalendarDay(
     day,
-    outside
+    outside,
+    offset
 ) {
 
     const cell =
@@ -432,10 +715,8 @@ function createCalendarDay(
             "div"
         );
 
-
     cell.className =
         "calendar-day";
-
 
     if (outside) {
 
@@ -443,90 +724,486 @@ function createCalendarDay(
             "outside"
         );
 
+        const number =
+            document.createElement(
+                "div"
+            );
+
+        number.className =
+            "calendar-day-number";
+
+        number.textContent =
+            day;
+
+        cell.appendChild(
+            number
+        );
+
+        return cell;
     }
 
+    const year =
+        currentDate.getFullYear();
+
+    const month =
+        currentDate.getMonth();
+
+    const dateString =
+        `${year}-${String(
+            month + 1
+        ).padStart(2, "0")}-${String(
+            day
+        ).padStart(2, "0")}`;
 
     const number =
         document.createElement(
             "div"
         );
 
-
     number.className =
         "calendar-day-number";
 
-
     number.textContent =
         day;
-
 
     cell.appendChild(
         number
     );
 
+    /* Hoje */
 
-    if (outside) {
-        return cell;
+    const today =
+        new Date();
+
+    if (
+        today.getFullYear() === year &&
+        today.getMonth() === month &&
+        today.getDate() === day
+    ) {
+
+        cell.classList.add(
+            "today"
+        );
     }
 
+    /* Clique duplo */
 
-    const year =
-        currentDate.getFullYear();
+    cell.addEventListener(
+        "dblclick",
+        () => {
 
+            openContentModalForDate(
+                dateString
+            );
 
-    const month =
-        currentDate.getMonth();
+        }
+    );
 
-
-    const dateString =
-        `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-
+    /* Conteúdos */
 
     const dayContents =
-        contents.filter(
-            item => {
-
-                if (!item.data_publicacao) {
-                    return false;
-                }
-
-
-                return String(
-                    item.data_publicacao
-                ).startsWith(
-                    dateString
-                );
-
-            }
-        );
-
+        getFilteredContents()
+            .filter(
+                item =>
+                    isSameCalendarDate(
+                        item.data_publicacao,
+                        year,
+                        month,
+                        day
+                    )
+            );
 
     dayContents.forEach(
         content => {
 
-            const item =
-                document.createElement(
-                    "div"
-                );
+            cell.appendChild(
+                createCalendarContent(
+                    content
+                )
+            );
+        }
+    );
 
+    /* Produção */
 
-            const status =
-                upper(
-                    content.status ||
-                    "PLANEJADO"
-                );
+    const dayTasks =
+        tasks.filter(
+            task =>
+                isSameCalendarDate(
+                    task.data_tarefa,
+                    year,
+                    month,
+                    day
+                )
+        );
 
+    dayTasks.forEach(
+        task => {
 
-            item.className =
-                "calendar-content";
+            cell.appendChild(
+                createCalendarTask(
+                    task
+                )
+            );
+        }
+    );
 
+    /* Botão + */
 
-            item.classList.add(
-                getStatusClass(status)
+    const addButton =
+        document.createElement(
+            "button"
+        );
+
+    addButton.type =
+        "button";
+
+    addButton.className =
+        "calendar-add";
+
+    addButton.textContent =
+        "+";
+
+    addButton.title =
+        "Adicionar conteúdo";
+
+    addButton.addEventListener(
+        "click",
+        event => {
+
+            event.stopPropagation();
+
+            openContentModalForDate(
+                dateString
+            );
+        }
+    );
+
+    cell.appendChild(
+        addButton
+    );
+
+    return cell;
+}
+
+/* =========================================================
+   CALENDÁRIO SEMANAL
+========================================================= */
+
+function renderWeekCalendar() {
+
+    const grid =
+        document.getElementById(
+            "calendarGrid"
+        );
+
+    const title =
+        document.getElementById(
+            "calendarMonth"
+        );
+
+    if (!grid) {
+        return;
+    }
+
+    const start =
+        startOfWeek(
+            currentDate
+        );
+
+    const end =
+        new Date(start);
+
+    end.setDate(
+        end.getDate() + 6
+    );
+
+    if (title) {
+
+        title.textContent =
+            `${formatDayMonth(start)} — ${formatDayMonth(end)}`;
+    }
+
+    grid.innerHTML = "";
+
+    for (
+        let i = 0;
+        i < 7;
+        i++
+    ) {
+
+        const date =
+            new Date(start);
+
+        date.setDate(
+            date.getDate() + i
+        );
+
+        const cell =
+            document.createElement(
+                "div"
             );
 
+        cell.className =
+            "calendar-day week-day";
 
-            item.innerHTML = `
+        if (
+            isSameDay(
+                date,
+                new Date()
+            )
+        ) {
+
+            cell.classList.add(
+                "today"
+            );
+        }
+
+        const number =
+            document.createElement(
+                "div"
+            );
+
+        number.className =
+            "calendar-day-number";
+
+        number.textContent =
+            date.toLocaleDateString(
+                "pt-BR",
+                {
+                    weekday: "short",
+                    day: "2-digit"
+                }
+            );
+
+        cell.appendChild(
+            number
+        );
+
+        const dayContents =
+            getFilteredContents()
+                .filter(
+                    item =>
+                        isSameDay(
+                            parseDate(
+                                item.data_publicacao
+                            ),
+                            date
+                        )
+                );
+
+        dayContents.forEach(
+            content => {
+
+                cell.appendChild(
+                    createCalendarContent(
+                        content
+                    )
+                );
+            }
+        );
+
+        tasks
+            .filter(
+                task =>
+                    isSameDay(
+                        parseDate(
+                            task.data_tarefa
+                        ),
+                        date
+                    )
+            )
+            .forEach(
+                task => {
+
+                    cell.appendChild(
+                        createCalendarTask(
+                            task
+                        )
+                    );
+                }
+            );
+
+        const addButton =
+            document.createElement(
+                "button"
+            );
+
+        addButton.type =
+            "button";
+
+        addButton.className =
+            "calendar-add";
+
+        addButton.textContent =
+            "+";
+
+        addButton.addEventListener(
+            "click",
+            () => {
+
+                openContentModalForDate(
+                    formatInputDate(
+                        date
+                    )
+                );
+            }
+        );
+
+        cell.appendChild(
+            addButton
+        );
+
+        grid.appendChild(
+            cell
+        );
+    }
+}
+
+/* =========================================================
+   AGENDA
+========================================================= */
+
+function renderAgenda() {
+
+    const grid =
+        document.getElementById(
+            "calendarGrid"
+        );
+
+    const title =
+        document.getElementById(
+            "calendarMonth"
+        );
+
+    if (!grid) {
+        return;
+    }
+
+    if (title) {
+
+        title.textContent =
+            "Agenda de marketing";
+    }
+
+    const items = [];
+
+    getFilteredContents()
+        .forEach(
+            content => {
+
+                const date =
+                    parseDate(
+                        content.data_publicacao
+                    );
+
+                if (date) {
+
+                    items.push({
+                        type: "content",
+                        date,
+                        data: content
+                    });
+                }
+            }
+        );
+
+    tasks.forEach(
+        task => {
+
+            const date =
+                parseDate(
+                    task.data_tarefa
+                );
+
+            if (date) {
+
+                items.push({
+                    type: "task",
+                    date,
+                    data: task
+                });
+            }
+        }
+    );
+
+    items.sort(
+        (a, b) =>
+            a.date - b.date
+    );
+
+    if (!items.length) {
+
+        grid.innerHTML = `
+            <div class="content-empty">
+                <div class="empty-icon">✦</div>
+                <h3>Nenhuma atividade cadastrada</h3>
+                <p>Adicione conteúdos ou tarefas ao calendário.</p>
+            </div>
+        `;
+
+        return;
+    }
+
+    grid.innerHTML =
+        `<div class="agenda-list">
+            ${items
+                .map(
+                    item =>
+                        item.type === "task"
+                            ? renderAgendaTask(
+                                item.data
+                            )
+                            : renderAgendaContent(
+                                item.data
+                            )
+                )
+                .join("")}
+        </div>`;
+}
+
+/* =========================================================
+   AGENDA — CONTEÚDO
+========================================================= */
+
+function renderAgendaContent(
+    content
+) {
+
+    return `
+        <button
+            type="button"
+            class="agenda-item"
+            data-content-id="${esc(content.id)}"
+        >
+
+            <div class="agenda-date">
+                <strong>
+                    ${esc(
+                        formatDayMonth(
+                            content.data_publicacao
+                        )
+                    )}
+                </strong>
+
+                <span>
+                    ${esc(
+                        formatTime(
+                            content.data_publicacao
+                        )
+                    )}
+                </span>
+            </div>
+
+            <div class="agenda-info">
+
+                <span class="upcoming-type">
+                    ${esc(
+                        content.tipo ||
+                        content.formato ||
+                        "CONTEÚDO"
+                    )}
+                </span>
 
                 <strong>
                     ${esc(
@@ -535,33 +1212,609 @@ function createCalendarDay(
                     )}
                 </strong>
 
-                <span>
+                <small>
                     ${esc(
                         content.plataforma ||
                         "Sem plataforma"
                     )}
+
+                    ${
+                        content.responsavel
+                            ? " • " +
+                              esc(
+                                  content.responsavel
+                              )
+                            : ""
+                    }
+                </small>
+
+            </div>
+
+            <span class="upcoming-status">
+                ${esc(
+                    content.status ||
+                    "PLANEJADO"
+                )}
+            </span>
+
+        </button>
+    `;
+}
+
+/* =========================================================
+   AGENDA — TAREFA
+========================================================= */
+
+function renderAgendaTask(
+    task
+) {
+
+    return `
+        <button
+            type="button"
+            class="agenda-item task-item"
+            data-task-id="${esc(task.id)}"
+        >
+
+            <div class="agenda-date">
+                <strong>
+                    ${esc(
+                        formatDayMonth(
+                            task.data_tarefa
+                        )
+                    )}
+                </strong>
+
+                <span>
+                    ${esc(
+                        formatTime(
+                            task.data_tarefa
+                        )
+                    )}
+                </span>
+            </div>
+
+            <div class="agenda-info">
+
+                <span class="upcoming-type">
+                    PRODUÇÃO
                 </span>
 
-            `;
+                <strong>
+                    ${esc(
+                        task.titulo ||
+                        "Tarefa"
+                    )}
+                </strong>
 
+                <small>
+                    ${esc(
+                        task.responsavel ||
+                        "Sem responsável"
+                    )}
+                </small>
 
-            cell.appendChild(
-                item
+            </div>
+
+            <span class="upcoming-status">
+                ${esc(
+                    task.status ||
+                    "PENDENTE"
+                )}
+            </span>
+
+        </button>
+    `;
+}
+
+/* =========================================================
+   CONTEÚDO NO CALENDÁRIO
+========================================================= */
+
+function createCalendarContent(
+    content
+) {
+
+    const item =
+        document.createElement(
+            "button"
+        );
+
+    item.type =
+        "button";
+
+    item.className =
+        "calendar-content";
+
+    const status =
+        upper(
+            content.status ||
+            "PLANEJADO"
+        );
+
+    item.classList.add(
+        getStatusClass(
+            status
+        )
+    );
+
+    item.innerHTML = `
+
+        <span class="calendar-content-time">
+            ${esc(
+                formatTime(
+                    content.data_publicacao
+                )
+            )}
+        </span>
+
+        <strong>
+            ${esc(
+                content.titulo ||
+                "Conteúdo"
+            )}
+        </strong>
+
+        <span class="calendar-content-meta">
+
+            ${esc(
+                content.tipo ||
+                content.formato ||
+                "Conteúdo"
+            )}
+
+            ${
+                content.plataforma
+                    ? " • " +
+                      esc(
+                          content.plataforma
+                      )
+                    : ""
+            }
+
+        </span>
+    `;
+
+    item.addEventListener(
+        "click",
+        event => {
+
+            event.stopPropagation();
+
+            openViewContentModal(
+                content
             );
-
         }
     );
 
-
-    return cell;
-
+    return item;
 }
 
+/* =========================================================
+   TAREFA NO CALENDÁRIO
+========================================================= */
 
+function createCalendarTask(
+    task
+) {
 
-// ========================================
-// IDEIAS
-// ========================================
+    const item =
+        document.createElement(
+            "button"
+        );
+
+    item.type =
+        "button";
+
+    item.className =
+        "calendar-content calendar-task";
+
+    item.classList.add(
+        getTaskStatusClass(
+            task.status
+        )
+    );
+
+    item.innerHTML = `
+
+        <span class="calendar-content-time">
+            ${esc(
+                formatTime(
+                    task.data_tarefa
+                )
+            )}
+        </span>
+
+        <strong>
+            ${esc(
+                task.titulo ||
+                "Produção"
+            )}
+        </strong>
+
+        <span class="calendar-content-meta">
+            PRODUÇÃO
+        </span>
+    `;
+
+    item.addEventListener(
+        "click",
+        event => {
+
+            event.stopPropagation();
+
+            openTaskModal(
+                task
+            );
+        }
+    );
+
+    return item;
+}
+
+/* =========================================================
+   PRÓXIMOS
+========================================================= */
+
+function renderUpcoming() {
+
+    const container =
+        document.getElementById(
+            "upcomingContents"
+        );
+
+    if (!container) {
+        return;
+    }
+
+    const now =
+        new Date();
+
+    const items = [];
+
+    getFilteredContents()
+        .forEach(
+            content => {
+
+                const date =
+                    parseDate(
+                        content.data_publicacao
+                    );
+
+                if (
+                    date &&
+                    date >= now
+                ) {
+
+                    items.push({
+                        type: "content",
+                        date,
+                        data: content
+                    });
+                }
+            }
+        );
+
+    tasks.forEach(
+        task => {
+
+            const date =
+                parseDate(
+                    task.data_tarefa
+                );
+
+            if (
+                date &&
+                date >= now
+            ) {
+
+                items.push({
+                    type: "task",
+                    date,
+                    data: task
+                });
+            }
+        }
+    );
+
+    items.sort(
+        (a, b) =>
+            a.date - b.date
+    );
+
+    const nextItems =
+        items.slice(
+            0,
+            10
+        );
+
+    if (!nextItems.length) {
+
+        container.innerHTML = `
+
+            <div class="content-empty">
+
+                <div class="empty-icon">
+                    ✦
+                </div>
+
+                <h3>
+                    Nenhuma atividade próxima
+                </h3>
+
+                <p>
+                    Adicione conteúdos ou tarefas
+                    ao calendário.
+                </p>
+
+            </div>
+        `;
+
+        return;
+    }
+
+    container.innerHTML =
+        nextItems
+            .map(
+                item => {
+
+                    if (
+                        item.type ===
+                        "task"
+                    ) {
+
+                        return renderUpcomingTask(
+                            item.data
+                        );
+                    }
+
+                    return renderUpcomingContent(
+                        item.data
+                    );
+                }
+            )
+            .join("");
+
+    bindUpcomingActions();
+}
+
+/* =========================================================
+   PRÓXIMO CONTEÚDO
+========================================================= */
+
+function renderUpcomingContent(
+    content
+) {
+
+    const status =
+        upper(
+            content.status ||
+            "PLANEJADO"
+        );
+
+    return `
+
+        <button
+            type="button"
+            class="upcoming-item ${getStatusClass(status)}"
+            data-content-id="${esc(content.id)}"
+        >
+
+            <div class="upcoming-date">
+
+                <strong>
+                    ${esc(
+                        formatDayMonth(
+                            content.data_publicacao
+                        )
+                    )}
+                </strong>
+
+                <span>
+                    ${esc(
+                        formatTime(
+                            content.data_publicacao
+                        )
+                    )}
+                </span>
+
+            </div>
+
+            <div class="upcoming-info">
+
+                <span class="upcoming-type">
+                    ${esc(
+                        content.tipo ||
+                        content.formato ||
+                        "CONTEÚDO"
+                    )}
+                </span>
+
+                <strong>
+                    ${esc(
+                        content.titulo ||
+                        "Conteúdo sem título"
+                    )}
+                </strong>
+
+                <small>
+
+                    ${esc(
+                        content.plataforma ||
+                        "Sem plataforma"
+                    )}
+
+                    ${
+                        content.responsavel
+                            ? " • " +
+                              esc(
+                                  content.responsavel
+                              )
+                            : ""
+                    }
+
+                </small>
+
+            </div>
+
+            <span class="upcoming-status">
+                ${esc(status)}
+            </span>
+
+        </button>
+    `;
+}
+
+/* =========================================================
+   PRÓXIMA TAREFA
+========================================================= */
+
+function renderUpcomingTask(
+    task
+) {
+
+    const status =
+        upper(
+            task.status ||
+            "PENDENTE"
+        );
+
+    return `
+
+        <button
+            type="button"
+            class="upcoming-item task-item"
+            data-task-id="${esc(task.id)}"
+        >
+
+            <div class="upcoming-date">
+
+                <strong>
+                    ${esc(
+                        formatDayMonth(
+                            task.data_tarefa
+                        )
+                    )}
+                </strong>
+
+                <span>
+                    ${esc(
+                        formatTime(
+                            task.data_tarefa
+                        )
+                    )}
+                </span>
+
+            </div>
+
+            <div class="upcoming-info">
+
+                <span class="upcoming-type">
+                    PRODUÇÃO
+                </span>
+
+                <strong>
+                    ${esc(
+                        task.titulo ||
+                        "Tarefa"
+                    )}
+                </strong>
+
+                <small>
+                    ${esc(
+                        task.responsavel ||
+                        "Sem responsável"
+                    )}
+                </small>
+
+            </div>
+
+            <span class="upcoming-status">
+                ${esc(status)}
+            </span>
+
+        </button>
+    `;
+}
+
+/* =========================================================
+   AÇÕES PRÓXIMOS
+========================================================= */
+
+function bindUpcomingActions() {
+
+    document
+        .querySelectorAll(
+            ".upcoming-item[data-content-id]"
+        )
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        const id =
+                            button.dataset.contentId;
+
+                        const content =
+                            contents.find(
+                                item =>
+                                    String(
+                                        item.id
+                                    ) ===
+                                    String(id)
+                            );
+
+                        if (content) {
+
+                            openViewContentModal(
+                                content
+                            );
+                        }
+                    }
+                );
+            }
+        );
+
+    document
+        .querySelectorAll(
+            ".upcoming-item[data-task-id]"
+        )
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        const id =
+                            button.dataset.taskId;
+
+                        const task =
+                            tasks.find(
+                                item =>
+                                    String(
+                                        item.id
+                                    ) ===
+                                    String(id)
+                            );
+
+                        if (task) {
+
+                            openTaskModal(
+                                task
+                            );
+                        }
+                    }
+                );
+            }
+        );
+}
+
+/* =========================================================
+   IDEIAS
+========================================================= */
 
 function renderIdeas() {
 
@@ -570,13 +1823,32 @@ function renderIdeas() {
             "ideasGrid"
         );
 
-
     if (!grid) {
         return;
     }
 
+    let filteredIdeas =
+        [...ideas];
 
-    if (!ideas.length) {
+    if (
+        activeIdeaFilter !==
+        "todos"
+    ) {
+
+        filteredIdeas =
+            filteredIdeas.filter(
+                idea =>
+                    upper(
+                        idea.tipo ||
+                        idea.formato
+                    ) ===
+                    upper(
+                        activeIdeaFilter
+                    )
+            );
+    }
+
+    if (!filteredIdeas.length) {
 
         grid.innerHTML = `
 
@@ -587,151 +1859,290 @@ function renderIdeas() {
                 </div>
 
                 <h3>
-                    Nenhuma ideia cadastrada
+                    Nenhuma ideia encontrada
                 </h3>
 
                 <p>
-                    A equipe ainda não registrou
-                    nenhuma ideia de post.
+                    Registre uma ideia de conteúdo
+                    para a equipe.
                 </p>
 
                 <button
                     type="button"
                     class="primary-small-btn"
-                    onclick="openIdeaModal()"
+                    id="emptyIdeaButton"
                 >
                     + REGISTRAR IDEIA
                 </button>
 
             </div>
-
         `;
 
-        return;
+        const emptyButton =
+            document.getElementById(
+                "emptyIdeaButton"
+            );
 
+        if (emptyButton) {
+
+            emptyButton.addEventListener(
+                "click",
+                openIdeaModal
+            );
+        }
+
+        return;
     }
 
-
     grid.innerHTML =
-        ideas.map(
-            idea => {
+        filteredIdeas
+            .map(
+                renderIdeaCard
+            )
+            .join("");
 
-                const priority =
-                    upper(
-                        idea.prioridade ||
-                        "NORMAL"
-                    );
-
-
-                const status =
-                    upper(
-                        idea.status ||
-                        "NOVA"
-                    );
-
-
-                return `
-
-                    <article class="idea-card">
-
-                        <div class="idea-card-head">
-
-                            <span class="idea-status">
-                                ${esc(status)}
-                            </span>
-
-                            <span
-                                class="idea-priority ${priority.toLowerCase()}"
-                            >
-                                ${esc(priority)}
-                            </span>
-
-                        </div>
-
-
-                        <h3>
-                            ${esc(
-                                idea.titulo ||
-                                "Ideia sem título"
-                            )}
-                        </h3>
-
-
-                        <p>
-                            ${esc(
-                                idea.descricao ||
-                                "Sem descrição."
-                            )}
-                        </p>
-
-
-                        <div class="idea-meta">
-
-                            <span>
-                                📱
-                                ${esc(
-                                    idea.plataforma ||
-                                    "Não definido"
-                                )}
-                            </span>
-
-
-                            <span>
-                                🎬
-                                ${esc(
-                                    idea.formato ||
-                                    "Não definido"
-                                )}
-                            </span>
-
-                        </div>
-
-
-                        <div class="idea-footer">
-
-                            <span>
-                                ${esc(
-                                    idea.autor ||
-                                    "Equipe"
-                                )}
-                            </span>
-
-
-                            <span>
-                                ${formatDate(
-                                    idea.created_at
-                                )}
-                            </span>
-
-                        </div>
-
-                    </article>
-
-                `;
-
-            }
-        ).join("");
-
+    bindIdeaActions();
 }
 
+/* =========================================================
+   CARD DE IDEIA
+========================================================= */
 
+function renderIdeaCard(
+    idea
+) {
 
-// ========================================
-// EVENTOS
-// ========================================
+    const priority =
+        upper(
+            idea.prioridade ||
+            "NORMAL"
+        );
+
+    const type =
+        upper(
+            idea.tipo ||
+            idea.formato ||
+            "IDEIA"
+        );
+
+    return `
+
+        <article
+            class="idea-card"
+            data-idea-id="${esc(idea.id)}"
+        >
+
+            <div class="idea-card-head">
+
+                <span class="idea-status">
+                    ${esc(type)}
+                </span>
+
+                <span
+                    class="idea-priority ${priority.toLowerCase()}"
+                >
+                    ${esc(priority)}
+                </span>
+
+            </div>
+
+            <h3>
+                ${esc(
+                    idea.titulo ||
+                    "Ideia sem título"
+                )}
+            </h3>
+
+            <p>
+                ${esc(
+                    idea.descricao ||
+                    "Sem descrição."
+                )}
+            </p>
+
+            <div class="idea-meta">
+
+                <span>
+                    ✦
+                    ${esc(type)}
+                </span>
+
+                ${
+                    idea.plataforma
+                        ? `
+                            <span>
+                                •
+                                ${esc(
+                                    idea.plataforma
+                                )}
+                            </span>
+                          `
+                        : ""
+                }
+
+            </div>
+
+            <div class="idea-footer">
+
+                <span>
+
+                    ${
+                        idea.autor
+                            ? "💡 " +
+                              esc(
+                                  idea.autor
+                              )
+                            : "💡 Equipe"
+                    }
+
+                </span>
+
+                <span>
+                    ${esc(
+                        formatDate(
+                            idea.created_at
+                        )
+                    )}
+                </span>
+
+            </div>
+
+            <div class="idea-actions">
+
+                <button
+                    type="button"
+                    class="outline-btn idea-convert-btn"
+                    data-id="${esc(idea.id)}"
+                >
+                    TRANSFORMAR EM CONTEÚDO
+                </button>
+
+            </div>
+
+        </article>
+    `;
+}
+
+/* =========================================================
+   AÇÕES IDEIAS
+========================================================= */
+
+function bindIdeaActions() {
+
+    document
+        .querySelectorAll(
+            ".idea-convert-btn"
+        )
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    event => {
+
+                        event.stopPropagation();
+
+                        const id =
+                            button.dataset.id;
+
+                        const idea =
+                            ideas.find(
+                                item =>
+                                    String(
+                                        item.id
+                                    ) ===
+                                    String(id)
+                            );
+
+                        if (!idea) {
+                            return;
+                        }
+
+                        convertIdeaToContent(
+                            idea
+                        );
+                    }
+                );
+            }
+        );
+}
+
+/* =========================================================
+   TRANSFORMAR IDEIA
+========================================================= */
+
+function convertIdeaToContent(
+    idea
+) {
+
+    resetContentForm();
+
+    setValue(
+        "contentTitle",
+        idea.titulo || ""
+    );
+
+    setValue(
+        "contentDescription",
+        idea.descricao || ""
+    );
+
+    setValue(
+        "contentType",
+        normalizeType(
+            idea.tipo ||
+            idea.formato
+        )
+    );
+
+    setValue(
+        "contentPlatform",
+        idea.plataforma || ""
+    );
+
+    setValue(
+        "contentFormat",
+        normalizeFormat(
+            idea.formato ||
+            idea.tipo
+        )
+    );
+
+    setValue(
+        "contentPriority",
+        normalizePriority(
+            idea.prioridade
+        )
+    );
+
+    setValue(
+        "contentStatus",
+        "PLANEJADO"
+    );
+
+    setText(
+        "contentModalTitle",
+        "Transformar ideia em conteúdo"
+    );
+
+    currentEditingContent =
+        null;
+
+    openContentModal();
+}
+
+/* =========================================================
+   EVENTOS
+========================================================= */
 
 function bindEvents() {
 
-
-    // =================================
-    // ATUALIZAR
-    // =================================
+    /* Atualizar */
 
     const refresh =
         document.getElementById(
             "refreshMarketing"
         );
-
 
     if (refresh) {
 
@@ -739,171 +2150,165 @@ function bindEvents() {
             "click",
             loadMarketing
         );
-
     }
 
-
-    // =================================
-    // NOVO CONTEÚDO
-    // =================================
+    /* Novo conteúdo */
 
     const newContent =
         document.getElementById(
             "newContentBtn"
         );
 
-
     if (newContent) {
 
         newContent.addEventListener(
             "click",
-            openContentModal
-        );
+            () => {
 
+                resetContentForm();
+
+                openContentModal();
+            }
+        );
     }
 
+    /* Nova ideia */
 
-    // =================================
-    // NOVA IDEIA
-    // =================================
+    [
+        "newIdeaBtn",
+        "newIdeaBtnPanel"
+    ].forEach(
+        id => {
 
-    const newIdea =
+            const button =
+                document.getElementById(
+                    id
+                );
+
+            if (button) {
+
+                button.addEventListener(
+                    "click",
+                    openIdeaModal
+                );
+            }
+        }
+    );
+
+    /* Nova produção */
+
+    const newTask =
         document.getElementById(
-            "newIdeaBtn"
+            "newTaskBtn"
         );
 
+    if (newTask) {
 
-    if (newIdea) {
-
-        newIdea.addEventListener(
-            "click",
-            openIdeaModal
-        );
-
-    }
-
-
-    const newIdeaPanel =
-        document.getElementById(
-            "newIdeaBtnPanel"
-        );
-
-
-    if (newIdeaPanel) {
-
-        newIdeaPanel.addEventListener(
-            "click",
-            openIdeaModal
-        );
-
-    }
-
-
-    // =================================
-    // FECHAR CONTEÚDO
-    // =================================
-
-    const closeContent =
-        document.getElementById(
-            "closeContentModal"
-        );
-
-
-    if (closeContent) {
-
-        closeContent.addEventListener(
-            "click",
-            closeContentModal
-        );
-
-    }
-
-
-    // =================================
-    // FECHAR IDEIA
-    // =================================
-
-    const closeIdea =
-        document.getElementById(
-            "closeIdeaModal"
-        );
-
-
-    if (closeIdea) {
-
-        closeIdea.addEventListener(
-            "click",
-            closeIdeaModal
-        );
-
-    }
-
-
-    // =================================
-    // MÊS ANTERIOR
-    // =================================
-
-    const prev =
-        document.getElementById(
-            "prevMonth"
-        );
-
-
-    if (prev) {
-
-        prev.addEventListener(
+        newTask.addEventListener(
             "click",
             () => {
+
+                resetTaskForm();
+
+                openTaskModal();
+            }
+        );
+    }
+
+    /* Fechar modais */
+
+    bindClick(
+        "closeContentModal",
+        closeContentModal
+    );
+
+    bindClick(
+        "cancelContentBtn",
+        closeContentModal
+    );
+
+    bindClick(
+        "closeIdeaModal",
+        closeIdeaModal
+    );
+
+    bindClick(
+        "closeTaskModal",
+        closeTaskModal
+    );
+
+    bindClick(
+        "closeViewContentModal",
+        closeViewContentModal
+    );
+
+    /* Navegação calendário */
+
+    bindClick(
+        "prevMonth",
+        () => {
+
+            if (
+                activeCalendarView ===
+                "week"
+            ) {
+
+                currentDate.setDate(
+                    currentDate.getDate() - 7
+                );
+
+            } else {
 
                 currentDate.setMonth(
                     currentDate.getMonth() - 1
                 );
-
-                renderCalendar();
-
             }
-        );
 
-    }
+            renderCalendar();
+        }
+    );
 
+    bindClick(
+        "nextMonth",
+        () => {
 
-    // =================================
-    // PRÓXIMO MÊS
-    // =================================
+            if (
+                activeCalendarView ===
+                "week"
+            ) {
 
-    const next =
-        document.getElementById(
-            "nextMonth"
-        );
+                currentDate.setDate(
+                    currentDate.getDate() + 7
+                );
 
-
-    if (next) {
-
-        next.addEventListener(
-            "click",
-            () => {
+            } else {
 
                 currentDate.setMonth(
                     currentDate.getMonth() + 1
                 );
-
-                renderCalendar();
-
             }
-        );
 
-    }
+            renderCalendar();
+        }
+    );
 
+    bindClick(
+        "todayBtn",
+        () => {
 
-    // =================================
-    // FORMULÁRIO CONTEÚDO
-    // =================================
+            currentDate =
+                new Date();
+
+            renderCalendar();
+        }
+    );
+
+    /* Formulários */
 
     const contentForm =
         document.getElementById(
             "contentForm"
         );
-
 
     if (contentForm) {
 
@@ -911,19 +2316,12 @@ function bindEvents() {
             "submit",
             saveContent
         );
-
     }
-
-
-    // =================================
-    // FORMULÁRIO IDEIA
-    // =================================
 
     const ideaForm =
         document.getElementById(
             "ideaForm"
         );
-
 
     if (ideaForm) {
 
@@ -931,16 +2329,245 @@ function bindEvents() {
             "submit",
             saveIdea
         );
-
     }
 
+    const taskForm =
+        document.getElementById(
+            "taskForm"
+        );
+
+    if (taskForm) {
+
+        taskForm.addEventListener(
+            "submit",
+            saveTask
+        );
+    }
+
+    /* Editar */
+
+    bindClick(
+        "editContentBtn",
+        () => {
+
+            if (
+                currentViewingContent
+            ) {
+
+                openEditContentModal(
+                    currentViewingContent
+                );
+            }
+        }
+    );
+
+    /* Excluir */
+
+    bindClick(
+        "deleteContentBtn",
+        deleteCurrentContent
+    );
+
+    /* Filtros */
+
+    bindChange(
+        "contentTypeFilter",
+        refreshMarketingView
+    );
+
+    bindChange(
+        "contentStatusFilter",
+        refreshMarketingView
+    );
+
+    bindChange(
+        "contentResponsibleFilter",
+        refreshMarketingView
+    );
+
+    bindClick(
+        "clearFilters",
+        clearFilters
+    );
+
+    /* Visualização */
+
+    const calendarView =
+        document.getElementById(
+            "calendarView"
+        );
+
+    if (calendarView) {
+
+        calendarView.addEventListener(
+            "change",
+            () => {
+
+                activeCalendarView =
+                    calendarView.value ||
+                    "month";
+
+                renderCalendar();
+            }
+        );
+    }
+
+    /* Filtros de ideias */
+
+    document
+        .querySelectorAll(
+            "[data-idea-filter]"
+        )
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        document
+                            .querySelectorAll(
+                                "[data-idea-filter]"
+                            )
+                            .forEach(
+                                item =>
+                                    item.classList.remove(
+                                        "active"
+                                    )
+                            );
+
+                        button.classList.add(
+                            "active"
+                        );
+
+                        activeIdeaFilter =
+                            String(
+                                button.dataset.ideaFilter ||
+                                "todos"
+                            ).toLowerCase();
+
+                        renderIdeas();
+                    }
+                );
+            }
+        );
+
+    /* Quick tasks */
+
+    document
+        .querySelectorAll(
+            ".quick-task"
+        )
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        setValue(
+                            "taskTitle",
+                            button.dataset.task ||
+                            ""
+                        );
+                    }
+                );
+            }
+        );
+
+    /* Clique fora */
+
+    document
+        .querySelectorAll(
+            ".modal"
+        )
+        .forEach(
+            modal => {
+
+                modal.addEventListener(
+                    "click",
+                    event => {
+
+                        if (
+                            event.target ===
+                            modal
+                        ) {
+
+                            modal.classList.add(
+                                "hidden"
+                            );
+                        }
+                    }
+                );
+            }
+        );
+
+    /* ESC */
+
+    document.addEventListener(
+        "keydown",
+        event => {
+
+            if (
+                event.key ===
+                "Escape"
+            ) {
+
+                closeAllModals();
+            }
+        }
+    );
 }
 
+/* =========================================================
+   ATUALIZAR VISUALIZAÇÃO
+========================================================= */
 
+function refreshMarketingView() {
 
-// ========================================
-// MODAL CONTEÚDO
-// ========================================
+    updateSummary();
+
+    renderCalendar();
+
+    renderUpcoming();
+}
+
+/* =========================================================
+   FILTROS
+========================================================= */
+
+function applyFilters() {
+
+    refreshMarketingView();
+}
+
+/* =========================================================
+   LIMPAR FILTROS
+========================================================= */
+
+function clearFilters() {
+
+    setValue(
+        "contentTypeFilter",
+        "todos"
+    );
+
+    setValue(
+        "contentStatusFilter",
+        "todos"
+    );
+
+    setValue(
+        "contentResponsibleFilter",
+        "todos"
+    );
+
+    refreshMarketingView();
+}
+
+/* =========================================================
+   MODAL CONTEÚDO
+========================================================= */
 
 function openContentModal() {
 
@@ -949,305 +2576,444 @@ function openContentModal() {
             "contentModal"
         );
 
+    if (!modal) {
+        return;
+    }
+
+    modal.classList.remove(
+        "hidden"
+    );
+
+    setText(
+        "contentModalTitle",
+        currentEditingContent
+            ? "Editar conteúdo"
+            : "Novo conteúdo"
+    );
+}
+
+/* =========================================================
+   MODAL POR DATA
+========================================================= */
+
+function openContentModalForDate(
+    dateString
+) {
+
+    resetContentForm();
+
+    setValue(
+        "contentDate",
+        `${dateString}T09:00`
+    );
+
+    openContentModal();
+}
+
+/* =========================================================
+   EDITAR CONTEÚDO
+========================================================= */
+
+function openEditContentModal(
+    content
+) {
+
+    currentEditingContent =
+        content;
+
+    closeViewContentModal();
+
+    setValue(
+        "contentId",
+        content.id
+    );
+
+    setValue(
+        "contentTitle",
+        content.titulo
+    );
+
+    setValue(
+        "contentType",
+        normalizeType(
+            content.tipo ||
+            content.type ||
+            content.formato
+        )
+    );
+
+    setValue(
+        "contentPlatform",
+        content.plataforma
+    );
+
+    setValue(
+        "contentFormat",
+        content.formato
+    );
+
+    setValue(
+        "contentDate",
+        formatDateTimeLocal(
+            content.data_publicacao
+        )
+    );
+
+    setValue(
+        "contentResponsible",
+        content.responsavel
+    );
+
+    setValue(
+        "contentStatus",
+        content.status ||
+        "PLANEJADO"
+    );
+
+    setValue(
+        "contentPriority",
+        content.prioridade ||
+        "NORMAL"
+    );
+
+    setValue(
+        "contentLocation",
+        content.local
+    );
+
+    setValue(
+        "contentParticipants",
+        content.participantes
+    );
+
+    setValue(
+        "contentDescription",
+        content.descricao
+    );
+
+    setValue(
+        "contentCaption",
+        content.legenda
+    );
+
+    setValue(
+        "contentImage",
+        content.imagem_url
+    );
+
+    const deleteButton =
+        document.getElementById(
+            "deleteContentBtn"
+        );
+
+    if (deleteButton) {
+
+        deleteButton.classList.remove(
+            "hidden"
+        );
+    }
+
+    openContentModal();
+}
+
+/* =========================================================
+   RESET CONTEÚDO
+========================================================= */
+
+function resetContentForm() {
+
+    currentEditingContent =
+        null;
+
+    const form =
+        document.getElementById(
+            "contentForm"
+        );
+
+    if (form) {
+        form.reset();
+    }
+
+    setValue(
+        "contentId",
+        ""
+    );
+
+    setValue(
+        "contentStatus",
+        "PLANEJADO"
+    );
+
+    setValue(
+        "contentPriority",
+        "NORMAL"
+    );
+
+    const deleteButton =
+        document.getElementById(
+            "deleteContentBtn"
+        );
+
+    if (deleteButton) {
+
+        deleteButton.classList.add(
+            "hidden"
+        );
+    }
+
+    setText(
+        "contentModalTitle",
+        "Novo conteúdo"
+    );
+}
+
+/* =========================================================
+   VISUALIZAR CONTEÚDO
+========================================================= */
+
+function openViewContentModal(
+    content
+) {
+
+    currentViewingContent =
+        content;
+
+    setText(
+        "viewContentType",
+        content.tipo ||
+        content.formato ||
+        "CONTEÚDO"
+    );
+
+    setText(
+        "viewContentTitle",
+        content.titulo ||
+        "Conteúdo sem título"
+    );
+
+    setText(
+        "viewContentDate",
+        formatDateTime(
+            content.data_publicacao
+        )
+    );
+
+    setText(
+        "viewContentStatus",
+        content.status ||
+        "PLANEJADO"
+    );
+
+    setText(
+        "viewContentResponsible",
+        content.responsavel ||
+        "Não definido"
+    );
+
+    setText(
+        "viewContentDescription",
+        content.descricao ||
+        "Sem briefing."
+    );
+
+    setText(
+        "viewContentCaption",
+        content.legenda ||
+        "Sem legenda ou roteiro."
+    );
+
+    const modal =
+        document.getElementById(
+            "viewContentModal"
+        );
 
     if (modal) {
 
         modal.classList.remove(
             "hidden"
         );
-
     }
-
 }
 
-
-function closeContentModal() {
+function closeViewContentModal() {
 
     const modal =
         document.getElementById(
-            "contentModal"
+            "viewContentModal"
         );
-
 
     if (modal) {
 
         modal.classList.add(
             "hidden"
         );
-
     }
-
 }
 
+/* =========================================================
+   SALVAR CONTEÚDO
+========================================================= */
 
-
-// ========================================
-// MODAL IDEIA
-// ========================================
-
-function openIdeaModal() {
-
-    const modal =
-        document.getElementById(
-            "ideaModal"
-        );
-
-
-    if (modal) {
-
-        modal.classList.remove(
-            "hidden"
-        );
-
-    }
-
-}
-
-
-function closeIdeaModal() {
-
-    const modal =
-        document.getElementById(
-            "ideaModal"
-        );
-
-
-    if (modal) {
-
-        modal.classList.add(
-            "hidden"
-        );
-
-    }
-
-}
-
-
-
-// ========================================
-// SALVAR IDEIA
-// ========================================
-
-async function saveIdea(event) {
+async function saveContent(
+    event
+) {
 
     event.preventDefault();
-
 
     const button =
         event.target.querySelector(
             "button[type='submit']"
         );
 
-
-    if (button) {
-
-        button.disabled = true;
-
-        button.textContent =
-            "SALVANDO...";
-
-    }
-
+    setButtonLoading(
+        button,
+        "SALVANDO..."
+    );
 
     try {
 
-        const idea = {
-
-            titulo:
-                document.getElementById(
-                    "ideaTitle"
-                ).value.trim(),
-
-            descricao:
-                document.getElementById(
-                    "ideaDescription"
-                ).value.trim(),
-
-            plataforma:
-                document.getElementById(
-                    "ideaPlatform"
-                ).value,
-
-            formato:
-                document.getElementById(
-                    "ideaFormat"
-                ).value,
-
-            prioridade:
-                document.getElementById(
-                    "ideaPriority"
-                ).value,
-
-            autor:
-                document.getElementById(
-                    "ideaAuthor"
-                ).value.trim(),
-
-            status:
-                "NOVA"
-
-        };
-
-
-        const {
-            error
-        } = await db
-            .from("ideias_posts")
-            .insert(
-                idea
+        const title =
+            getValue(
+                "contentTitle"
             );
-
-
-        if (error) {
-
-            throw error;
-
-        }
-
-
-        event.target.reset();
-
-        closeIdeaModal();
-
-
-        showMessage(
-            "Ideia cadastrada com sucesso."
-        );
-
-
-        await loadMarketing();
-
-
-    } catch (error) {
-
-        console.error(
-            "Erro ao salvar ideia:",
-            error
-        );
-
-
-        showMessage(
-            "Erro ao salvar ideia: " +
-            error.message
-        );
-
-
-    } finally {
-
-        if (button) {
-
-            button.disabled = false;
-
-            button.textContent =
-                "SALVAR IDEIA";
-
-        }
-
-    }
-
-}
-
-
-
-// ========================================
-// SALVAR CONTEÚDO
-// ========================================
-
-async function saveContent(event) {
-
-    event.preventDefault();
-
-
-    const button =
-        event.target.querySelector(
-            "button[type='submit']"
-        );
-
-
-    if (button) {
-
-        button.disabled = true;
-
-        button.textContent =
-            "SALVANDO...";
-
-    }
-
-
-    try {
 
         const dateValue =
-            document.getElementById(
+            getValue(
                 "contentDate"
-            ).value;
-
-
-        const content = {
-
-            titulo:
-                document.getElementById(
-                    "contentTitle"
-                ).value.trim(),
-
-            plataforma:
-                document.getElementById(
-                    "contentPlatform"
-                ).value,
-
-            formato:
-                document.getElementById(
-                    "contentFormat"
-                ).value,
-
-            data_publicacao:
-                dateValue,
-
-            status:
-                document.getElementById(
-                    "contentStatus"
-                ).value,
-
-            legenda:
-                document.getElementById(
-                    "contentCaption"
-                ).value.trim(),
-
-            imagem_url:
-                document.getElementById(
-                    "contentImage"
-                ).value.trim()
-
-        };
-
-
-        const {
-            error
-        } = await db
-            .from("conteudos_marketing")
-            .insert(
-                content
             );
 
+        if (!title) {
 
-        if (error) {
-
-            throw error;
-
+            throw new Error(
+                "Informe o título do conteúdo."
+            );
         }
 
+        if (!dateValue) {
 
-        event.target.reset();
+            throw new Error(
+                "Informe a data do conteúdo."
+            );
+        }
+
+        const payload = {
+
+            titulo:
+                title,
+
+            tipo:
+                getValue(
+                    "contentType"
+                ),
+
+            plataforma:
+                getValue(
+                    "contentPlatform"
+                ),
+
+            formato:
+                getValue(
+                    "contentFormat"
+                ),
+
+            data_publicacao:
+                new Date(
+                    dateValue
+                ).toISOString(),
+
+            responsavel:
+                getValue(
+                    "contentResponsible"
+                ),
+
+            status:
+                getValue(
+                    "contentStatus"
+                ) ||
+                "PLANEJADO",
+
+            prioridade:
+                getValue(
+                    "contentPriority"
+                ) ||
+                "NORMAL",
+
+            local:
+                getValue(
+                    "contentLocation"
+                ),
+
+            participantes:
+                getValue(
+                    "contentParticipants"
+                ),
+
+            descricao:
+                getValue(
+                    "contentDescription"
+                ),
+
+            legenda:
+                getValue(
+                    "contentCaption"
+                ),
+
+            imagem_url:
+                getValue(
+                    "contentImage"
+                ),
+
+            updated_at:
+                new Date().toISOString()
+        };
+
+        const id =
+            getValue(
+                "contentId"
+            );
+
+        let result;
+
+        if (id) {
+
+            result =
+                await db
+                    .from(
+                        "conteudos_marketing"
+                    )
+                    .update(
+                        payload
+                    )
+                    .eq(
+                        "id",
+                        id
+                    );
+
+        } else {
+
+            result =
+                await db
+                    .from(
+                        "conteudos_marketing"
+                    )
+                    .insert(
+                        payload
+                    );
+        }
+
+        if (result.error) {
+            throw result.error;
+        }
 
         closeContentModal();
 
-
         showMessage(
-            "Conteúdo cadastrado com sucesso."
+            id
+                ? "Conteúdo atualizado com sucesso."
+                : "Conteúdo criado com sucesso."
         );
 
-
         await loadMarketing();
-
 
     } catch (error) {
 
@@ -1256,37 +3022,516 @@ async function saveContent(event) {
             error
         );
 
-
         showMessage(
             "Erro ao salvar conteúdo: " +
-            error.message
+            getErrorMessage(error)
         );
-
 
     } finally {
 
-        if (button) {
-
-            button.disabled = false;
-
-            button.textContent =
-                "SALVAR CONTEÚDO";
-
-        }
-
+        setButtonLoading(
+            button,
+            "SALVAR CONTEÚDO"
+        );
     }
-
 }
 
+/* =========================================================
+   EXCLUIR CONTEÚDO
+========================================================= */
 
+async function deleteCurrentContent() {
 
-// ========================================
-// STATUS
-// ========================================
+    const content =
+        currentViewingContent ||
+        currentEditingContent;
 
-function getStatusClass(status) {
+    if (!content) {
+        return;
+    }
 
-    switch (status) {
+    if (
+        !confirm(
+            `Excluir o conteúdo "${content.titulo || "sem título"}"?`
+        )
+    ) {
+        return;
+    }
+
+    try {
+
+        const {
+            error
+        } =
+            await db
+                .from(
+                    "conteudos_marketing"
+                )
+                .delete()
+                .eq(
+                    "id",
+                    content.id
+                );
+
+        if (error) {
+            throw error;
+        }
+
+        closeAllModals();
+
+        currentViewingContent =
+            null;
+
+        currentEditingContent =
+            null;
+
+        showMessage(
+            "Conteúdo excluído com sucesso."
+        );
+
+        await loadMarketing();
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao excluir conteúdo:",
+            error
+        );
+
+        showMessage(
+            "Erro ao excluir conteúdo: " +
+            getErrorMessage(error)
+        );
+    }
+}
+
+/* =========================================================
+   MODAL IDEIA
+========================================================= */
+
+function openIdeaModal() {
+
+    const modal =
+        document.getElementById(
+            "ideaModal"
+        );
+
+    if (!modal) {
+        return;
+    }
+
+    modal.classList.remove(
+        "hidden"
+    );
+}
+
+function closeIdeaModal() {
+
+    const modal =
+        document.getElementById(
+            "ideaModal"
+        );
+
+    if (modal) {
+
+        modal.classList.add(
+            "hidden"
+        );
+    }
+}
+
+/* =========================================================
+   SALVAR IDEIA
+========================================================= */
+
+async function saveIdea(
+    event
+) {
+
+    event.preventDefault();
+
+    const button =
+        event.target.querySelector(
+            "button[type='submit']"
+        );
+
+    setButtonLoading(
+        button,
+        "SALVANDO..."
+    );
+
+    try {
+
+        const title =
+            getValue(
+                "ideaTitle"
+            );
+
+        if (!title) {
+
+            throw new Error(
+                "Informe o título da ideia."
+            );
+        }
+
+        /*
+         * IMPORTANTE:
+         * A tabela ideias_posts conhecida possui:
+         * titulo
+         * descricao
+         * plataforma
+         * formato
+         * prioridade
+         * autor
+         * status
+         *
+         * Não enviamos ideaResponsible,
+         * pois esse campo não faz parte
+         * do schema conhecido.
+         */
+
+        const idea = {
+
+            titulo:
+                title,
+
+            descricao:
+                getValue(
+                    "ideaDescription"
+                ),
+
+            plataforma:
+                "",
+
+            formato:
+                getValue(
+                    "ideaType"
+                ),
+
+            prioridade:
+                getValue(
+                    "ideaPriority"
+                ) ||
+                "NORMAL",
+
+            autor:
+                getValue(
+                    "ideaAuthor"
+                ),
+
+            status:
+                "NOVA",
+
+            updated_at:
+                new Date().toISOString()
+        };
+
+        const {
+            error
+        } =
+            await db
+                .from(
+                    "ideias_posts"
+                )
+                .insert(
+                    idea
+                );
+
+        if (error) {
+            throw error;
+        }
+
+        event.target.reset();
+
+        closeIdeaModal();
+
+        showMessage(
+            "Ideia cadastrada com sucesso."
+        );
+
+        await loadMarketing();
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao salvar ideia:",
+            error
+        );
+
+        showMessage(
+            "Erro ao salvar ideia: " +
+            getErrorMessage(error)
+        );
+
+    } finally {
+
+        setButtonLoading(
+            button,
+            "SALVAR IDEIA"
+        );
+    }
+}
+
+/* =========================================================
+   MODAL PRODUÇÃO
+========================================================= */
+
+function openTaskModal(
+    task = null
+) {
+
+    const modal =
+        document.getElementById(
+            "taskModal"
+        );
+
+    if (!modal) {
+        return;
+    }
+
+    currentEditingTask =
+        task;
+
+    if (task) {
+
+        setValue(
+            "taskTitle",
+            task.titulo
+        );
+
+        setValue(
+            "taskDate",
+            formatDateTimeLocal(
+                task.data_tarefa
+            )
+        );
+
+        setValue(
+            "taskResponsible",
+            task.responsavel
+        );
+
+        setValue(
+            "taskDescription",
+            task.descricao
+        );
+
+        setValue(
+            "taskStatus",
+            task.status ||
+            "PENDENTE"
+        );
+
+    } else {
+
+        setText(
+            "taskModalTitle",
+            "Nova produção"
+        );
+    }
+
+    modal.classList.remove(
+        "hidden"
+    );
+}
+
+function closeTaskModal() {
+
+    const modal =
+        document.getElementById(
+            "taskModal"
+        );
+
+    if (modal) {
+
+        modal.classList.add(
+            "hidden"
+        );
+    }
+
+    currentEditingTask =
+        null;
+}
+
+function resetTaskForm() {
+
+    currentEditingTask =
+        null;
+
+    const form =
+        document.getElementById(
+            "taskForm"
+        );
+
+    if (form) {
+        form.reset();
+    }
+
+    setValue(
+        "taskStatus",
+        "PENDENTE"
+    );
+}
+
+/* =========================================================
+   SALVAR TAREFA
+========================================================= */
+
+async function saveTask(
+    event
+) {
+
+    event.preventDefault();
+
+    const button =
+        event.target.querySelector(
+            "button[type='submit']"
+        );
+
+    setButtonLoading(
+        button,
+        "SALVANDO..."
+    );
+
+    try {
+
+        const title =
+            getValue(
+                "taskTitle"
+            );
+
+        const dateValue =
+            getValue(
+                "taskDate"
+            );
+
+        if (!title) {
+
+            throw new Error(
+                "Informe o nome da produção."
+            );
+        }
+
+        if (!dateValue) {
+
+            throw new Error(
+                "Informe a data da produção."
+            );
+        }
+
+        const payload = {
+
+            titulo:
+                title,
+
+            data_tarefa:
+                new Date(
+                    dateValue
+                ).toISOString(),
+
+            responsavel:
+                getValue(
+                    "taskResponsible"
+                ),
+
+            descricao:
+                getValue(
+                    "taskDescription"
+                ),
+
+            status:
+                getValue(
+                    "taskStatus"
+                ) ||
+                "PENDENTE",
+
+            updated_at:
+                new Date().toISOString()
+        };
+
+        let result;
+
+        if (
+            currentEditingTask &&
+            currentEditingTask.id
+        ) {
+
+            result =
+                await db
+                    .from(
+                        "tarefas_marketing"
+                    )
+                    .update(
+                        payload
+                    )
+                    .eq(
+                        "id",
+                        currentEditingTask.id
+                    );
+
+        } else {
+
+            result =
+                await db
+                    .from(
+                        "tarefas_marketing"
+                    )
+                    .insert(
+                        payload
+                    );
+        }
+
+        if (result.error) {
+            throw result.error;
+        }
+
+        event.target.reset();
+
+        closeTaskModal();
+
+        showMessage(
+            currentEditingTask
+                ? "Produção atualizada com sucesso."
+                : "Produção cadastrada com sucesso."
+        );
+
+        currentEditingTask =
+            null;
+
+        await loadMarketing();
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao salvar produção:",
+            error
+        );
+
+        showMessage(
+            "Erro ao salvar produção: " +
+            getErrorMessage(error)
+        );
+
+    } finally {
+
+        setButtonLoading(
+            button,
+            "SALVAR PRODUÇÃO"
+        );
+    }
+}
+
+/* =========================================================
+   STATUS CONTEÚDO
+========================================================= */
+
+function getStatusClass(
+    status
+) {
+
+    switch (
+        upper(status)
+    ) {
 
         case "PUBLICADO":
             return "published";
@@ -1294,32 +3539,168 @@ function getStatusClass(status) {
         case "AGENDADO":
             return "scheduled";
 
+        case "EM_PRODUCAO":
+        case "EM PRODUÇÃO":
+            return "production";
+
         case "RASCUNHO":
+        case "IDEIA":
             return "draft";
 
         default:
             return "planned";
-
     }
-
 }
 
+/* =========================================================
+   STATUS TAREFA
+========================================================= */
 
+function getTaskStatusClass(
+    status
+) {
 
-// ========================================
-// UTILITÁRIOS
-// ========================================
+    switch (
+        upper(status)
+    ) {
 
-function upper(value) {
+        case "CONCLUIDA":
+        case "CONCLUÍDA":
+            return "published";
+
+        case "EM_PRODUCAO":
+        case "EM PRODUÇÃO":
+            return "production";
+
+        default:
+            return "task";
+    }
+}
+
+/* =========================================================
+   NORMALIZAR TIPO
+========================================================= */
+
+function normalizeType(
+    value
+) {
+
+    const type =
+        upper(value);
+
+    const allowed = [
+        "POST",
+        "REELS",
+        "STORIES",
+        "VIDEO",
+        "CAMPANHA",
+        "PRODUCAO"
+    ];
+
+    if (
+        allowed.includes(
+            type
+        )
+    ) {
+
+        return type;
+    }
+
+    if (
+        type === "VÍDEO"
+    ) {
+
+        return "VIDEO";
+    }
+
+    if (
+        type === "PRODUÇÃO"
+    ) {
+
+        return "PRODUCAO";
+    }
+
+    return "";
+}
+
+/* =========================================================
+   NORMALIZAR FORMATO
+========================================================= */
+
+function normalizeFormat(
+    value
+) {
+
+    const type =
+        upper(value);
+
+    const formats = [
+        "FEED",
+        "REELS",
+        "STORIES",
+        "CARROSSEL",
+        "VÍDEO",
+        "VIDEO",
+        "CAPTAÇÃO",
+        "CAPTACAO",
+        "OUTRO"
+    ];
+
+    if (
+        formats.includes(
+            type
+        )
+    ) {
+
+        return type === "VIDEO"
+            ? "VÍDEO"
+            : type;
+    }
+
+    return "";
+}
+
+/* =========================================================
+   NORMALIZAR PRIORIDADE
+========================================================= */
+
+function normalizePriority(
+    value
+) {
+
+    const priority =
+        upper(value);
+
+    if (
+        [
+            "NORMAL",
+            "ALTA",
+            "URGENTE"
+        ].includes(
+            priority
+        )
+    ) {
+
+        return priority;
+    }
+
+    return "NORMAL";
+}
+
+/* =========================================================
+   UTILITÁRIOS
+========================================================= */
+
+function upper(
+    value
+) {
 
     return String(
         value ?? ""
     )
         .trim()
         .toUpperCase();
-
 }
-
 
 function setText(
     id,
@@ -1331,76 +3712,438 @@ function setText(
             id
         );
 
-
     if (element) {
 
         element.textContent =
-            value;
-
+            value ?? "";
     }
-
 }
 
+function setValue(
+    id,
+    value
+) {
 
-function formatDate(value) {
+    const element =
+        document.getElementById(
+            id
+        );
 
-    if (!value) {
-        return "—";
+    if (element) {
+
+        element.value =
+            value ?? "";
+    }
+}
+
+function getValue(
+    id
+) {
+
+    const element =
+        document.getElementById(
+            id
+        );
+
+    if (!element) {
+        return "";
     }
 
+    return String(
+        element.value ?? ""
+    ).trim();
+}
+
+function bindClick(
+    id,
+    handler
+) {
+
+    const element =
+        document.getElementById(
+            id
+        );
+
+    if (
+        element &&
+        typeof handler ===
+        "function"
+    ) {
+
+        element.addEventListener(
+            "click",
+            handler
+        );
+    }
+}
+
+function bindChange(
+    id,
+    handler
+) {
+
+    const element =
+        document.getElementById(
+            id
+        );
+
+    if (
+        element &&
+        typeof handler ===
+        "function"
+    ) {
+
+        element.addEventListener(
+            "change",
+            handler
+        );
+    }
+}
+
+/* =========================================================
+   DATAS
+========================================================= */
+
+function parseDate(
+    value
+) {
+
+    if (!value) {
+        return null;
+    }
 
     const date =
         new Date(value);
 
+    if (
+        Number.isNaN(
+            date.getTime()
+        )
+    ) {
 
-    if (isNaN(date)) {
-        return "—";
+        return null;
     }
 
+    return date;
+}
+
+function formatDate(
+    value
+) {
+
+    const date =
+        parseDate(value);
+
+    if (!date) {
+        return "—";
+    }
 
     return date.toLocaleDateString(
         "pt-BR"
     );
-
 }
 
-
-function isCurrentMonth(value) {
-
-    if (!value) {
-        return false;
-    }
-
+function formatTime(
+    value
+) {
 
     const date =
-        new Date(value);
+        parseDate(value);
 
+    if (!date) {
+        return "—";
+    }
 
-    if (isNaN(date)) {
+    return date.toLocaleTimeString(
+        "pt-BR",
+        {
+            hour: "2-digit",
+            minute: "2-digit"
+        }
+    );
+}
+
+function formatDateTime(
+    value
+) {
+
+    const date =
+        parseDate(value);
+
+    if (!date) {
+        return "—";
+    }
+
+    return (
+        date.toLocaleDateString(
+            "pt-BR"
+        ) +
+        " • " +
+        date.toLocaleTimeString(
+            "pt-BR",
+            {
+                hour: "2-digit",
+                minute: "2-digit"
+            }
+        )
+    );
+}
+
+function formatDateTimeLocal(
+    value
+) {
+
+    const date =
+        parseDate(value);
+
+    if (!date) {
+        return "";
+    }
+
+    const year =
+        date.getFullYear();
+
+    const month =
+        String(
+            date.getMonth() + 1
+        ).padStart(
+            2,
+            "0"
+        );
+
+    const day =
+        String(
+            date.getDate()
+        ).padStart(
+            2,
+            "0"
+        );
+
+    const hours =
+        String(
+            date.getHours()
+        ).padStart(
+            2,
+            "0"
+        );
+
+    const minutes =
+        String(
+            date.getMinutes()
+        ).padStart(
+            2,
+            "0"
+        );
+
+    return (
+        `${year}-${month}-${day}` +
+        `T${hours}:${minutes}`
+    );
+}
+
+function formatInputDate(
+    date
+) {
+
+    const year =
+        date.getFullYear();
+
+    const month =
+        String(
+            date.getMonth() + 1
+        ).padStart(
+            2,
+            "0"
+        );
+
+    const day =
+        String(
+            date.getDate()
+        ).padStart(
+            2,
+            "0"
+        );
+
+    return (
+        `${year}-${month}-${day}`
+    );
+}
+
+function formatDayMonth(
+    value
+) {
+
+    const date =
+        value instanceof Date
+            ? value
+            : parseDate(value);
+
+    if (!date) {
+        return "—";
+    }
+
+    return date.toLocaleDateString(
+        "pt-BR",
+        {
+            day: "2-digit",
+            month: "2-digit"
+        }
+    );
+}
+
+function startOfDay(
+    date
+) {
+
+    const result =
+        new Date(date);
+
+    result.setHours(
+        0,
+        0,
+        0,
+        0
+    );
+
+    return result;
+}
+
+function endOfDay(
+    date
+) {
+
+    const result =
+        new Date(date);
+
+    result.setHours(
+        23,
+        59,
+        59,
+        999
+    );
+
+    return result;
+}
+
+function startOfWeek(
+    date
+) {
+
+    const result =
+        new Date(date);
+
+    result.setHours(
+        0,
+        0,
+        0,
+        0
+    );
+
+    const day =
+        result.getDay();
+
+    const diff =
+        day === 0
+            ? -6
+            : 1 - day;
+
+    result.setDate(
+        result.getDate() + diff
+    );
+
+    return result;
+}
+
+function isSameDay(
+    dateA,
+    dateB
+) {
+
+    if (
+        !dateA ||
+        !dateB
+    ) {
         return false;
     }
 
+    return (
+        dateA.getFullYear() ===
+        dateB.getFullYear() &&
+        dateA.getMonth() ===
+        dateB.getMonth() &&
+        dateA.getDate() ===
+        dateB.getDate()
+    );
+}
+
+function isSameCalendarDate(
+    value,
+    year,
+    month,
+    day
+) {
+
+    const date =
+        parseDate(value);
+
+    if (!date) {
+        return false;
+    }
+
+    return (
+        date.getFullYear() ===
+        year &&
+        date.getMonth() ===
+        month &&
+        date.getDate() ===
+        day
+    );
+}
+
+function isCurrentMonth(
+    value
+) {
+
+    const date =
+        parseDate(value);
+
+    if (!date) {
+        return false;
+    }
 
     return (
         date.getMonth() ===
-        currentDate.getMonth()
-        &&
+        currentDate.getMonth() &&
         date.getFullYear() ===
         currentDate.getFullYear()
     );
-
 }
 
+/* =========================================================
+   CAPITALIZAR
+========================================================= */
 
-function capitalize(value) {
+function capitalize(
+    value
+) {
 
-    return value.charAt(0).toUpperCase() +
-        value.slice(1);
+    if (!value) {
+        return "";
+    }
 
+    return (
+        value.charAt(0).toUpperCase() +
+        value.slice(1)
+    );
 }
 
+/* =========================================================
+   ESC HTML
+========================================================= */
 
-function esc(value) {
+function esc(
+    value
+) {
 
     return String(
         value ?? ""
@@ -1415,38 +4158,87 @@ function esc(value) {
                 "'": "&#039;"
             }[character])
     );
-
 }
 
+/* =========================================================
+   BOTÃO LOADING
+========================================================= */
 
+function setButtonLoading(
+    button,
+    text
+) {
 
-// ========================================
-// MENSAGEM
-// ========================================
+    if (!button) {
+        return;
+    }
 
-function showMessage(text) {
+    if (
+        text ===
+        "SALVANDO..."
+    ) {
+
+        if (
+            !button.dataset.originalText
+        ) {
+
+            button.dataset.originalText =
+                button.textContent;
+        }
+
+        button.disabled =
+            true;
+
+        button.textContent =
+            text;
+
+    } else {
+
+        button.disabled =
+            false;
+
+        button.textContent =
+            button.dataset.originalText ||
+            text;
+
+        delete button.dataset.originalText;
+    }
+}
+
+/* =========================================================
+   MENSAGEM
+========================================================= */
+
+function showMessage(
+    text
+) {
 
     const element =
         document.getElementById(
             "dashboardMessage"
         );
 
-
     if (!element) {
         return;
     }
 
-
     element.textContent =
         text;
-
 
     element.classList.add(
         "show"
     );
 
-}
+    clearTimeout(
+        window.marketingMessageTimer
+    );
 
+    window.marketingMessageTimer =
+        setTimeout(
+            hideMessage,
+            5000
+        );
+}
 
 function hideMessage() {
 
@@ -1455,22 +4247,21 @@ function hideMessage() {
             "dashboardMessage"
         );
 
-
     if (!element) {
         return;
     }
 
-
     element.textContent =
         "";
-
 
     element.classList.remove(
         "show"
     );
-
 }
 
+/* =========================================================
+   LOADING
+========================================================= */
 
 function showLoading() {
 
@@ -1479,26 +4270,104 @@ function showLoading() {
             "ideasGrid"
         );
 
-
     if (grid) {
 
         grid.innerHTML = `
-
             <div class="content-loading">
                 Carregando ideias...
             </div>
-
         `;
-
     }
 
+    const calendar =
+        document.getElementById(
+            "calendarGrid"
+        );
+
+    if (calendar) {
+
+        calendar.innerHTML = `
+            <div class="content-loading">
+                Carregando calendário...
+            </div>
+        `;
+    }
 }
 
+/* =========================================================
+   FECHAR TODOS
+========================================================= */
 
+function closeAllModals() {
 
-// ========================================
-// INICIAR
-// ========================================
+    document
+        .querySelectorAll(
+            ".modal"
+        )
+        .forEach(
+            modal => {
+
+                modal.classList.add(
+                    "hidden"
+                );
+            }
+        );
+
+    currentEditingTask =
+        null;
+}
+
+/* =========================================================
+   ERRO
+========================================================= */
+
+function getErrorMessage(
+    error
+) {
+
+    if (!error) {
+        return "Erro desconhecido.";
+    }
+
+    return (
+        error.message ||
+        error.details ||
+        error.hint ||
+        String(error)
+    );
+}
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+document.addEventListener(
+    "click",
+    event => {
+
+        const button =
+            event.target.closest(
+                "#logoutBtn"
+            );
+
+        if (!button) {
+            return;
+        }
+
+        if (
+            window.crmAuth &&
+            typeof window.crmAuth.logout ===
+            "function"
+        ) {
+
+            window.crmAuth.logout();
+        }
+    }
+);
+
+/* =========================================================
+   INICIAR
+========================================================= */
 
 if (
     document.readyState ===
@@ -1513,5 +4382,4 @@ if (
 } else {
 
     initMarketing();
-
 }

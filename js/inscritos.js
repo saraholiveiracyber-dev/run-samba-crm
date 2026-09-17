@@ -1,16 +1,37 @@
-const db = window.supabaseClient;
+/* =========================================================
+   RUN & SAMBA 2026
+   CRM — INSCRITOS
+   PARTICIPANTES + PAGAMENTO + COMUNICAÇÃO
+   ========================================================= */
+
+"use strict";
+
+
+/* =========================================================
+   ESTADO
+   ========================================================= */
+
+let db = null;
 
 let allRows = [];
+
 let selectedId = null;
 
 
-// ========================================
-// INICIALIZAÇÃO
-// ========================================
+/* =========================================================
+   INICIALIZAÇÃO
+   ========================================================= */
 
 async function init() {
 
     try {
+
+        /* =====================================================
+           SUPABASE
+        ===================================================== */
+
+        db = window.supabaseClient;
+
 
         if (!db) {
 
@@ -21,6 +42,10 @@ async function init() {
             return;
         }
 
+
+        /* =====================================================
+           AUTENTICAÇÃO
+        ===================================================== */
 
         if (
             !window.crmAuth ||
@@ -44,7 +69,16 @@ async function init() {
         }
 
 
+        /* =====================================================
+           CARREGAR DADOS
+        ===================================================== */
+
         await loadRows();
+
+
+        /* =====================================================
+           EVENTOS
+        ===================================================== */
 
         bindEvents();
 
@@ -58,7 +92,10 @@ async function init() {
 
         showMessage(
             "Erro ao iniciar o CRM: " +
-            error.message
+            (
+                error?.message ||
+                "Erro desconhecido."
+            )
         );
 
     }
@@ -66,13 +103,15 @@ async function init() {
 }
 
 
-// ========================================
-// CARREGAR INSCRIÇÕES
-// ========================================
+/* =========================================================
+   CARREGAR INSCRIÇÕES
+   ========================================================= */
 
 async function loadRows() {
 
-    setLoading("Carregando...");
+    setLoading(
+        "Carregando inscrições..."
+    );
 
 
     const {
@@ -103,27 +142,40 @@ async function loadRows() {
         );
 
 
-        document.getElementById(
-            "tableBody"
-        ).innerHTML = `
+        const body =
+            document.getElementById(
+                "tableBody"
+            );
 
-            <tr>
 
-                <td colspan="7">
+        if (body) {
 
-                    Erro ao carregar inscrições.
+            body.innerHTML = `
 
-                    <br>
+                <tr>
 
-                    <small>
-                        ${esc(error.message)}
-                    </small>
+                    <td
+                        colspan="7"
+                        class="empty-cell"
+                    >
 
-                </td>
+                        <strong>
+                            Erro ao carregar inscrições.
+                        </strong>
 
-            </tr>
+                        <br>
 
-        `;
+                        <small>
+                            ${esc(error.message)}
+                        </small>
+
+                    </td>
+
+                </tr>
+
+            `;
+
+        }
 
 
         setLoading("");
@@ -132,7 +184,10 @@ async function loadRows() {
     }
 
 
-    allRows = data || [];
+    allRows =
+        Array.isArray(data)
+            ? data
+            : [];
 
 
     render();
@@ -143,12 +198,16 @@ async function loadRows() {
 }
 
 
-// ========================================
-// EVENTOS
-// ========================================
+/* =========================================================
+   EVENTOS
+   ========================================================= */
 
 function bindEvents() {
 
+
+    /* =====================================================
+       FILTROS
+       ===================================================== */
 
     [
         "search",
@@ -157,28 +216,32 @@ function bindEvents() {
         "shirtFilter"
     ].forEach(id => {
 
-        const el =
+        const element =
             document.getElementById(id);
 
 
-        if (!el) {
+        if (!element) {
             return;
         }
 
 
-        el.addEventListener(
+        element.addEventListener(
             "input",
             render
         );
 
 
-        el.addEventListener(
+        element.addEventListener(
             "change",
             render
         );
 
     });
 
+
+    /* =====================================================
+       EXPORTAR
+       ===================================================== */
 
     const exportBtn =
         document.getElementById(
@@ -196,6 +259,10 @@ function bindEvents() {
     }
 
 
+    /* =====================================================
+       FECHAR MODAL
+       ===================================================== */
+
     const closeBtn =
         document.getElementById(
             "closeModal"
@@ -211,6 +278,43 @@ function bindEvents() {
 
     }
 
+
+    /* =====================================================
+       OVERLAY
+       ===================================================== */
+
+    const modal =
+        document.getElementById(
+            "editModal"
+        );
+
+
+    if (modal) {
+
+        modal.addEventListener(
+            "click",
+            event => {
+
+                if (
+                    event.target === modal ||
+                    event.target.classList.contains(
+                        "modal-overlay"
+                    )
+                ) {
+
+                    closeModal();
+
+                }
+
+            }
+        );
+
+    }
+
+
+    /* =====================================================
+       SALVAR PAGAMENTO
+       ===================================================== */
 
     const saveBtn =
         document.getElementById(
@@ -228,21 +332,29 @@ function bindEvents() {
     }
 
 
-    const modal =
-        document.getElementById(
-            "editModal"
-        );
+    /* =====================================================
+       ESC
+       ===================================================== */
 
+    document.addEventListener(
+        "keydown",
+        event => {
 
-    if (modal) {
+            if (
+                event.key === "Escape"
+            ) {
 
-        modal.addEventListener(
-            "click",
-            event => {
+                const modal =
+                    document.getElementById(
+                        "editModal"
+                    );
+
 
                 if (
-                    event.target.id ===
-                    "editModal"
+                    modal &&
+                    !modal.classList.contains(
+                        "hidden"
+                    )
                 ) {
 
                     closeModal();
@@ -250,10 +362,14 @@ function bindEvents() {
                 }
 
             }
-        );
 
-    }
+        }
+    );
 
+
+    /* =====================================================
+       LOGOUT
+       ===================================================== */
 
     const logoutBtn =
         document.getElementById(
@@ -264,15 +380,37 @@ function bindEvents() {
     if (
         logoutBtn &&
         window.crmAuth &&
-        typeof window.crmAuth.logout ===
-        "function"
+        typeof window.crmAuth.logout === "function"
     ) {
 
         logoutBtn.addEventListener(
             "click",
             async () => {
 
-                await window.crmAuth.logout();
+                logoutBtn.disabled = true;
+
+                logoutBtn.textContent =
+                    "SAINDO...";
+
+
+                try {
+
+                    await window.crmAuth.logout();
+
+                } catch (error) {
+
+                    console.error(
+                        "Erro ao sair:",
+                        error
+                    );
+
+                    logoutBtn.disabled =
+                        false;
+
+                    logoutBtn.textContent =
+                        "SAIR";
+
+                }
 
             }
         );
@@ -282,12 +420,11 @@ function bindEvents() {
 }
 
 
-// ========================================
-// FILTRAR
-// ========================================
+/* =========================================================
+   FILTRAR
+   ========================================================= */
 
 function filtered() {
-
 
     const searchElement =
         document.getElementById(
@@ -317,75 +454,98 @@ function filtered() {
         String(
             searchElement?.value || ""
         )
-        .toLowerCase()
-        .trim();
+            .toLowerCase()
+            .trim();
 
 
     const payment =
         String(
             paymentElement?.value || ""
         )
-        .toUpperCase();
+            .trim()
+            .toUpperCase();
 
 
     const route =
         String(
             routeElement?.value || ""
         )
-        .toUpperCase();
+            .trim()
+            .toUpperCase();
 
 
     const shirt =
         String(
             shirtElement?.value || ""
         )
-        .toUpperCase();
+            .trim()
+            .toUpperCase();
 
 
-    return allRows.filter(r => {
+    return allRows.filter(row => {
 
+
+        /* =================================================
+           BUSCA
+           ================================================= */
 
         const text = [
 
-            r.nome,
-
-            r.cpf,
-
-            r.email,
-
-            r.telefone
+            row.nome,
+            row.cpf,
+            row.email,
+            row.telefone
 
         ]
-            .map(v => String(v || ""))
+            .map(value =>
+                String(
+                    value ?? ""
+                )
+            )
             .join(" ")
             .toLowerCase();
 
 
-        const statusPagamento =
-            String(
-                r.status_pagamento ||
-                "PENDENTE"
-            )
-            .toUpperCase();
+        /* =================================================
+           PAGAMENTO
+           ================================================= */
 
+        const statusPagamento =
+            normalizarPagamento(
+                row.status_pagamento
+            );
+
+
+        /* =================================================
+           PERCURSO
+           ================================================= */
 
         const percurso =
             String(
-                r.percurso || ""
+                row.percurso ?? ""
             )
-            .toUpperCase();
+                .trim()
+                .toUpperCase();
 
+
+        /* =================================================
+           CAMISETA
+           ================================================= */
 
         const camiseta =
             String(
-                r.camiseta || ""
+                row.camiseta ?? ""
             )
-            .toUpperCase();
+                .trim()
+                .toUpperCase();
 
 
         return (
 
-            (!q || text.includes(q))
+            (
+                !q ||
+                text.includes(q)
+            )
 
             &&
 
@@ -415,16 +575,56 @@ function filtered() {
 }
 
 
-// ========================================
-// RENDERIZAR TABELA
-// ========================================
+/* =========================================================
+   NORMALIZAR PAGAMENTO
+   ========================================================= */
+
+function normalizarPagamento(value) {
+
+    const status =
+        String(
+            value ?? ""
+        )
+            .trim()
+            .toUpperCase();
+
+
+    if (
+        status === "PAGO"
+    ) {
+
+        return "PAGO";
+
+    }
+
+
+    if (
+        status === "CANCELADO"
+    ) {
+
+        return "CANCELADO";
+
+    }
+
+
+    return "PENDENTE";
+
+}
+
+
+/* =========================================================
+   RENDERIZAR TABELA
+   ========================================================= */
 
 function render() {
-
 
     const rows =
         filtered();
 
+
+    /* =====================================================
+       CONTADOR
+       ===================================================== */
 
     const count =
         document.getElementById(
@@ -444,6 +644,10 @@ function render() {
     }
 
 
+    /* =====================================================
+       TABELA
+       ===================================================== */
+
     const body =
         document.getElementById(
             "tableBody"
@@ -455,13 +659,20 @@ function render() {
     }
 
 
+    /* =====================================================
+       NENHUM RESULTADO
+       ===================================================== */
+
     if (!rows.length) {
 
         body.innerHTML = `
 
             <tr>
 
-                <td colspan="7">
+                <td
+                    colspan="7"
+                    class="empty-cell"
+                >
 
                     Nenhum participante encontrado.
 
@@ -476,126 +687,162 @@ function render() {
     }
 
 
+    /* =====================================================
+       LINHAS
+       ===================================================== */
+
     body.innerHTML =
-        rows.map(r => {
+        rows
+            .map(row => {
+
+                const pagamento =
+                    normalizarPagamento(
+                        row.status_pagamento
+                    );
 
 
-            const pagamento =
-                String(
-                    r.status_pagamento ||
-                    "PENDENTE"
-                ).toUpperCase();
+                return `
+
+                    <tr>
+
+                        <!-- PARTICIPANTE -->
+
+                        <td>
+
+                            <strong>
+                                ${esc(
+                                    row.nome ||
+                                    "—"
+                                )}
+                            </strong>
+
+                            ${
+                                row.email
+                                    ? `
+                                        <small>
+                                            ${esc(
+                                                row.email
+                                            )}
+                                        </small>
+                                      `
+                                    : ""
+                            }
+
+                        </td>
 
 
-            return `
+                        <!-- CPF -->
 
-                <tr>
-
-                    <td>
-
-                        <strong>
-                            ${esc(
-                                r.nome || "—"
-                            )}
-                        </strong>
-
-                        ${
-                            r.email
-                                ? `
-                                    <small>
-                                        ${esc(
-                                            r.email
-                                        )}
-                                    </small>
-                                  `
-                                : ""
-                        }
-
-                    </td>
-
-
-                    <td>
-                        ${esc(
-                            formatCPF(r.cpf)
-                        )}
-                    </td>
-
-
-                    <td>
-                        ${esc(
-                            formatPhone(
-                                r.telefone
-                            )
-                        )}
-                    </td>
-
-
-                    <td>
-                        ${esc(
-                            r.percurso || "—"
-                        )}
-                    </td>
-
-
-                    <td>
-                        ${esc(
-                            r.camiseta || "—"
-                        )}
-                    </td>
-
-
-                    <td>
-
-                        <span
-                            class="badge ${paymentClass(
-                                pagamento
-                            )}"
-                        >
+                        <td>
 
                             ${esc(
-                                pagamento
+                                formatCPF(
+                                    row.cpf
+                                )
                             )}
 
-                        </span>
-
-                    </td>
+                        </td>
 
 
-                    <td>
+                        <!-- TELEFONE -->
 
-                        <button
-                            type="button"
-                            class="action-btn"
-                            data-id="${esc(
-                                r.id
-                            )}"
-                        >
+                        <td>
 
-                            VER
+                            ${esc(
+                                formatPhone(
+                                    row.telefone
+                                )
+                            )}
 
-                        </button>
+                        </td>
 
-                    </td>
 
-                </tr>
+                        <!-- PERCURSO -->
 
-            `;
+                        <td>
 
-        }).join("");
+                            ${esc(
+                                row.percurso ||
+                                "—"
+                            )}
 
+                        </td>
+
+
+                        <!-- CAMISETA -->
+
+                        <td>
+
+                            ${esc(
+                                row.camiseta ||
+                                "—"
+                            )}
+
+                        </td>
+
+
+                        <!-- PAGAMENTO -->
+
+                        <td>
+
+                            <span
+                                class="status-badge ${paymentClass(
+                                    pagamento
+                                )}"
+                            >
+
+                                ${esc(
+                                    pagamento
+                                )}
+
+                            </span>
+
+                        </td>
+
+
+                        <!-- AÇÕES -->
+
+                        <td>
+
+                            <button
+                                type="button"
+                                class="action-btn"
+                                data-id="${esc(
+                                    row.id
+                                )}"
+                            >
+
+                                VER
+
+                            </button>
+
+                        </td>
+
+
+                    </tr>
+
+                `;
+
+            })
+            .join("");
+
+
+    /* =====================================================
+       BOTÕES VER
+       ===================================================== */
 
     body
         .querySelectorAll(
             ".action-btn"
         )
-        .forEach(btn => {
+        .forEach(button => {
 
-            btn.addEventListener(
+            button.addEventListener(
                 "click",
                 () => {
 
                     openModal(
-                        btn.dataset.id
+                        button.dataset.id
                     );
 
                 }
@@ -606,27 +853,27 @@ function render() {
 }
 
 
-// ========================================
-// ABRIR MODAL
-// ========================================
+/* =========================================================
+   ABRIR MODAL
+   ========================================================= */
 
 function openModal(id) {
 
-
-    const r =
+    const participant =
         allRows.find(
-            x =>
-                String(x.id) ===
+            row =>
+                String(row.id) ===
                 String(id)
         );
 
 
-    if (!r) {
+    if (!participant) {
         return;
     }
 
 
-    selectedId = r.id;
+    selectedId =
+        participant.id;
 
 
     const modal =
@@ -658,77 +905,99 @@ function openModal(id) {
     }
 
 
+    /* =====================================================
+       NOME
+       ===================================================== */
+
     if (modalName) {
 
         modalName.textContent =
-            r.nome ||
+            participant.nome ||
             "Participante";
 
     }
 
 
+    /* =====================================================
+       PAGAMENTO
+       ===================================================== */
+
+    const pagamento =
+        normalizarPagamento(
+            participant.status_pagamento
+        );
+
+
     if (modalPayment) {
 
         modalPayment.value =
-            String(
-                r.status_pagamento ||
-                "PENDENTE"
-            ).toUpperCase();
+            pagamento;
 
     }
 
+
+    /* =====================================================
+       DADOS
+       ===================================================== */
 
     const fields = [
 
         [
             "CPF",
-            formatCPF(r.cpf)
+            formatCPF(
+                participant.cpf
+            )
         ],
 
         [
             "Nascimento",
-            formatDate(r.nascimento)
+            formatDate(
+                participant.nascimento
+            )
         ],
 
         [
             "E-mail",
-            r.email
+            participant.email
         ],
 
         [
             "Telefone",
-            formatPhone(r.telefone)
+            formatPhone(
+                participant.telefone
+            )
         ],
 
         [
             "Sexo",
-            r.sexo
+            participant.sexo
         ],
 
         [
             "Camiseta",
-            r.camiseta
+            participant.camiseta
         ],
 
         [
             "Percurso",
-            r.percurso
+            participant.percurso
         ],
 
         [
             "Valor",
-            formatMoney(r.valor)
+            formatMoney(
+                participant.valor
+            )
         ],
 
         [
             "Status",
-            r.status
+            participant.status
         ],
 
         [
             "Pagamento",
-            r.status_pagamento ||
-            "PENDENTE"
+            pagamento
         ]
 
     ];
@@ -737,32 +1006,87 @@ function openModal(id) {
     if (modalData) {
 
         modalData.innerHTML =
-            fields.map(
-                ([label, value]) => `
+            fields
+                .map(
+                    ([label, value]) => `
 
-                    <div>
+                        <div class="detail-item">
 
-                        <span>
-                            ${esc(label)}
-                        </span>
+                            <span>
+                                ${esc(label)}
+                            </span>
 
-                        <strong>
-                            ${esc(
-                                value ?? "—"
-                            )}
-                        </strong>
+                            <strong>
+                                ${esc(
+                                    value ?? "—"
+                                )}
+                            </strong>
 
-                    </div>
+                        </div>
 
-                `
-            ).join("");
+                    `
+                )
+                .join("");
 
     }
 
 
-    // ==========================
-    // WHATSAPP
-    // ==========================
+    /* =====================================================
+       COMUNICAÇÃO
+       ===================================================== */
+
+    configurarComunicacao(
+        participant
+    );
+
+
+    /* =====================================================
+       ABRIR
+       ===================================================== */
+
+    modal.classList.remove(
+        "hidden"
+    );
+
+
+    document.body.classList.add(
+        "modal-open"
+    );
+
+
+    /* =====================================================
+       FOCO
+       ===================================================== */
+
+    setTimeout(
+        () => {
+
+            if (modalPayment) {
+
+                modalPayment.focus();
+
+            }
+
+        },
+        100
+    );
+
+}
+
+
+/* =========================================================
+   CONFIGURAR COMUNICAÇÃO
+   ========================================================= */
+
+function configurarComunicacao(
+    participante
+) {
+
+    const communicationBox =
+        document.getElementById(
+            "pendingCommunication"
+        );
+
 
     const whatsappBtn =
         document.getElementById(
@@ -770,58 +1094,319 @@ function openModal(id) {
         );
 
 
-    const phone =
-        String(
-            r.telefone || ""
-        ).replace(
-            /\D/g,
-            ""
+    const emailBtn =
+        document.getElementById(
+            "emailBtn"
         );
 
 
-    const message =
-        encodeURIComponent(
-            `Olá, ${r.nome || ""}! ` +
-            `Aqui é da organização Run & Samba.`
-        );
+    if (
+        !communicationBox ||
+        !whatsappBtn ||
+        !emailBtn
+    ) {
 
-
-    if (whatsappBtn) {
-
-        if (phone) {
-
-            whatsappBtn.href =
-                `https://wa.me/55${phone}?text=${message}`;
-
-            whatsappBtn.style.display =
-                "inline-flex";
-
-        } else {
-
-            whatsappBtn.href =
-                "#";
-
-            whatsappBtn.style.display =
-                "none";
-
-        }
+        return;
 
     }
 
 
-    modal.classList.remove(
+    /* =====================================================
+       STATUS
+       ===================================================== */
+
+    const pagamento =
+        normalizarPagamento(
+            participante.status_pagamento
+        );
+
+
+    /* =====================================================
+       SÓ PENDENTE
+       ===================================================== */
+
+    if (
+        pagamento !== "PENDENTE"
+    ) {
+
+        communicationBox.classList.add(
+            "hidden"
+        );
+
+
+        whatsappBtn.removeAttribute(
+            "href"
+        );
+
+
+        emailBtn.removeAttribute(
+            "href"
+        );
+
+
+        whatsappBtn.onclick =
+            null;
+
+
+        emailBtn.onclick =
+            null;
+
+
+        return;
+
+    }
+
+
+    /* =====================================================
+       MOSTRAR
+       ===================================================== */
+
+    communicationBox.classList.remove(
         "hidden"
+    );
+
+
+    const nome =
+        participante.nome ||
+        "participante";
+
+
+    const telefone =
+        participante.telefone ||
+        "";
+
+
+    const email =
+        participante.email ||
+        "";
+
+
+    const mensagem =
+        criarMensagemPagamento(
+            nome
+        );
+
+
+    /* =====================================================
+       WHATSAPP
+       ===================================================== */
+
+    const numero =
+        normalizarTelefone(
+            telefone
+        );
+
+
+    whatsappBtn.onclick =
+        null;
+
+
+    whatsappBtn.removeAttribute(
+        "href"
+    );
+
+
+    if (numero) {
+
+        whatsappBtn.href =
+            "https://wa.me/" +
+            numero +
+            "?text=" +
+            encodeURIComponent(
+                mensagem
+            );
+
+
+        whatsappBtn.target =
+            "_blank";
+
+
+        whatsappBtn.rel =
+            "noopener noreferrer";
+
+
+        whatsappBtn.style.display =
+            "inline-flex";
+
+    } else {
+
+        whatsappBtn.style.display =
+            "inline-flex";
+
+
+        whatsappBtn.onclick =
+            function(event) {
+
+                event.preventDefault();
+
+
+                alert(
+                    "Este participante não possui telefone cadastrado."
+                );
+
+            };
+
+    }
+
+
+    /* =====================================================
+       E-MAIL
+       ===================================================== */
+
+    emailBtn.onclick =
+        null;
+
+
+    emailBtn.removeAttribute(
+        "href"
+    );
+
+
+    if (email) {
+
+        const assunto =
+            criarAssuntoEmail();
+
+
+        emailBtn.href =
+            "mailto:" +
+            encodeURIComponent(
+                email
+            ) +
+            "?subject=" +
+            encodeURIComponent(
+                assunto
+            ) +
+            "&body=" +
+            encodeURIComponent(
+                mensagem
+            );
+
+
+        emailBtn.style.display =
+            "inline-flex";
+
+    } else {
+
+        emailBtn.style.display =
+            "inline-flex";
+
+
+        emailBtn.onclick =
+            function(event) {
+
+                event.preventDefault();
+
+
+                alert(
+                    "Este participante não possui e-mail cadastrado."
+                );
+
+            };
+
+    }
+
+}
+
+
+/* =========================================================
+   NORMALIZAR TELEFONE
+   ========================================================= */
+
+function normalizarTelefone(
+    telefone
+) {
+
+    if (!telefone) {
+        return "";
+    }
+
+
+    let numero =
+        String(telefone)
+            .replace(
+                /\D/g,
+                ""
+            );
+
+
+    if (
+        numero.startsWith("55")
+    ) {
+
+        return numero;
+
+    }
+
+
+    if (
+        numero.length === 10 ||
+        numero.length === 11
+    ) {
+
+        numero =
+            "55" +
+            numero;
+
+    }
+
+
+    return numero;
+
+}
+
+
+/* =========================================================
+   MENSAGEM PAGAMENTO PENDENTE
+   ========================================================= */
+
+function criarMensagemPagamento(
+    nome
+) {
+
+    const primeiroNome =
+        String(
+            nome ||
+            "participante"
+        )
+            .trim()
+            .split(/\s+/)[0];
+
+
+    return `Olá, ${primeiroNome}! Tudo bem?
+
+Vi que você fez sua inscrição na Run & Samba 2ª edição, mas o pagamento ainda não foi concluído.
+
+Passando para avisar que o segundo lote estará disponível em breve.
+
+Se você ainda quiser participar, fique de olho para garantir sua inscrição antes da abertura do próximo lote.
+
+Se precisar de ajuda com a inscrição ou pagamento, estamos à disposição. 🏃🏽‍♀️🎶
+
+Run & Samba 2026
+CORRA. SINTA. VIVA.`;
+
+}
+
+
+/* =========================================================
+   ASSUNTO E-MAIL
+   ========================================================= */
+
+function criarAssuntoEmail() {
+
+    return (
+        "Run & Samba 2026 — segundo lote em breve"
     );
 
 }
 
 
-// ========================================
-// FECHAR MODAL
-// ========================================
+/* =========================================================
+   FECHAR MODAL
+   ========================================================= */
 
 function closeModal() {
-
 
     const modal =
         document.getElementById(
@@ -838,19 +1423,34 @@ function closeModal() {
     }
 
 
-    selectedId = null;
+    document.body.classList.remove(
+        "modal-open"
+    );
+
+
+    selectedId =
+        null;
 
 }
 
 
-// ========================================
-// SALVAR PAGAMENTO
-// ========================================
+/* =========================================================
+   SALVAR PAGAMENTO
+   ========================================================= */
 
 async function savePayment() {
 
-
     if (!selectedId) {
+        return;
+    }
+
+
+    if (!db) {
+
+        showMessage(
+            "Supabase não está disponível."
+        );
+
         return;
     }
 
@@ -873,19 +1473,20 @@ async function savePayment() {
 
 
     const value =
-        String(
+        normalizarPagamento(
             select.value
-        ).toUpperCase();
+        );
 
 
-    btn.disabled = true;
+    btn.disabled =
+        true;
+
 
     btn.textContent =
         "SALVANDO...";
 
 
     try {
-
 
         const {
             error
@@ -913,10 +1514,14 @@ async function savePayment() {
         }
 
 
+        /* =================================================
+           ATUALIZAR MEMÓRIA LOCAL
+           ================================================= */
+
         const item =
             allRows.find(
-                x =>
-                    String(x.id) ===
+                row =>
+                    String(row.id) ===
                     String(selectedId)
             );
 
@@ -929,10 +1534,23 @@ async function savePayment() {
         }
 
 
+        /* =================================================
+           ATUALIZAR TABELA
+           ================================================= */
+
         render();
+
+
+        /* =================================================
+           FECHAR MODAL
+           ================================================= */
 
         closeModal();
 
+
+        /* =================================================
+           MENSAGEM
+           ================================================= */
 
         showMessage(
             "Pagamento atualizado com sucesso."
@@ -941,22 +1559,25 @@ async function savePayment() {
 
     } catch (error) {
 
-
         console.error(
-            "Erro ao atualizar:",
+            "Erro ao atualizar pagamento:",
             error
         );
 
 
         showMessage(
             "Erro ao atualizar pagamento: " +
-            error.message
+            (
+                error?.message ||
+                "Erro desconhecido."
+            )
         );
-
 
     } finally {
 
-        btn.disabled = false;
+        btn.disabled =
+            false;
+
 
         btn.textContent =
             "SALVAR PAGAMENTO";
@@ -966,12 +1587,11 @@ async function savePayment() {
 }
 
 
-// ========================================
-// EXPORTAR CSV
-// ========================================
+/* =========================================================
+   EXPORTAR CSV
+   ========================================================= */
 
 function exportCSV() {
-
 
     const rows =
         filtered();
@@ -991,29 +1611,17 @@ function exportCSV() {
     const columns = [
 
         "id",
-
         "nome",
-
         "cpf",
-
         "nascimento",
-
         "email",
-
         "telefone",
-
         "sexo",
-
         "camiseta",
-
         "percurso",
-
         "valor",
-
         "status",
-
         "status_pagamento",
-
         "created_at"
 
     ];
@@ -1024,12 +1632,12 @@ function exportCSV() {
         columns.join(";"),
 
         ...rows.map(
-            r =>
+            row =>
                 columns
                     .map(
-                        c =>
+                        column =>
                             csvCell(
-                                r[c]
+                                row[column]
                             )
                     )
                     .join(";")
@@ -1057,40 +1665,57 @@ function exportCSV() {
         );
 
 
-    const a =
+    const link =
         document.createElement(
             "a"
         );
 
 
-    a.href = url;
+    link.href =
+        url;
 
-    a.download =
+
+    link.download =
         "run-samba-inscricoes.csv";
 
 
-    document.body.appendChild(a);
+    document.body.appendChild(
+        link
+    );
 
-    a.click();
 
-    a.remove();
+    link.click();
+
+
+    link.remove();
 
 
     setTimeout(
         () => {
+
             URL.revokeObjectURL(
                 url
             );
+
         },
         1000
+    );
+
+
+    showMessage(
+        `${rows.length} ${
+            rows.length === 1
+                ? "inscrição exportada"
+                : "inscrições exportadas"
+        }.`
     );
 
 }
 
 
-// ========================================
-// CSV
-// ========================================
+/* =========================================================
+   CSV CELL
+   ========================================================= */
 
 function csvCell(value) {
 
@@ -1104,22 +1729,25 @@ function csvCell(value) {
 }
 
 
-// ========================================
-// CPF
-// ========================================
+/* =========================================================
+   CPF
+   ========================================================= */
 
 function formatCPF(cpf) {
 
     const value =
         String(
             cpf || ""
-        ).replace(
-            /\D/g,
-            ""
-        );
+        )
+            .replace(
+                /\D/g,
+                ""
+            );
 
 
-    if (value.length !== 11) {
+    if (
+        value.length !== 11
+    ) {
 
         return cpf || "—";
 
@@ -1134,22 +1762,68 @@ function formatCPF(cpf) {
 }
 
 
-// ========================================
-// TELEFONE
-// ========================================
+/* =========================================================
+   TELEFONE
+   ========================================================= */
 
 function formatPhone(phone) {
 
     const value =
         String(
             phone || ""
-        ).replace(
-            /\D/g,
-            ""
-        );
+        )
+            .replace(
+                /\D/g,
+                ""
+            );
 
 
-    if (value.length === 11) {
+    /* =====================================================
+       DDI 55
+       ===================================================== */
+
+    if (
+        value.length === 13 &&
+        value.startsWith("55")
+    ) {
+
+        const local =
+            value.substring(2);
+
+
+        if (
+            local.length === 11
+        ) {
+
+            return local.replace(
+                /(\d{2})(\d{5})(\d{4})/,
+                "($1) $2-$3"
+            );
+
+        }
+
+
+        if (
+            local.length === 10
+        ) {
+
+            return local.replace(
+                /(\d{2})(\d{4})(\d{4})/,
+                "($1) $2-$3"
+            );
+
+        }
+
+    }
+
+
+    /* =====================================================
+       BRASIL — 11 DÍGITOS
+       ===================================================== */
+
+    if (
+        value.length === 11
+    ) {
 
         return value.replace(
             /(\d{2})(\d{5})(\d{4})/,
@@ -1159,7 +1833,13 @@ function formatPhone(phone) {
     }
 
 
-    if (value.length === 10) {
+    /* =====================================================
+       BRASIL — 10 DÍGITOS
+       ===================================================== */
+
+    if (
+        value.length === 10
+    ) {
 
         return value.replace(
             /(\d{2})(\d{4})(\d{4})/,
@@ -1174,9 +1854,9 @@ function formatPhone(phone) {
 }
 
 
-// ========================================
-// DATA
-// ========================================
+/* =========================================================
+   DATA
+   ========================================================= */
 
 function formatDate(date) {
 
@@ -1188,6 +1868,10 @@ function formatDate(date) {
     const value =
         String(date);
 
+
+    /* =====================================================
+       YYYY-MM-DD
+       ===================================================== */
 
     if (
         /^\d{4}-\d{2}-\d{2}$/.test(
@@ -1203,7 +1887,36 @@ function formatDate(date) {
             value.split("-");
 
 
-        return `${day}/${month}/${year}`;
+        return (
+            `${day}/${month}/${year}`
+        );
+
+    }
+
+
+    /* =====================================================
+       DATA ISO
+       ===================================================== */
+
+    if (
+        value.includes("T")
+    ) {
+
+        const parsed =
+            new Date(value);
+
+
+        if (
+            !Number.isNaN(
+                parsed.getTime()
+            )
+        ) {
+
+            return parsed.toLocaleDateString(
+                "pt-BR"
+            );
+
+        }
 
     }
 
@@ -1213,12 +1926,11 @@ function formatDate(date) {
 }
 
 
-// ========================================
-// DINHEIRO
-// ========================================
+/* =========================================================
+   DINHEIRO
+   ========================================================= */
 
 function formatMoney(value) {
-
 
     if (
         value === null ||
@@ -1231,11 +1943,65 @@ function formatMoney(value) {
     }
 
 
-    const number =
-        Number(
+    let number;
+
+
+    if (
+        typeof value === "number"
+    ) {
+
+        number =
+            value;
+
+    } else {
+
+        const normalized =
             String(value)
-                .replace(",", ".")
-        );
+                .trim()
+                .replace(
+                    /R\$/gi,
+                    ""
+                )
+                .replace(
+                    /\s/g,
+                    ""
+                );
+
+
+        /*
+         * Trata valores como:
+         *
+         * 89,90
+         * 89.90
+         */
+
+        if (
+            normalized.includes(",")
+        ) {
+
+            number =
+                Number(
+                    normalized
+                        .replace(
+                            /\./g,
+                            ""
+                        )
+                        .replace(
+                            ",",
+                            "."
+                        )
+                );
+
+        } else {
+
+            number =
+                Number(
+                    normalized
+                );
+
+        }
+
+    }
 
 
     if (
@@ -1244,7 +2010,9 @@ function formatMoney(value) {
         )
     ) {
 
-        return String(value);
+        return String(
+            value
+        );
 
     }
 
@@ -1252,26 +2020,27 @@ function formatMoney(value) {
     return number.toLocaleString(
         "pt-BR",
         {
-            style: "currency",
-            currency: "BRL"
+            style:
+                "currency",
+
+            currency:
+                "BRL"
         }
     );
 
 }
 
 
-// ========================================
-// CLASSE PAGAMENTO
-// ========================================
+/* =========================================================
+   CLASSE PAGAMENTO
+   ========================================================= */
 
 function paymentClass(value) {
 
-
     const status =
-        String(
-            value ||
-            "PENDENTE"
-        ).toUpperCase();
+        normalizarPagamento(
+            value
+        );
 
 
     if (
@@ -1297,54 +2066,54 @@ function paymentClass(value) {
 }
 
 
-// ========================================
-// ESCAPAR HTML
-// ========================================
+/* =========================================================
+   ESCAPAR HTML
+   ========================================================= */
 
 function esc(value) {
 
     return String(
         value ?? ""
-    ).replace(
-        /[&<>"']/g,
-        character => {
+    )
+        .replace(
+            /[&<>"']/g,
+            character => {
 
-            const entities = {
+                const entities = {
 
-                "&":
-                    "&amp;",
+                    "&":
+                        "&amp;",
 
-                "<":
-                    "&lt;",
+                    "<":
+                        "&lt;",
 
-                ">":
-                    "&gt;",
+                    ">":
+                        "&gt;",
 
-                '"':
-                    "&quot;",
+                    '"':
+                        "&quot;",
 
-                "'":
-                    "&#039;"
+                    "'":
+                        "&#039;"
 
-            };
+                };
 
 
-            return entities[
-                character
-            ];
+                return entities[
+                    character
+                ];
 
-        }
-    );
+            }
+        );
 
 }
 
 
-// ========================================
-// MENSAGEM
-// ========================================
+/* =========================================================
+   MENSAGEM
+   ========================================================= */
 
 function showMessage(text) {
-
 
     const el =
         document.getElementById(
@@ -1361,25 +2130,39 @@ function showMessage(text) {
         text;
 
 
-    setTimeout(
-        () => {
-
-            el.textContent =
-                "";
-
-        },
-        4000
+    el.classList.add(
+        "show"
     );
+
+
+    clearTimeout(
+        showMessage.timer
+    );
+
+
+    showMessage.timer =
+        setTimeout(
+            () => {
+
+                el.textContent =
+                    "";
+
+                el.classList.remove(
+                    "show"
+                );
+
+            },
+            5000
+        );
 
 }
 
 
-// ========================================
-// LOADING
-// ========================================
+/* =========================================================
+   LOADING
+   ========================================================= */
 
 function setLoading(text) {
-
 
     const el =
         document.getElementById(
@@ -1397,9 +2180,9 @@ function setLoading(text) {
 }
 
 
-// ========================================
-// INICIAR
-// ========================================
+/* =========================================================
+   INICIAR
+   ========================================================= */
 
 if (
     document.readyState ===

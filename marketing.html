@@ -1,490 +1,716 @@
 <!DOCTYPE html>
+
 <html lang="pt-BR">
 
 <head>
 
-    <meta charset="UTF-8">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+<meta charset="UTF-8">
 
-    <meta
-        name="description"
-        content="Calendário de conteúdo e ideias de marketing da Run & Samba 2026."
-    >
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
 
-    <title>Marketing | Run & Samba CRM</title>
+<meta
+    name="description"
+    content="Central de marketing, conteúdo e produção do Run & Samba 2026."
+>
 
-    <link
-        rel="stylesheet"
-        href="css/crm.css"
-    >
+<title>Marketing | Run & Samba CRM</title>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="css/marketing.css">
 
-    <script src="js/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <script src="js/auth.js"></script>
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
 
-    <script
-        src="js/marketing.js"
-        defer
-    ></script>
+<script
+    src="js/marketing.js"
+    defer
+></script>
+
 
 </head>
 
-
 <body>
-
 
 <div class="app">
 
 
-    <!-- =====================================
-         SIDEBAR
-    ====================================== -->
+<!-- =====================================================
+     SIDEBAR
+====================================================== -->
 
-    <aside class="sidebar">
+<aside class="sidebar">
 
-        <div class="brand">
+    <div class="brand">
 
-            <div class="logo">
-                RUN <span>&</span> SAMBA
-            </div>
-
-            <div class="side-label">
-                CRM 2026
-            </div>
-
+        <div class="logo">
+            RUN <span>&</span> SAMBA
         </div>
 
+        <div class="side-label">
+            CRM 2026
+        </div>
 
-        <div class="sidebar-section">
+    </div>
+
+
+    <div class="sidebar-section">
+
+        <span>
+            GESTÃO
+        </span>
+
+        <nav>
+
+            <a href="dashboard.html">
+                <span class="nav-icon">◈</span>
+                Dashboard
+            </a>
+
+            <a href="inscritos.html">
+                <span class="nav-icon">◉</span>
+                Inscritos
+            </a>
+
+            <a
+                href="marketing.html"
+                class="active"
+            >
+                <span class="nav-icon">✦</span>
+                Marketing
+            </a>
+
+        </nav>
+
+    </div>
+
+
+    <div class="sidebar-bottom">
+
+        <div class="event-mini">
 
             <span>
-                GESTÃO
+                EVENTO
             </span>
 
-            <nav>
+            <strong>
+                RUN & SAMBA
+            </strong>
 
-                <a href="dashboard.html">
-
-                    <span class="nav-icon">
-                        ◈
-                    </span>
-
-                    Dashboard
-
-                </a>
-
-
-                <a href="inscritos.html">
-
-                    <span class="nav-icon">
-                        ◉
-                    </span>
-
-                    Inscritos
-
-                </a>
-
-
-                <a
-                    class="active"
-                    href="marketing.html"
-                >
-
-                    <span class="nav-icon">
-                        ✦
-                    </span>
-
-                    Marketing
-
-                </a>
-
-            </nav>
+            <small>
+                2ª EDIÇÃO • 2026
+            </small>
 
         </div>
 
 
-        <div class="sidebar-bottom">
+        <button
+            id="logoutBtn"
+            class="logout"
+            type="button"
+        >
+            SAIR
+        </button>
 
-            <div class="event-mini">
+    </div>
 
-                <span>
-                    EVENTO
+</aside>
+
+
+
+<!-- =====================================================
+     CONTEÚDO
+====================================================== -->
+
+<main class="content">
+
+
+    <!-- =================================================
+         HEADER
+    ================================================== -->
+
+    <header class="topbar">
+
+        <div>
+
+            <span class="eyebrow">
+                RUN & SAMBA • CENTRAL DE MARKETING
+            </span>
+
+            <h1>
+                Marketing & Conteúdo
+            </h1>
+
+            <p class="subtitle">
+                Planeje, produza, organize e acompanhe toda
+                a comunicação do Run & Samba.
+            </p>
+
+        </div>
+
+
+        <div class="top-actions">
+
+            <button
+                id="newIdeaBtn"
+                class="outline-btn"
+                type="button"
+            >
+                + IDEIA
+            </button>
+
+
+            <button
+                id="newTaskBtn"
+                class="outline-btn"
+                type="button"
+            >
+                + PRODUÇÃO
+            </button>
+
+
+            <button
+                id="newContentBtn"
+                class="primary-btn"
+                type="button"
+            >
+                + NOVO CONTEÚDO
+            </button>
+
+        </div>
+
+    </header>
+
+
+
+    <!-- =================================================
+         VISÃO RÁPIDA
+    ================================================== -->
+
+    <section class="content-summary">
+
+
+        <div class="content-summary-card">
+
+            <span>
+                HOJE
+            </span>
+
+            <strong id="todayContents">
+                0
+            </strong>
+
+            <small>
+                conteúdos
+            </small>
+
+        </div>
+
+
+        <div class="content-summary-card">
+
+            <span>
+                PRÓXIMOS 7 DIAS
+            </span>
+
+            <strong id="weekContents">
+                0
+            </strong>
+
+            <small>
+                programados
+            </small>
+
+        </div>
+
+
+        <div class="content-summary-card">
+
+            <span>
+                PRODUÇÃO
+            </span>
+
+            <strong id="pendingTasks">
+                0
+            </strong>
+
+            <small>
+                pendências
+            </small>
+
+        </div>
+
+
+        <div class="content-summary-card">
+
+            <span>
+                PUBLICADOS
+            </span>
+
+            <strong id="publishedContents">
+                0
+            </strong>
+
+            <small>
+                conteúdos
+            </small>
+
+        </div>
+
+
+        <div class="content-summary-card">
+
+            <span>
+                IDEIAS
+            </span>
+
+            <strong id="totalIdeas">
+                0
+            </strong>
+
+            <small>
+                da equipe
+            </small>
+
+        </div>
+
+
+    </section>
+
+
+
+    <!-- =================================================
+         FILTROS
+    ================================================== -->
+
+    <section class="marketing-filters panel">
+
+        <div class="filter-group">
+
+            <label>
+                Visualização
+            </label>
+
+            <select id="calendarView">
+
+                <option value="month">
+                    Mês
+                </option>
+
+                <option value="week">
+                    Semana
+                </option>
+
+                <option value="agenda">
+                    Agenda
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div class="filter-group">
+
+            <label>
+                Tipo
+            </label>
+
+            <select id="contentTypeFilter">
+
+                <option value="todos">
+                    Todos
+                </option>
+
+                <option value="POST">
+                    Post
+                </option>
+
+                <option value="REELS">
+                    Reels
+                </option>
+
+                <option value="STORIES">
+                    Stories
+                </option>
+
+                <option value="VIDEO">
+                    Vídeo
+                </option>
+
+                <option value="CAMPANHA">
+                    Campanha
+                </option>
+
+                <option value="PRODUCAO">
+                    Produção
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div class="filter-group">
+
+            <label>
+                Status
+            </label>
+
+            <select id="contentStatusFilter">
+
+                <option value="todos">
+                    Todos
+                </option>
+
+                <option value="IDEIA">
+                    Ideia
+                </option>
+
+                <option value="PLANEJADO">
+                    Planejado
+                </option>
+
+                <option value="EM_PRODUCAO">
+                    Em produção
+                </option>
+
+                <option value="AGENDADO">
+                    Agendado
+                </option>
+
+                <option value="PUBLICADO">
+                    Publicado
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div class="filter-group">
+
+            <label>
+                Responsável
+            </label>
+
+            <select id="contentResponsibleFilter">
+
+                <option value="todos">
+                    Todos
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <button
+            id="clearFilters"
+            class="outline-btn"
+            type="button"
+        >
+            LIMPAR FILTROS
+        </button>
+
+    </section>
+
+
+
+    <!-- =================================================
+         CALENDÁRIO
+    ================================================== -->
+
+    <section class="panel calendar-panel">
+
+
+        <div class="calendar-header">
+
+
+            <button
+                id="prevMonth"
+                class="calendar-nav"
+                type="button"
+                aria-label="Mês anterior"
+            >
+                ‹
+            </button>
+
+
+            <div class="calendar-title">
+
+                <span class="eyebrow">
+                    PLANEJAMENTO
                 </span>
 
-                <strong>
-                    RUN & SAMBA
-                </strong>
-
-                <small>
-                    2ª EDIÇÃO • 2026
-                </small>
+                <h2 id="calendarMonth">
+                    Setembro 2026
+                </h2>
 
             </div>
 
 
             <button
-                id="logoutBtn"
-                class="logout"
+                id="nextMonth"
+                class="calendar-nav"
+                type="button"
+                aria-label="Próximo mês"
+            >
+                ›
+            </button>
+
+
+            <button
+                id="todayBtn"
+                class="outline-btn"
                 type="button"
             >
-                SAIR
+                HOJE
             </button>
 
         </div>
 
-    </aside>
+
+
+        <!-- DIAS DA SEMANA -->
+
+        <div class="calendar-weekdays">
+
+            <div>SEG</div>
+            <div>TER</div>
+            <div>QUA</div>
+            <div>QUI</div>
+            <div>SEX</div>
+            <div>SÁB</div>
+            <div>DOM</div>
+
+        </div>
 
 
 
-    <!-- =====================================
-         CONTEÚDO
-    ====================================== -->
+        <!-- CALENDÁRIO -->
 
-    <main class="content">
+        <div
+            id="calendarGrid"
+            class="calendar-grid"
+        >
+
+            <div class="content-loading">
+                Carregando calendário...
+            </div>
+
+        </div>
 
 
-        <!-- =====================================
-             HEADER
-        ====================================== -->
+    </section>
 
-        <header class="topbar">
+
+
+    <!-- =================================================
+         LEGENDA
+    ================================================== -->
+
+    <section class="calendar-legend">
+
+        <div>
+            <span class="legend-status planned"></span>
+            Planejado
+        </div>
+
+        <div>
+            <span class="legend-status production"></span>
+            Em produção
+        </div>
+
+        <div>
+            <span class="legend-status scheduled"></span>
+            Agendado
+        </div>
+
+        <div>
+            <span class="legend-status published"></span>
+            Publicado
+        </div>
+
+        <div>
+            <span class="legend-status task"></span>
+            Produção
+        </div>
+
+    </section>
+
+
+
+    <!-- =================================================
+         PRÓXIMOS CONTEÚDOS
+    ================================================== -->
+
+    <section class="panel upcoming-panel">
+
+
+        <div class="panel-title">
 
             <div>
 
                 <span class="eyebrow">
-                    RUN & SAMBA • MARKETING
+                    PRÓXIMOS
                 </span>
 
-                <h1>
-                    Marketing
-                </h1>
+                <h2>
+                    Próximos conteúdos
+                </h2>
 
-                <p class="subtitle">
-                    Planeje conteúdos, registre ideias e organize
-                    a comunicação da corrida.
+                <p class="panel-description">
+                    Veja rapidamente o que precisa ser produzido,
+                    revisado ou publicado.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div
+            id="upcomingContents"
+            class="upcoming-list"
+        >
+
+            <div class="content-loading">
+                Carregando próximos conteúdos...
+            </div>
+
+        </div>
+
+
+    </section>
+
+
+
+    <!-- =================================================
+         IDEIAS DA EQUIPE
+    ================================================== -->
+
+    <section class="panel ideas-panel">
+
+
+        <div class="panel-title">
+
+            <div>
+
+                <span class="eyebrow">
+                    EQUIPE • BANCO DE IDEIAS
+                </span>
+
+                <h2>
+                    Ideias de conteúdo
+                </h2>
+
+                <p class="panel-description">
+                    Registre ideias de Posts, Reels, Stories,
+                    campanhas e ações para o Run & Samba.
                 </p>
 
             </div>
 
 
-            <div class="top-actions">
-
-                <button
-                    id="newIdeaBtn"
-                    class="outline-btn"
-                    type="button"
-                >
-                    + IDEIA DE POST
-                </button>
-
-
-                <button
-                    id="newContentBtn"
-                    class="primary-btn content-new-btn"
-                    type="button"
-                >
-                    + NOVO CONTEÚDO
-                </button>
-
-
-                <button
-                    id="refreshMarketing"
-                    class="outline-btn"
-                    type="button"
-                >
-                    ATUALIZAR ↻
-                </button>
-
-            </div>
-
-        </header>
-
-
-
-        <!-- =====================================
-             RESUMO DO CALENDÁRIO
-        ====================================== -->
-
-        <section class="content-summary">
-
-
-            <div class="content-summary-card">
-
-                <span>
-                    CONTEÚDOS
-                </span>
-
-                <strong id="totalContents">
-                    0
-                </strong>
-
-            </div>
-
-
-            <div class="content-summary-card">
-
-                <span>
-                    PLANEJADOS
-                </span>
-
-                <strong id="plannedContents">
-                    0
-                </strong>
-
-            </div>
-
-
-            <div class="content-summary-card">
-
-                <span>
-                    PUBLICADOS
-                </span>
-
-                <strong id="publishedContents">
-                    0
-                </strong>
-
-            </div>
-
-
-            <div class="content-summary-card">
-
-                <span>
-                    IDEIAS
-                </span>
-
-                <strong id="totalIdeas">
-                    0
-                </strong>
-
-            </div>
-
-
-            <div class="content-summary-card">
-
-                <span>
-                    ESTE MÊS
-                </span>
-
-                <strong id="monthContents">
-                    0
-                </strong>
-
-            </div>
-
-
-        </section>
-
-
-
-        <!-- =====================================
-             CALENDÁRIO
-        ====================================== -->
-
-        <section class="panel calendar-panel">
-
-
-            <div class="calendar-header">
-
-
-                <button
-                    id="prevMonth"
-                    class="calendar-nav"
-                    type="button"
-                    aria-label="Mês anterior"
-                >
-                    ‹
-                </button>
-
-
-                <div class="calendar-title">
-
-                    <span class="eyebrow">
-                        PLANEJAMENTO
-                    </span>
-
-                    <h2 id="calendarMonth">
-                        Agosto 2026
-                    </h2>
-
-                </div>
-
-
-                <button
-                    id="nextMonth"
-                    class="calendar-nav"
-                    type="button"
-                    aria-label="Próximo mês"
-                >
-                    ›
-                </button>
-
-
-            </div>
-
-
-
-            <!-- DIAS DA SEMANA -->
-
-            <div class="calendar-weekdays">
-
-                <div>SEG</div>
-                <div>TER</div>
-                <div>QUA</div>
-                <div>QUI</div>
-                <div>SEX</div>
-                <div>SÁB</div>
-                <div>DOM</div>
-
-            </div>
-
-
-
-            <!-- DIAS -->
-
-            <div
-                id="calendarGrid"
-                class="calendar-grid"
+            <button
+                id="newIdeaBtnPanel"
+                class="primary-small-btn"
+                type="button"
             >
+                + NOVA IDEIA
+            </button>
 
-                <div class="content-loading">
-                    Carregando calendário...
-                </div>
-
-            </div>
-
-
-        </section>
+        </div>
 
 
 
-        <!-- =====================================
-             LEGENDA
-        ====================================== -->
+        <!-- FILTRO DE IDEIAS -->
 
-        <section class="calendar-legend">
+        <div class="idea-filters">
 
-
-            <div>
-
-                <span class="legend-status planned"></span>
-
-                Planejado
-
-            </div>
-
-
-            <div>
-
-                <span class="legend-status scheduled"></span>
-
-                Agendado
-
-            </div>
-
-
-            <div>
-
-                <span class="legend-status published"></span>
-
-                Publicado
-
-            </div>
-
-
-            <div>
-
-                <span class="legend-status draft"></span>
-
-                Rascunho
-
-            </div>
-
-
-        </section>
-
-
-
-        <!-- =====================================
-             IDEIAS DE POSTS
-        ====================================== -->
-
-        <section class="panel ideas-panel">
-
-
-            <div class="panel-title">
-
-                <div>
-
-                    <span class="eyebrow">
-                        EQUIPE
-                    </span>
-
-                    <h2>
-                        Ideias de posts
-                    </h2>
-
-                    <p class="panel-description">
-                        Registre sugestões de conteúdos para a equipe
-                        transformar em posts, Reels, Stories e campanhas.
-                    </p>
-
-                </div>
-
-
-                <button
-                    id="newIdeaBtnPanel"
-                    class="primary-small-btn"
-                    type="button"
-                >
-                    + NOVA IDEIA
-                </button>
-
-            </div>
-
-
-
-            <div
-                id="ideasGrid"
-                class="ideas-grid"
+            <button
+                class="idea-filter active"
+                data-idea-filter="todos"
+                type="button"
             >
+                TODAS
+            </button>
 
-                <div class="content-loading">
-                    Carregando ideias...
-                </div>
+            <button
+                class="idea-filter"
+                data-idea-filter="REELS"
+                type="button"
+            >
+                REELS
+            </button>
 
-            </div>
+            <button
+                class="idea-filter"
+                data-idea-filter="STORIES"
+                type="button"
+            >
+                STORIES
+            </button>
+
+            <button
+                class="idea-filter"
+                data-idea-filter="POST"
+                type="button"
+            >
+                POSTS
+            </button>
+
+            <button
+                class="idea-filter"
+                data-idea-filter="CAMPANHA"
+                type="button"
+            >
+                CAMPANHAS
+            </button>
+
+        </div>
 
 
-        </section>
-
-
-
-        <!-- =====================================
-             MENSAGEM
-        ====================================== -->
 
         <div
-            id="dashboardMessage"
-            class="message"
-        ></div>
+            id="ideasGrid"
+            class="ideas-grid"
+        >
+
+            <div class="content-loading">
+                Carregando ideias...
+            </div>
+
+        </div>
 
 
-    </main>
+    </section>
+
+
+
+    <!-- =================================================
+         MENSAGEM
+    ================================================== -->
+
+    <div
+        id="dashboardMessage"
+        class="message"
+    ></div>
+
+
+</main>
+
 
 </div>
 
-
-
-<!-- =========================================
-     MODAL NOVO CONTEÚDO
-========================================= -->
+<!-- =========================================================
+     MODAL — NOVO CONTEÚDO
+========================================================= -->
 
 <div
     id="contentModal"
@@ -492,44 +718,97 @@
 >
 
 
-    <div class="modal-box">
+<div class="modal-box large-modal">
 
 
-        <button
-            id="closeContentModal"
-            class="modal-close"
-            type="button"
-            aria-label="Fechar"
+    <button
+        id="closeContentModal"
+        class="modal-close"
+        type="button"
+    >
+        ×
+    </button>
+
+
+    <span class="eyebrow">
+        CALENDÁRIO • CONTEÚDO
+    </span>
+
+
+    <h2 id="contentModalTitle">
+        Novo conteúdo
+    </h2>
+
+
+    <form id="contentForm">
+
+
+        <input
+            type="hidden"
+            id="contentId"
         >
-            ×
-        </button>
 
 
-        <span class="eyebrow">
-            CALENDÁRIO
-        </span>
-
-
-        <h2>
-            Novo conteúdo
-        </h2>
-
-
-        <form id="contentForm">
+        <div class="form-grid">
 
 
             <!-- TÍTULO -->
 
-            <label>
+            <label class="full">
 
-                Título
+                Título do conteúdo
 
                 <input
                     id="contentTitle"
                     type="text"
-                    placeholder="Ex.: Inscrições abertas"
+                    placeholder="Ex.: Gravar com influencer no percurso"
                     required
                 >
+
+            </label>
+
+
+
+            <!-- TIPO -->
+
+            <label>
+
+                Tipo
+
+                <select
+                    id="contentType"
+                    required
+                >
+
+                    <option value="">
+                        Selecione
+                    </option>
+
+                    <option value="POST">
+                        Post
+                    </option>
+
+                    <option value="REELS">
+                        Reels
+                    </option>
+
+                    <option value="STORIES">
+                        Stories
+                    </option>
+
+                    <option value="VIDEO">
+                        Vídeo
+                    </option>
+
+                    <option value="CAMPANHA">
+                        Campanha
+                    </option>
+
+                    <option value="PRODUCAO">
+                        Produção / Tarefa
+                    </option>
+
+                </select>
 
             </label>
 
@@ -541,10 +820,7 @@
 
                 Plataforma
 
-                <select
-                    id="contentPlatform"
-                    required
-                >
+                <select id="contentPlatform">
 
                     <option value="">
                         Selecione
@@ -582,9 +858,7 @@
 
                 Formato
 
-                <select
-                    id="contentFormat"
-                >
+                <select id="contentFormat">
 
                     <option value="">
                         Selecione
@@ -598,8 +872,8 @@
                         Reels
                     </option>
 
-                    <option value="Story">
-                        Story
+                    <option value="Stories">
+                        Stories
                     </option>
 
                     <option value="Carrossel">
@@ -608,6 +882,10 @@
 
                     <option value="Vídeo">
                         Vídeo
+                    </option>
+
+                    <option value="Captação">
+                        Captação
                     </option>
 
                     <option value="Outro">
@@ -624,12 +902,28 @@
 
             <label>
 
-                Data de publicação
+                Data
 
                 <input
                     id="contentDate"
                     type="datetime-local"
                     required
+                >
+
+            </label>
+
+
+
+            <!-- RESPONSÁVEL -->
+
+            <label>
+
+                Responsável
+
+                <input
+                    id="contentResponsible"
+                    type="text"
+                    placeholder="Quem vai cuidar?"
                 >
 
             </label>
@@ -642,12 +936,14 @@
 
                 Status
 
-                <select
-                    id="contentStatus"
-                >
+                <select id="contentStatus">
 
                     <option value="PLANEJADO">
                         PLANEJADO
+                    </option>
+
+                    <option value="EM_PRODUCAO">
+                        EM PRODUÇÃO
                     </option>
 
                     <option value="AGENDADO">
@@ -658,8 +954,30 @@
                         PUBLICADO
                     </option>
 
-                    <option value="RASCUNHO">
-                        RASCUNHO
+                </select>
+
+            </label>
+
+
+
+            <!-- PRIORIDADE -->
+
+            <label>
+
+                Prioridade
+
+                <select id="contentPriority">
+
+                    <option value="NORMAL">
+                        Normal
+                    </option>
+
+                    <option value="ALTA">
+                        Alta
+                    </option>
+
+                    <option value="URGENTE">
+                        Urgente
                     </option>
 
                 </select>
@@ -668,27 +986,75 @@
 
 
 
-            <!-- LEGENDA -->
+            <!-- LOCAL -->
 
             <label>
 
-                Legenda
+                Local
+
+                <input
+                    id="contentLocation"
+                    type="text"
+                    placeholder="Ex.: Parque / largada / estúdio"
+                >
+
+            </label>
+
+
+
+            <!-- PARTICIPANTES -->
+
+            <label>
+
+                Participantes
+
+                <input
+                    id="contentParticipants"
+                    type="text"
+                    placeholder="Ex.: Influencer, fotógrafo..."
+                >
+
+            </label>
+
+
+
+            <!-- DESCRIÇÃO -->
+
+            <label class="full">
+
+                O que precisa ser feito?
 
                 <textarea
-                    id="contentCaption"
-                    rows="5"
-                    placeholder="Digite a legenda do conteúdo..."
+                    id="contentDescription"
+                    rows="4"
+                    placeholder="Descreva a ação, gravação, roteiro ou tarefa..."
                 ></textarea>
 
             </label>
 
 
 
-            <!-- IMAGEM -->
+            <!-- LEGENDA -->
 
-            <label>
+            <label class="full">
 
-                Imagem
+                Legenda / roteiro
+
+                <textarea
+                    id="contentCaption"
+                    rows="6"
+                    placeholder="Digite a legenda, roteiro ou briefing..."
+                ></textarea>
+
+            </label>
+
+
+
+            <!-- LINK -->
+
+            <label class="full">
+
+                Link da arte / arquivo / pasta
 
                 <input
                     id="contentImage"
@@ -699,28 +1065,169 @@
             </label>
 
 
+        </div>
+
+
+        <div class="modal-actions">
 
             <button
-                type="submit"
-                class="primary-btn"
+                type="button"
+                id="deleteContentBtn"
+                class="danger-btn hidden"
             >
-
-                SALVAR CONTEÚDO
-
+                EXCLUIR
             </button>
 
 
-        </form>
+            <div>
 
-    </div>
+                <button
+                    type="button"
+                    id="cancelContentBtn"
+                    class="outline-btn"
+                >
+                    CANCELAR
+                </button>
+
+
+                <button
+                    type="submit"
+                    class="primary-btn"
+                >
+                    SALVAR CONTEÚDO
+                </button>
+
+            </div>
+
+        </div>
+
+
+    </form>
 
 </div>
 
 
+</div>
 
-<!-- =========================================
-     MODAL NOVA IDEIA
-========================================= -->
+<!-- =========================================================
+     MODAL — VISUALIZAR CONTEÚDO
+========================================================= -->
+
+<div
+    id="viewContentModal"
+    class="modal hidden"
+>
+
+
+<div class="modal-box">
+
+
+    <button
+        id="closeViewContentModal"
+        class="modal-close"
+        type="button"
+    >
+        ×
+    </button>
+
+
+    <span
+        id="viewContentType"
+        class="content-badge"
+    >
+        REELS
+    </span>
+
+
+    <h2 id="viewContentTitle">
+        Título do conteúdo
+    </h2>
+
+
+    <div class="content-view-meta">
+
+        <div>
+            <span>
+                DATA
+            </span>
+
+            <strong id="viewContentDate">
+                —
+            </strong>
+        </div>
+
+
+        <div>
+            <span>
+                STATUS
+            </span>
+
+            <strong id="viewContentStatus">
+                —
+            </strong>
+        </div>
+
+
+        <div>
+            <span>
+                RESPONSÁVEL
+            </span>
+
+            <strong id="viewContentResponsible">
+                —
+            </strong>
+        </div>
+
+    </div>
+
+
+    <div class="content-view-section">
+
+        <span class="eyebrow">
+            BRIEFING
+        </span>
+
+        <p id="viewContentDescription">
+            —
+        </p>
+
+    </div>
+
+
+    <div class="content-view-section">
+
+        <span class="eyebrow">
+            LEGENDA / ROTEIRO
+        </span>
+
+        <p id="viewContentCaption">
+            —
+        </p>
+
+    </div>
+
+
+    <div class="modal-actions">
+
+        <button
+            id="editContentBtn"
+            class="primary-btn"
+            type="button"
+        >
+            EDITAR CONTEÚDO
+        </button>
+
+    </div>
+
+
+</div>
+
+
+</div>
+
+<!-- =========================================================
+     MODAL — NOVA IDEIA
+========================================================= -->
 
 <div
     id="ideaModal"
@@ -728,152 +1235,99 @@
 >
 
 
-    <div class="modal-box">
+<div class="modal-box">
 
 
-        <button
-            id="closeIdeaModal"
-            class="modal-close"
-            type="button"
-            aria-label="Fechar"
-        >
-            ×
-        </button>
+    <button
+        id="closeIdeaModal"
+        class="modal-close"
+        type="button"
+    >
+        ×
+    </button>
 
 
-        <span class="eyebrow">
-            EQUIPE • IDEIAS
-        </span>
+    <span class="eyebrow">
+        EQUIPE • BANCO DE IDEIAS
+    </span>
 
 
-        <h2>
-            Nova ideia de post
-        </h2>
+    <h2>
+        Nova ideia
+    </h2>
 
 
-        <p class="modal-description">
-            Registre uma ideia para a equipe avaliar
-            e transformar em conteúdo.
-        </p>
+    <p class="modal-description">
+        Registre uma ideia para a equipe transformar
+        em conteúdo ou campanha.
+    </p>
 
 
-        <form id="ideaForm">
+    <form id="ideaForm">
 
 
-            <!-- IDEIA -->
+        <label>
+
+            Ideia
+
+            <input
+                id="ideaTitle"
+                type="text"
+                placeholder="Ex.: Gravar com influencer correndo 5 KM"
+                required
+            >
+
+        </label>
+
+
+
+        <label>
+
+            Descrição
+
+            <textarea
+                id="ideaDescription"
+                rows="5"
+                placeholder="Explique a ideia, roteiro ou objetivo..."
+            ></textarea>
+
+        </label>
+
+
+
+        <div class="form-grid">
+
 
             <label>
 
-                Ideia
+                Tipo
 
-                <input
-                    id="ideaTitle"
-                    type="text"
-                    placeholder="Ex.: Mostrar o percurso de 5 KM"
-                    required
-                >
+                <select id="ideaType">
 
-            </label>
-
-
-
-            <!-- DESCRIÇÃO -->
-
-            <label>
-
-                Descrição
-
-                <textarea
-                    id="ideaDescription"
-                    rows="5"
-                    placeholder="Explique a ideia do post..."
-                ></textarea>
-
-            </label>
-
-
-
-            <!-- PLATAFORMA -->
-
-            <label>
-
-                Plataforma sugerida
-
-                <select id="ideaPlatform">
-
-                    <option value="">
-                        Ainda não definido
-                    </option>
-
-                    <option value="Instagram">
-                        Instagram
-                    </option>
-
-                    <option value="Facebook">
-                        Facebook
-                    </option>
-
-                    <option value="WhatsApp">
-                        WhatsApp
-                    </option>
-
-                    <option value="TikTok">
-                        TikTok
-                    </option>
-
-                    <option value="Outro">
-                        Outro
-                    </option>
-
-                </select>
-
-            </label>
-
-
-
-            <!-- FORMATO -->
-
-            <label>
-
-                Formato sugerido
-
-                <select id="ideaFormat">
-
-                    <option value="">
-                        Ainda não definido
-                    </option>
-
-                    <option value="Feed">
-                        Feed
-                    </option>
-
-                    <option value="Reels">
+                    <option value="REELS">
                         Reels
                     </option>
 
-                    <option value="Story">
-                        Story
+                    <option value="STORIES">
+                        Stories
                     </option>
 
-                    <option value="Carrossel">
-                        Carrossel
+                    <option value="POST">
+                        Post
                     </option>
 
-                    <option value="Vídeo">
+                    <option value="CAMPANHA">
+                        Campanha
+                    </option>
+
+                    <option value="VIDEO">
                         Vídeo
-                    </option>
-
-                    <option value="Outro">
-                        Outro
                     </option>
 
                 </select>
 
             </label>
 
-
-
-            <!-- PRIORIDADE -->
 
             <label>
 
@@ -898,9 +1352,6 @@
             </label>
 
 
-
-            <!-- AUTOR -->
-
             <label>
 
                 Quem teve a ideia?
@@ -908,32 +1359,244 @@
                 <input
                     id="ideaAuthor"
                     type="text"
-                    placeholder="Nome da pessoa"
+                    placeholder="Nome"
                 >
 
             </label>
 
 
+            <label>
 
-            <!-- BOTÃO -->
+                Responsável
 
-            <button
-                type="submit"
-                class="primary-btn"
-            >
+                <input
+                    id="ideaResponsible"
+                    type="text"
+                    placeholder="Quem pode executar?"
+                >
 
-                SALVAR IDEIA
-
-            </button>
+            </label>
 
 
-        </form>
+        </div>
 
-    </div>
+
+
+        <button
+            type="submit"
+            class="primary-btn"
+        >
+            SALVAR IDEIA
+        </button>
+
+
+    </form>
 
 </div>
 
 
+</div>
+
+<!-- =========================================================
+     MODAL — PRODUÇÃO / TAREFA
+========================================================= -->
+
+<div
+    id="taskModal"
+    class="modal hidden"
+>
+
+
+<div class="modal-box">
+
+
+    <button
+        id="closeTaskModal"
+        class="modal-close"
+        type="button"
+    >
+        ×
+    </button>
+
+
+    <span class="eyebrow">
+        PRODUÇÃO
+    </span>
+
+
+    <h2>
+        Nova tarefa de produção
+    </h2>
+
+
+    <form id="taskForm">
+
+
+        <label>
+
+            O que precisa ser feito?
+
+            <input
+                id="taskTitle"
+                type="text"
+                placeholder="Ex.: Gravar com influencer"
+                required
+            >
+
+        </label>
+
+
+
+        <div class="quick-task-list">
+
+            <button
+                type="button"
+                class="quick-task"
+                data-task="Gravar com influencer"
+            >
+                🎥 Gravar com influencer
+            </button>
+
+            <button
+                type="button"
+                class="quick-task"
+                data-task="Gravar Reels"
+            >
+                🎬 Gravar Reels
+            </button>
+
+            <button
+                type="button"
+                class="quick-task"
+                data-task="Produzir Stories"
+            >
+                📱 Produzir Stories
+            </button>
+
+            <button
+                type="button"
+                class="quick-task"
+                data-task="Tirar fotos"
+            >
+                📸 Tirar fotos
+            </button>
+
+            <button
+                type="button"
+                class="quick-task"
+                data-task="Captar vídeos"
+            >
+                🎥 Captar vídeos
+            </button>
+
+            <button
+                type="button"
+                class="quick-task"
+                data-task="Editar vídeo"
+            >
+                ✂️ Editar vídeo
+            </button>
+
+            <button
+                type="button"
+                class="quick-task"
+                data-task="Criar arte"
+            >
+                🎨 Criar arte
+            </button>
+
+            <button
+                type="button"
+                class="quick-task"
+                data-task="Publicar conteúdo"
+            >
+                🚀 Publicar conteúdo
+            </button>
+
+        </div>
+
+
+
+        <label>
+
+            Data e horário
+
+            <input
+                id="taskDate"
+                type="datetime-local"
+                required
+            >
+
+        </label>
+
+
+
+        <label>
+
+            Responsável
+
+            <input
+                id="taskResponsible"
+                type="text"
+                placeholder="Quem ficará responsável?"
+            >
+
+        </label>
+
+
+
+        <label>
+
+            Observações
+
+            <textarea
+                id="taskDescription"
+                rows="4"
+                placeholder="Local, equipamentos, participantes, roteiro..."
+            ></textarea>
+
+        </label>
+
+
+
+        <label>
+
+            Status
+
+            <select id="taskStatus">
+
+                <option value="PENDENTE">
+                    Pendente
+                </option>
+
+                <option value="EM_PRODUCAO">
+                    Em produção
+                </option>
+
+                <option value="CONCLUIDA">
+                    Concluída
+                </option>
+
+            </select>
+
+        </label>
+
+
+
+        <button
+            type="submit"
+            class="primary-btn"
+        >
+            SALVAR PRODUÇÃO
+        </button>
+
+
+    </form>
+
+</div>
+
+
+</div>
 
 </body>
 

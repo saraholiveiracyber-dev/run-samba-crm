@@ -1,25 +1,29 @@
-const db = window.supabaseClient;
+/* =========================================================
+   RUN & SAMBA 2026
+   DASHBOARD
+   ========================================================= */
+
+"use strict";
 
 
-// ========================================
-// DASHBOARD RUN & SAMBA
-// ========================================
+/* =========================================================
+   CONFIGURAÇÕES
+   ========================================================= */
 
-// VALOR OFICIAL DA INSCRIÇÃO
 const VALOR_INSCRICAO = 89.90;
 
 
-// ========================================
-// CARREGAR DASHBOARD
-// ========================================
+/* =========================================================
+   CARREGAR DASHBOARD
+   ========================================================= */
 
 async function loadDashboard() {
 
     try {
 
-        // ========================================
-        // AUTENTICAÇÃO
-        // ========================================
+        /* =====================================================
+           AUTENTICAÇÃO
+           ===================================================== */
 
         if (
             !window.crmAuth ||
@@ -43,9 +47,13 @@ async function loadDashboard() {
         }
 
 
-        // ========================================
-        // SUPABASE
-        // ========================================
+        /* =====================================================
+           SUPABASE
+           ===================================================== */
+
+        const db =
+            window.supabaseClient;
+
 
         if (!db) {
 
@@ -57,9 +65,9 @@ async function loadDashboard() {
         }
 
 
-        // ========================================
-        // BUSCAR INSCRIÇÕES
-        // ========================================
+        /* =====================================================
+           BUSCAR INSCRIÇÕES
+           ===================================================== */
 
         const {
             data,
@@ -102,14 +110,17 @@ async function loadDashboard() {
         }
 
 
-        const rows = data || [];
+        const rows =
+            Array.isArray(data)
+                ? data
+                : [];
 
 
-        // ========================================
-        // NORMALIZAR
-        // ========================================
+        /* =====================================================
+           NORMALIZAÇÃO
+           ===================================================== */
 
-        const upper = value => {
+        const upper = (value) => {
 
             return String(
                 value ?? ""
@@ -120,21 +131,16 @@ async function loadDashboard() {
         };
 
 
-        // ========================================
-        // CLASSIFICAÇÃO DOS PAGAMENTOS
-        // ========================================
-
-        const paidRows =
-            rows.filter(row => {
-
-                return (
-                    upper(
-                        row.status_pagamento
-                    ) === "PAGO"
-                );
-
-            });
-
+        /* =====================================================
+           CLASSIFICAÇÃO DOS PAGAMENTOS
+           
+           IMPORTANTE:
+           Cada inscrição pertence a apenas uma categoria.
+           
+           CANCELADO
+           PAGO
+           PENDENTE
+           ===================================================== */
 
         const cancelledRows =
             rows.filter(row => {
@@ -149,11 +155,38 @@ async function loadDashboard() {
                         row.status
                     );
 
-
                 return (
                     pagamento === "CANCELADO" ||
                     status === "CANCELADO"
                 );
+
+            });
+
+
+        const paidRows =
+            rows.filter(row => {
+
+                const pagamento =
+                    upper(
+                        row.status_pagamento
+                    );
+
+                const status =
+                    upper(
+                        row.status
+                    );
+
+
+                // Cancelado nunca pode ser considerado pago
+                if (
+                    pagamento === "CANCELADO" ||
+                    status === "CANCELADO"
+                ) {
+                    return false;
+                }
+
+
+                return pagamento === "PAGO";
 
             });
 
@@ -172,7 +205,7 @@ async function loadDashboard() {
                     );
 
 
-                // Cancelado nunca é pendente
+                // Cancelado não é pendente
                 if (
                     pagamento === "CANCELADO" ||
                     status === "CANCELADO"
@@ -181,7 +214,7 @@ async function loadDashboard() {
                 }
 
 
-                // Pago nunca é pendente
+                // Pago não é pendente
                 if (
                     pagamento === "PAGO"
                 ) {
@@ -189,6 +222,7 @@ async function loadDashboard() {
                 }
 
 
+                // Vazio ou PENDENTE = pendente
                 return (
                     pagamento === "" ||
                     pagamento === "PENDENTE"
@@ -197,21 +231,18 @@ async function loadDashboard() {
             });
 
 
-        // ========================================
-        // CONTADORES
-        // ========================================
+        /* =====================================================
+           CONTADORES
+           ===================================================== */
 
         const total =
             rows.length;
 
-
         const paid =
             paidRows.length;
 
-
         const pending =
             pendingRows.length;
-
 
         const cancelled =
             cancelledRows.length;
@@ -241,20 +272,11 @@ async function loadDashboard() {
         );
 
 
-        // ========================================
-        // FINANCEIRO
-        // ========================================
+        /* =====================================================
+           FINANCEIRO
+           ===================================================== */
 
-        /*
-            VALOR FIXO:
-
-            Cada inscrição = R$ 89,90
-
-            Cancelados não entram
-            no valor previsto.
-        */
-
-
+        // Inscrições válidas = tudo menos cancelados
         const validInscricoes =
             Math.max(
                 total - cancelled,
@@ -262,7 +284,7 @@ async function loadDashboard() {
             );
 
 
-        // Valor total previsto
+        // Valor previsto das inscrições válidas
         const totalValue =
             validInscricoes *
             VALOR_INSCRICAO;
@@ -274,21 +296,21 @@ async function loadDashboard() {
             VALOR_INSCRICAO;
 
 
-        // Valor que ainda falta receber
+        // Valor ainda pendente
         const pendingValue =
             pending *
             VALOR_INSCRICAO;
 
 
-        // Valor referente aos cancelados
+        // Valor correspondente aos cancelados
         const cancelledValue =
             cancelled *
             VALOR_INSCRICAO;
 
 
-        // ========================================
-        // MOSTRAR FINANCEIRO
-        // ========================================
+        /* =====================================================
+           MOSTRAR VALORES
+           ===================================================== */
 
         setMoney(
             "totalValue",
@@ -314,16 +336,16 @@ async function loadDashboard() {
         );
 
 
-        // Caso exista no HTML
+        // Caso o HTML possua este campo
         setMoney(
             "registrationValue",
             VALOR_INSCRICAO
         );
 
 
-        // ========================================
-        // PERCENTUAL RECEBIDO
-        // ========================================
+        /* =====================================================
+           PERCENTUAL RECEBIDO
+           ===================================================== */
 
         const paidPercent =
             totalValue > 0
@@ -350,9 +372,9 @@ async function loadDashboard() {
         );
 
 
-        // ========================================
-        // BARRA FINANCEIRA
-        // ========================================
+        /* =====================================================
+           BARRA FINANCEIRA
+           ===================================================== */
 
         const progress =
             document.getElementById(
@@ -386,9 +408,9 @@ async function loadDashboard() {
         );
 
 
-        // ========================================
-        // PERCURSOS
-        // ========================================
+        /* =====================================================
+           PERCURSOS
+           ===================================================== */
 
         const km5 =
             rows.filter(row => {
@@ -414,6 +436,10 @@ async function loadDashboard() {
             }).length;
 
 
+        const routeTotal =
+            km5 + km10;
+
+
         setText(
             "km5",
             km5
@@ -428,13 +454,13 @@ async function loadDashboard() {
 
         setText(
             "routeTotal",
-            km5 + km10
+            routeTotal
         );
 
 
-        // ========================================
-        // GRÁFICO DE PERCURSOS
-        // ========================================
+        /* =====================================================
+           GRÁFICO DE PERCURSOS
+           ===================================================== */
 
         updateRouteChart(
             km5,
@@ -442,9 +468,9 @@ async function loadDashboard() {
         );
 
 
-        // ========================================
-        // GRÁFICO DE PAGAMENTOS
-        // ========================================
+        /* =====================================================
+           GRÁFICO DE PAGAMENTOS
+           ===================================================== */
 
         updatePaymentChart(
             paid,
@@ -454,16 +480,20 @@ async function loadDashboard() {
         );
 
 
-        // ========================================
-        // CAMISETAS
-        // ========================================
+        /* =====================================================
+           CAMISETAS
+           ===================================================== */
 
-        [
-            "P",
-            "M",
-            "G",
-            "GG"
-        ].forEach(size => {
+        const tamanhos =
+            [
+                "P",
+                "M",
+                "G",
+                "GG"
+            ];
+
+
+        tamanhos.forEach(size => {
 
             const quantity =
                 rows.filter(row => {
@@ -485,9 +515,9 @@ async function loadDashboard() {
         });
 
 
-        // ========================================
-        // RESUMO OPERACIONAL
-        // ========================================
+        /* =====================================================
+           RESUMO OPERACIONAL
+           ===================================================== */
 
         setText(
             "operationTotal",
@@ -513,11 +543,28 @@ async function loadDashboard() {
         );
 
 
-        // ========================================
-        // FINALIZAR
-        // ========================================
+        /* =====================================================
+           FINALIZAR
+           ===================================================== */
 
         hideMessage();
+
+
+        console.log(
+            "Dashboard carregado:",
+            {
+                total,
+                paid,
+                pending,
+                cancelled,
+                totalValue,
+                paidValue,
+                pendingValue,
+                cancelledValue,
+                km5,
+                km10
+            }
+        );
 
 
     } catch (error) {
@@ -530,7 +577,10 @@ async function loadDashboard() {
 
         showMessage(
             "Erro ao carregar dashboard: " +
-            error.message
+            (
+                error?.message ||
+                "Erro desconhecido."
+            )
         );
 
     }
@@ -538,9 +588,9 @@ async function loadDashboard() {
 }
 
 
-// ========================================
-// GRÁFICO DE PERCURSOS
-// ========================================
+/* =========================================================
+   GRÁFICO DE PERCURSOS
+   ========================================================= */
 
 function updateRouteChart(
     km5,
@@ -562,6 +612,10 @@ function updateRouteChart(
     }
 
 
+    /* =====================================================
+       SEM INSCRIÇÕES
+       ===================================================== */
+
     if (total === 0) {
 
         donut.style.background =
@@ -570,6 +624,10 @@ function updateRouteChart(
         return;
     }
 
+
+    /* =====================================================
+       PERCENTUAL 5 KM
+       ===================================================== */
 
     const percent5 =
         (
@@ -582,6 +640,10 @@ function updateRouteChart(
         percent5 * 3.6;
 
 
+    /* =====================================================
+       ATUALIZAR DONUT
+       ===================================================== */
+
     donut.style.background =
         `conic-gradient(
             var(--yellow) 0deg ${degrees5}deg,
@@ -591,9 +653,9 @@ function updateRouteChart(
 }
 
 
-// ========================================
-// GRÁFICO DE PAGAMENTOS
-// ========================================
+/* =========================================================
+   GRÁFICO DE PAGAMENTOS
+   ========================================================= */
 
 function updatePaymentChart(
     paid,
@@ -620,20 +682,33 @@ function updatePaymentChart(
         );
 
 
+    /* =====================================================
+       NENHUMA INSCRIÇÃO
+       ===================================================== */
+
     if (!total) {
 
         if (paidBar) {
-            paidBar.style.width = "0%";
+
+            paidBar.style.width =
+                "0%";
+
         }
 
 
         if (pendingBar) {
-            pendingBar.style.width = "0%";
+
+            pendingBar.style.width =
+                "0%";
+
         }
 
 
         if (cancelledBar) {
-            cancelledBar.style.width = "0%";
+
+            cancelledBar.style.width =
+                "0%";
+
         }
 
 
@@ -646,26 +721,59 @@ function updatePaymentChart(
     }
 
 
+    /* =====================================================
+       PAGOS
+       ===================================================== */
+
     if (paidBar) {
 
+        const percentage =
+            (
+                paid /
+                total
+            ) * 100;
+
+
         paidBar.style.width =
-            `${(paid / total) * 100}%`;
+            `${percentage}%`;
 
     }
 
+
+    /* =====================================================
+       PENDENTES
+       ===================================================== */
 
     if (pendingBar) {
 
+        const percentage =
+            (
+                pending /
+                total
+            ) * 100;
+
+
         pendingBar.style.width =
-            `${(pending / total) * 100}%`;
+            `${percentage}%`;
 
     }
 
 
+    /* =====================================================
+       CANCELADOS
+       ===================================================== */
+
     if (cancelledBar) {
 
+        const percentage =
+            (
+                cancelled /
+                total
+            ) * 100;
+
+
         cancelledBar.style.width =
-            `${(cancelled / total) * 100}%`;
+            `${percentage}%`;
 
     }
 
@@ -678,9 +786,9 @@ function updatePaymentChart(
 }
 
 
-// ========================================
-// TEXTO
-// ========================================
+/* =========================================================
+   DEFINIR TEXTO
+   ========================================================= */
 
 function setText(
     id,
@@ -693,19 +801,20 @@ function setText(
         );
 
 
-    if (element) {
-
-        element.textContent =
-            value;
-
+    if (!element) {
+        return;
     }
+
+
+    element.textContent =
+        value;
 
 }
 
 
-// ========================================
-// DINHEIRO
-// ========================================
+/* =========================================================
+   FORMATAR DINHEIRO
+   ========================================================= */
 
 function setMoney(
     id,
@@ -723,10 +832,12 @@ function setMoney(
     }
 
 
+    const number =
+        Number(value) || 0;
+
+
     element.textContent =
-        Number(
-            value || 0
-        ).toLocaleString(
+        number.toLocaleString(
             "pt-BR",
             {
                 style: "currency",
@@ -737,9 +848,9 @@ function setMoney(
 }
 
 
-// ========================================
-// MENSAGEM
-// ========================================
+/* =========================================================
+   MOSTRAR MENSAGEM
+   ========================================================= */
 
 function showMessage(
     text
@@ -767,9 +878,9 @@ function showMessage(
 }
 
 
-// ========================================
-// ESCONDER MENSAGEM
-// ========================================
+/* =========================================================
+   ESCONDER MENSAGEM
+   ========================================================= */
 
 function hideMessage() {
 
@@ -795,9 +906,9 @@ function hideMessage() {
 }
 
 
-// ========================================
-// INICIAR
-// ========================================
+/* =========================================================
+   INICIALIZAÇÃO
+   ========================================================= */
 
 if (
     document.readyState ===

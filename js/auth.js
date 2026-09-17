@@ -1,60 +1,253 @@
+/* =========================================================
+   RUN & SAMBA 2026
+   CRM
+   AUTENTICAÇÃO
+   SUPABASE AUTH
+   ========================================================= */
+
+"use strict";
+
+
+/* =========================================================
+   CRM AUTH
+   ========================================================= */
+
 window.crmAuth = {
 
-async requireAuth(){
+    /* =====================================================
+       VERIFICAR AUTENTICAÇÃO
+       ===================================================== */
 
-const { data, error } =
-await window.supabaseClient.auth.getSession();
+    async requireAuth() {
 
-if(error || !data.session){
+        try {
 
-location.href = "index.html";
+            if (!window.supabaseClient) {
 
-return null;
+                console.error(
+                    "Supabase Client não foi carregado."
+                );
 
-}
+                window.location.href = "index.html";
 
-return data.session;
-
-},
-
-
-async signIn(email,password){
-
-return window.supabaseClient.auth.signInWithPassword({
-
-email,
-password
-
-});
-
-},
+                return null;
+            }
 
 
-async signOut(){
+            const {
+                data,
+                error
+            } =
+                await window.supabaseClient.auth.getSession();
 
-await window.supabaseClient.auth.signOut();
 
-location.href = "index.html";
+            if (error) {
 
-}
+                console.error(
+                    "Erro ao verificar sessão:",
+                    error
+                );
+
+                window.location.href = "index.html";
+
+                return null;
+            }
+
+
+            if (!data || !data.session) {
+
+                window.location.href = "index.html";
+
+                return null;
+            }
+
+
+            return data.session;
+
+        } catch (error) {
+
+            console.error(
+                "Erro na autenticação:",
+                error
+            );
+
+            window.location.href = "index.html";
+
+            return null;
+        }
+    },
+
+
+    /* =====================================================
+       LOGIN
+       ===================================================== */
+
+    async signIn(email, password) {
+
+        try {
+
+            if (!window.supabaseClient) {
+
+                return {
+                    data: {
+                        user: null,
+                        session: null
+                    },
+                    error: new Error(
+                        "Supabase Client não foi carregado."
+                    )
+                };
+            }
+
+
+            email =
+                String(email || "")
+                    .trim()
+                    .toLowerCase();
+
+
+            password =
+                String(password || "");
+
+
+            if (!email || !password) {
+
+                return {
+                    data: {
+                        user: null,
+                        session: null
+                    },
+                    error: new Error(
+                        "Informe o e-mail e a senha."
+                    )
+                };
+            }
+
+
+            const response =
+                await window.supabaseClient.auth
+                    .signInWithPassword({
+                        email,
+                        password
+                    });
+
+
+            return response;
+
+        } catch (error) {
+
+            console.error(
+                "Erro ao realizar login:",
+                error
+            );
+
+            return {
+                data: {
+                    user: null,
+                    session: null
+                },
+                error
+            };
+        }
+    },
+
+
+    /* =====================================================
+       LOGOUT
+       ===================================================== */
+
+    async signOut() {
+
+        try {
+
+            if (window.supabaseClient) {
+
+                const {
+                    error
+                } =
+                    await window.supabaseClient.auth
+                        .signOut();
+
+
+                if (error) {
+
+                    console.error(
+                        "Erro ao sair:",
+                        error
+                    );
+                }
+            }
+
+        } catch (error) {
+
+            console.error(
+                "Erro no logout:",
+                error
+            );
+
+        } finally {
+
+            window.location.href =
+                "index.html";
+        }
+    }
 
 };
 
 
+/* =========================================================
+   OBSERVAR ESTADO DA AUTENTICAÇÃO
+   ========================================================= */
+
 document.addEventListener(
-"DOMContentLoaded",
-()=>{
+    "DOMContentLoaded",
+    () => {
 
-const btn =
-document.getElementById("logoutBtn");
+        /* ================================================
+           BOTÃO LOGOUT
+           ================================================ */
 
-if(btn){
+        const logoutBtn =
+            document.getElementById("logoutBtn");
 
-btn.addEventListener(
-"click",
-()=>window.crmAuth.signOut()
+
+        if (logoutBtn) {
+
+            logoutBtn.addEventListener(
+                "click",
+                async () => {
+
+                    logoutBtn.disabled =
+                        true;
+
+                    await window.crmAuth.signOut();
+
+                }
+            );
+        }
+
+
+        /* ================================================
+           LOG DE ESTADO DO SUPABASE
+           ================================================ */
+
+        if (
+            window.supabaseClient &&
+            window.supabaseClient.auth
+        ) {
+
+            window.supabaseClient.auth
+                .onAuthStateChange(
+                    (event, session) => {
+
+                        console.log(
+                            "Auth:",
+                            event
+                        );
+
+                    }
+                );
+        }
+
+    }
 );
-
-}
-
-});
