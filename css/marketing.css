@@ -3784,3 +3784,77 @@ textarea:focus-visible {
             1 !important;
     }
 }
+
+/* =========================================================
+   AÇÕES DAS IDEIAS
+   ========================================================= */
+
+.idea-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    margin-top: 12px;
+}
+
+/* TRANSFORMAR EM CONTEÚDO */
+
+.idea-actions .idea-convert-btn {
+    width: 100%;
+    min-height: 34px;
+    font-size: 7px;
+}
+
+/* EXCLUIR */
+
+.idea-delete-btn {
+    width: 100%;
+    min-height: 32px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+
+    padding: 0 12px;
+
+    background: #fff7f7;
+
+    border: 1px solid #e5bcbc;
+    border-radius: 8px;
+
+    color: #a33c3c;
+
+    font-size: 7px;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+
+    cursor: pointer;
+
+    transition:
+        background var(--transition),
+        color var(--transition),
+        border-color var(--transition),
+        transform var(--transition),
+        box-shadow var(--transition);
+}
+
+.idea-delete-btn:hover {
+    background: #fae7e7;
+    border-color: #c98282;
+    color: #8d2929;
+
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 4px 12px rgba(163, 60, 60, 0.10);
+}
+
+.idea-delete-btn:active {
+    transform: translateY(0);
+}
+
+.idea-delete-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+}

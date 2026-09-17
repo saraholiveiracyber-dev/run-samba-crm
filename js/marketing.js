@@ -1,29 +1,3 @@
-/* =========================================================
-   RUN & SAMBA CRM
-   MARKETING & CONTEÚDO
-   CALENDÁRIO + CONTEÚDOS + PRODUÇÃO + IDEIAS
-
-   TABELAS:
-   - conteudos_marketing
-   - ideias_posts
-   - tarefas_marketing
-
-   FUNÇÕES:
-   - Criar conteúdo
-   - Editar conteúdo
-   - Visualizar conteúdo
-   - Excluir conteúdo
-   - Calendário mensal
-   - Calendário semanal
-   - Agenda
-   - Clicar no dia para criar conteúdo
-   - Produção / tarefas
-   - Ideias da equipe
-   - Transformar ideia em conteúdo
-   - Filtros
-   - Resumo
-========================================================= */
-
 "use strict";
 
 /* =========================================================
@@ -50,51 +24,35 @@ let activeIdeaFilter = "todos";
 let activeCalendarView = "month";
 
 /* =========================================================
-   INICIAR
+   INICIALIZAÇÃO
 ========================================================= */
 
 async function initMarketing() {
-
     try {
-
         if (
             !window.crmAuth ||
             typeof window.crmAuth.requireAuth !== "function"
         ) {
-
-            showMessage(
-                "Sistema de autenticação não encontrado."
-            );
-
+            showMessage("Sistema de autenticação não encontrado.");
             return;
         }
 
-        const session =
-            await window.crmAuth.requireAuth();
+        const session = await window.crmAuth.requireAuth();
 
         if (!session) {
             return;
         }
 
         if (!db) {
-
-            showMessage(
-                "Supabase não foi inicializado."
-            );
-
+            showMessage("Supabase não foi inicializado.");
             return;
         }
 
         bindEvents();
-
         await loadMarketing();
 
     } catch (error) {
-
-        console.error(
-            "Erro ao iniciar Marketing:",
-            error
-        );
+        console.error("Erro ao iniciar Marketing:", error);
 
         showMessage(
             "Erro ao iniciar marketing: " +
@@ -108,28 +66,21 @@ async function initMarketing() {
 ========================================================= */
 
 async function loadMarketing() {
-
     try {
-
         showLoading();
 
         /* =====================================================
            CONTEÚDOS
         ===================================================== */
 
-        const contentResult =
-            await db
-                .from("conteudos_marketing")
-                .select("*")
-                .order(
-                    "data_publicacao",
-                    {
-                        ascending: true
-                    }
-                );
+        const contentResult = await db
+            .from("conteudos_marketing")
+            .select("*")
+            .order("data_publicacao", {
+                ascending: true
+            });
 
         if (contentResult.error) {
-
             console.error(
                 "Erro conteúdos:",
                 contentResult.error
@@ -138,26 +89,20 @@ async function loadMarketing() {
             throw contentResult.error;
         }
 
-        contents =
-            contentResult.data || [];
+        contents = contentResult.data || [];
 
         /* =====================================================
            IDEIAS
         ===================================================== */
 
-        const ideasResult =
-            await db
-                .from("ideias_posts")
-                .select("*")
-                .order(
-                    "created_at",
-                    {
-                        ascending: false
-                    }
-                );
+        const ideasResult = await db
+            .from("ideias_posts")
+            .select("*")
+            .order("created_at", {
+                ascending: false
+            });
 
         if (ideasResult.error) {
-
             console.error(
                 "Erro ideias:",
                 ideasResult.error
@@ -166,61 +111,40 @@ async function loadMarketing() {
             throw ideasResult.error;
         }
 
-        ideas =
-            ideasResult.data || [];
+        ideas = ideasResult.data || [];
 
         /* =====================================================
            TAREFAS
         ===================================================== */
 
-        const tasksResult =
-            await db
-                .from("tarefas_marketing")
-                .select("*")
-                .order(
-                    "data_tarefa",
-                    {
-                        ascending: true
-                    }
-                );
+        const tasksResult = await db
+            .from("tarefas_marketing")
+            .select("*")
+            .order("data_tarefa", {
+                ascending: true
+            });
 
         if (tasksResult.error) {
-
             console.warn(
                 "Tabela tarefas_marketing não disponível:",
                 tasksResult.error.message
             );
 
             tasks = [];
-
         } else {
-
-            tasks =
-                tasksResult.data || [];
+            tasks = tasksResult.data || [];
         }
-
-        /* =====================================================
-           RESPONSÁVEIS
-        ===================================================== */
 
         populateResponsibleFilter();
 
-        /* =====================================================
-           RENDER
-        ===================================================== */
-
         updateSummary();
-
         renderCalendar();
-
         renderUpcoming();
-
         renderIdeas();
 
         hideMessage();
 
     } catch (error) {
-
         console.error(
             "Erro ao carregar marketing:",
             error
@@ -238,296 +162,195 @@ async function loadMarketing() {
 ========================================================= */
 
 function updateSummary() {
+    const today = new Date();
 
-    const today =
-        new Date();
+    const startToday = startOfDay(today);
+    const endToday = endOfDay(today);
 
-    const startToday =
-        startOfDay(today);
-
-    const endToday =
-        endOfDay(today);
-
-    const nextWeek =
-        new Date(today);
+    const nextWeek = new Date(today);
 
     nextWeek.setDate(
         nextWeek.getDate() + 7
     );
 
-    const todayCount =
-        contents.filter(
-            item => {
+    const todayCount = contents.filter(item => {
+        const date = parseDate(item.data_publicacao);
 
-                const date =
-                    parseDate(
-                        item.data_publicacao
-                    );
+        return (
+            date &&
+            date >= startToday &&
+            date <= endToday
+        );
+    }).length;
 
-                return (
-                    date &&
-                    date >= startToday &&
-                    date <= endToday
-                );
-            }
-        ).length;
+    const weekCount = contents.filter(item => {
+        const date = parseDate(item.data_publicacao);
 
-    const weekCount =
-        contents.filter(
-            item => {
+        return (
+            date &&
+            date >= startToday &&
+            date <= nextWeek
+        );
+    }).length;
 
-                const date =
-                    parseDate(
-                        item.data_publicacao
-                    );
+    const pendingTaskCount = tasks.filter(task => {
+        const status = upper(task.status);
 
-                return (
-                    date &&
-                    date >= startToday &&
-                    date <= nextWeek
-                );
-            }
-        ).length;
+        return (
+            status !== "CONCLUIDA" &&
+            status !== "CONCLUÍDA"
+        );
+    }).length;
 
-    const pendingTaskCount =
-        tasks.filter(
-            task =>
-                upper(task.status) !==
-                "CONCLUIDA" &&
-                upper(task.status) !==
-                "CONCLUÍDA"
-        ).length;
+    const publishedCount = contents.filter(item =>
+        upper(item.status) === "PUBLICADO"
+    ).length;
 
-    const publishedCount =
-        contents.filter(
-            item =>
-                upper(item.status) ===
-                "PUBLICADO"
-        ).length;
+    setText("todayContents", todayCount);
+    setText("weekContents", weekCount);
+    setText("pendingTasks", pendingTaskCount);
+    setText("publishedContents", publishedCount);
+    setText("totalIdeas", ideas.length);
 
-    setText(
-        "todayContents",
-        todayCount
-    );
-
-    setText(
-        "weekContents",
-        weekCount
-    );
-
-    setText(
-        "pendingTasks",
-        pendingTaskCount
-    );
-
-    setText(
-        "publishedContents",
-        publishedCount
-    );
-
-    setText(
-        "totalIdeas",
-        ideas.length
-    );
-
-    /* Compatibilidade */
-
-    setText(
-        "totalContents",
-        contents.length
-    );
+    setText("totalContents", contents.length);
 
     setText(
         "plannedContents",
-        contents.filter(
-            item =>
-                upper(item.status) ===
-                "PLANEJADO"
+        contents.filter(item =>
+            upper(item.status) === "PLANEJADO"
         ).length
     );
 
     setText(
         "monthContents",
-        contents.filter(
-            item =>
-                isCurrentMonth(
-                    item.data_publicacao
-                )
+        contents.filter(item =>
+            isCurrentMonth(item.data_publicacao)
         ).length
     );
 }
 
 /* =========================================================
-   FILTROS ATIVOS
+   FILTROS
 ========================================================= */
 
 function getFilteredContents() {
-
-    const type =
-        upper(
-            getValue(
-                "contentTypeFilter"
-            )
-        );
-
-    const status =
-        upper(
-            getValue(
-                "contentStatusFilter"
-            )
-        );
-
-    const responsible =
-        getValue(
-            "contentResponsibleFilter"
-        );
-
-    return contents.filter(
-        content => {
-
-            const contentType =
-                upper(
-                    content.tipo ||
-                    content.type ||
-                    content.formato ||
-                    ""
-                );
-
-            const contentStatus =
-                upper(
-                    content.status ||
-                    ""
-                );
-
-            const contentResponsible =
-                String(
-                    content.responsavel ||
-                    ""
-                ).trim();
-
-            const typeOK =
-                type === "TODOS" ||
-                type === "" ||
-                contentType === type;
-
-            const statusOK =
-                status === "TODOS" ||
-                status === "" ||
-                contentStatus === status;
-
-            const responsibleOK =
-                responsible === "todos" ||
-                responsible === "" ||
-                contentResponsible === responsible;
-
-            return (
-                typeOK &&
-                statusOK &&
-                responsibleOK
-            );
-        }
+    const type = upper(
+        getValue("contentTypeFilter")
     );
+
+    const status = upper(
+        getValue("contentStatusFilter")
+    );
+
+    const responsible = getValue(
+        "contentResponsibleFilter"
+    );
+
+    return contents.filter(content => {
+        const contentType = upper(
+            content.tipo ||
+            content.type ||
+            content.formato ||
+            ""
+        );
+
+        const contentStatus = upper(
+            content.status || ""
+        );
+
+        const contentResponsible = String(
+            content.responsavel || ""
+        ).trim();
+
+        const typeOK =
+            type === "TODOS" ||
+            type === "" ||
+            contentType === type;
+
+        const statusOK =
+            status === "TODOS" ||
+            status === "" ||
+            contentStatus === status;
+
+        const responsibleOK =
+            responsible === "todos" ||
+            responsible === "" ||
+            contentResponsible === responsible;
+
+        return (
+            typeOK &&
+            statusOK &&
+            responsibleOK
+        );
+    });
 }
 
 /* =========================================================
-   POPULAR RESPONSÁVEIS
+   RESPONSÁVEIS
 ========================================================= */
 
 function populateResponsibleFilter() {
-
-    const select =
-        document.getElementById(
-            "contentResponsibleFilter"
-        );
+    const select = document.getElementById(
+        "contentResponsibleFilter"
+    );
 
     if (!select) {
         return;
     }
 
-    const currentValue =
-        select.value;
+    const currentValue = select.value;
 
     const names = new Set();
 
-    contents.forEach(
-        item => {
-
-            if (
-                item.responsavel &&
+    contents.forEach(item => {
+        if (
+            item.responsavel &&
+            String(item.responsavel).trim()
+        ) {
+            names.add(
                 String(item.responsavel).trim()
-            ) {
-
-                names.add(
-                    String(
-                        item.responsavel
-                    ).trim()
-                );
-            }
+            );
         }
-    );
+    });
 
-    tasks.forEach(
-        item => {
-
-            if (
-                item.responsavel &&
+    tasks.forEach(item => {
+        if (
+            item.responsavel &&
+            String(item.responsavel).trim()
+        ) {
+            names.add(
                 String(item.responsavel).trim()
-            ) {
-
-                names.add(
-                    String(
-                        item.responsavel
-                    ).trim()
-                );
-            }
+            );
         }
-    );
+    });
 
-    const sortedNames =
-        [...names].sort(
-            (a, b) =>
-                a.localeCompare(
-                    b,
-                    "pt-BR"
-                )
-        );
+    const sortedNames = [...names].sort(
+        (a, b) =>
+            a.localeCompare(
+                b,
+                "pt-BR"
+            )
+    );
 
     select.innerHTML =
         `<option value="todos">Todos os responsáveis</option>`;
 
-    sortedNames.forEach(
-        name => {
+    sortedNames.forEach(name => {
+        const option =
+            document.createElement("option");
 
-            const option =
-                document.createElement(
-                    "option"
-                );
+        option.value = name;
+        option.textContent = name;
 
-            option.value =
-                name;
-
-            option.textContent =
-                name;
-
-            select.appendChild(
-                option
-            );
-        }
-    );
+        select.appendChild(option);
+    });
 
     if (
-        sortedNames.includes(
-            currentValue
-        )
+        sortedNames.includes(currentValue)
     ) {
-
-        select.value =
-            currentValue;
-
+        select.value = currentValue;
     } else {
-
-        select.value =
-            "todos";
+        select.value = "todos";
     }
 }
 
@@ -536,24 +359,13 @@ function populateResponsibleFilter() {
 ========================================================= */
 
 function renderCalendar() {
-
-    if (
-        activeCalendarView ===
-        "week"
-    ) {
-
+    if (activeCalendarView === "week") {
         renderWeekCalendar();
-
         return;
     }
 
-    if (
-        activeCalendarView ===
-        "agenda"
-    ) {
-
+    if (activeCalendarView === "agenda") {
         renderAgenda();
-
         return;
     }
 
@@ -565,26 +377,20 @@ function renderCalendar() {
 ========================================================= */
 
 function renderMonthCalendar() {
+    const grid = document.getElementById(
+        "calendarGrid"
+    );
 
-    const grid =
-        document.getElementById(
-            "calendarGrid"
-        );
-
-    const title =
-        document.getElementById(
-            "calendarMonth"
-        );
+    const title = document.getElementById(
+        "calendarMonth"
+    );
 
     if (!grid) {
         return;
     }
 
-    const year =
-        currentDate.getFullYear();
-
-    const month =
-        currentDate.getMonth();
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
 
     const monthName =
         currentDate.toLocaleDateString(
@@ -596,28 +402,23 @@ function renderMonthCalendar() {
         );
 
     if (title) {
-
         title.textContent =
-            capitalize(
-                monthName
-            );
+            capitalize(monthName);
     }
 
     grid.innerHTML = "";
 
-    const firstDay =
-        new Date(
-            year,
-            month,
-            1
-        );
+    const firstDay = new Date(
+        year,
+        month,
+        1
+    );
 
-    const lastDay =
-        new Date(
-            year,
-            month + 1,
-            0
-        );
+    const lastDay = new Date(
+        year,
+        month + 1,
+        0
+    );
 
     let startDay =
         firstDay.getDay() - 1;
@@ -626,8 +427,7 @@ function renderMonthCalendar() {
         startDay = 6;
     }
 
-    const days =
-        lastDay.getDate();
+    const days = lastDay.getDate();
 
     const previousLastDay =
         new Date(
@@ -643,17 +443,13 @@ function renderMonthCalendar() {
         i >= 0;
         i--
     ) {
-
-        const cell =
-            createCalendarDay(
-                previousLastDay - i,
-                true,
-                -1
-            );
-
-        grid.appendChild(
-            cell
+        const cell = createCalendarDay(
+            previousLastDay - i,
+            true,
+            -1
         );
+
+        grid.appendChild(cell);
     }
 
     /* Dias atuais */
@@ -663,17 +459,13 @@ function renderMonthCalendar() {
         day <= days;
         day++
     ) {
-
-        const cell =
-            createCalendarDay(
-                day,
-                false,
-                0
-            );
-
-        grid.appendChild(
-            cell
+        const cell = createCalendarDay(
+            day,
+            false,
+            0
         );
+
+        grid.appendChild(cell);
     }
 
     /* Dias posteriores */
@@ -681,22 +473,18 @@ function renderMonthCalendar() {
     while (
         grid.children.length % 7 !== 0
     ) {
-
         const nextDay =
             grid.children.length -
             (startDay + days) +
             1;
 
-        const cell =
-            createCalendarDay(
-                nextDay,
-                true,
-                1
-            );
-
-        grid.appendChild(
-            cell
+        const cell = createCalendarDay(
+            nextDay,
+            true,
+            1
         );
+
+        grid.appendChild(cell);
     }
 }
 
@@ -709,35 +497,23 @@ function createCalendarDay(
     outside,
     offset
 ) {
-
     const cell =
-        document.createElement(
-            "div"
-        );
+        document.createElement("div");
 
-    cell.className =
-        "calendar-day";
+    cell.className = "calendar-day";
 
     if (outside) {
-
-        cell.classList.add(
-            "outside"
-        );
+        cell.classList.add("outside");
 
         const number =
-            document.createElement(
-                "div"
-            );
+            document.createElement("div");
 
         number.className =
             "calendar-day-number";
 
-        number.textContent =
-            day;
+        number.textContent = day;
 
-        cell.appendChild(
-            number
-        );
+        cell.appendChild(number);
 
         return cell;
     }
@@ -749,128 +525,91 @@ function createCalendarDay(
         currentDate.getMonth();
 
     const dateString =
-        `${year}-${String(
-            month + 1
-        ).padStart(2, "0")}-${String(
-            day
-        ).padStart(2, "0")}`;
+        `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 
     const number =
-        document.createElement(
-            "div"
-        );
+        document.createElement("div");
 
     number.className =
         "calendar-day-number";
 
-    number.textContent =
-        day;
+    number.textContent = day;
 
-    cell.appendChild(
-        number
-    );
+    cell.appendChild(number);
 
-    /* Hoje */
-
-    const today =
-        new Date();
+    const today = new Date();
 
     if (
         today.getFullYear() === year &&
         today.getMonth() === month &&
         today.getDate() === day
     ) {
-
-        cell.classList.add(
-            "today"
-        );
+        cell.classList.add("today");
     }
 
-    /* Clique duplo */
+    /* Duplo clique */
 
     cell.addEventListener(
         "dblclick",
         () => {
-
             openContentModalForDate(
                 dateString
             );
-
         }
     );
 
     /* Conteúdos */
 
     const dayContents =
-        getFilteredContents()
-            .filter(
-                item =>
-                    isSameCalendarDate(
-                        item.data_publicacao,
-                        year,
-                        month,
-                        day
-                    )
-            );
-
-    dayContents.forEach(
-        content => {
-
-            cell.appendChild(
-                createCalendarContent(
-                    content
-                )
-            );
-        }
-    );
-
-    /* Produção */
-
-    const dayTasks =
-        tasks.filter(
-            task =>
+        getFilteredContents().filter(
+            item =>
                 isSameCalendarDate(
-                    task.data_tarefa,
+                    item.data_publicacao,
                     year,
                     month,
                     day
                 )
         );
 
-    dayTasks.forEach(
-        task => {
+    dayContents.forEach(content => {
+        cell.appendChild(
+            createCalendarContent(
+                content
+            )
+        );
+    });
 
-            cell.appendChild(
-                createCalendarTask(
-                    task
-                )
-            );
-        }
+    /* Produção */
+
+    const dayTasks = tasks.filter(
+        task =>
+            isSameCalendarDate(
+                task.data_tarefa,
+                year,
+                month,
+                day
+            )
     );
+
+    dayTasks.forEach(task => {
+        cell.appendChild(
+            createCalendarTask(task)
+        );
+    });
 
     /* Botão + */
 
     const addButton =
-        document.createElement(
-            "button"
-        );
+        document.createElement("button");
 
-    addButton.type =
-        "button";
-
-    addButton.className =
-        "calendar-add";
-
-    addButton.textContent =
-        "+";
-
-    addButton.title =
-        "Adicionar conteúdo";
+    addButton.type = "button";
+    addButton.className = "calendar-add";
+    addButton.textContent = "+";
+    addButton.title = "Adicionar conteúdo";
 
     addButton.addEventListener(
         "click",
         event => {
-
             event.stopPropagation();
 
             openContentModalForDate(
@@ -879,9 +618,7 @@ function createCalendarDay(
         }
     );
 
-    cell.appendChild(
-        addButton
-    );
+    cell.appendChild(addButton);
 
     return cell;
 }
@@ -891,35 +628,28 @@ function createCalendarDay(
 ========================================================= */
 
 function renderWeekCalendar() {
+    const grid = document.getElementById(
+        "calendarGrid"
+    );
 
-    const grid =
-        document.getElementById(
-            "calendarGrid"
-        );
-
-    const title =
-        document.getElementById(
-            "calendarMonth"
-        );
+    const title = document.getElementById(
+        "calendarMonth"
+    );
 
     if (!grid) {
         return;
     }
 
     const start =
-        startOfWeek(
-            currentDate
-        );
+        startOfWeek(currentDate);
 
-    const end =
-        new Date(start);
+    const end = new Date(start);
 
     end.setDate(
         end.getDate() + 6
     );
 
     if (title) {
-
         title.textContent =
             `${formatDayMonth(start)} — ${formatDayMonth(end)}`;
     }
@@ -931,7 +661,6 @@ function renderWeekCalendar() {
         i < 7;
         i++
     ) {
-
         const date =
             new Date(start);
 
@@ -940,9 +669,7 @@ function renderWeekCalendar() {
         );
 
         const cell =
-            document.createElement(
-                "div"
-            );
+            document.createElement("div");
 
         cell.className =
             "calendar-day week-day";
@@ -953,16 +680,11 @@ function renderWeekCalendar() {
                 new Date()
             )
         ) {
-
-            cell.classList.add(
-                "today"
-            );
+            cell.classList.add("today");
         }
 
         const number =
-            document.createElement(
-                "div"
-            );
+            document.createElement("div");
 
         number.className =
             "calendar-day-number";
@@ -976,32 +698,26 @@ function renderWeekCalendar() {
                 }
             );
 
-        cell.appendChild(
-            number
-        );
+        cell.appendChild(number);
 
         const dayContents =
-            getFilteredContents()
-                .filter(
-                    item =>
-                        isSameDay(
-                            parseDate(
-                                item.data_publicacao
-                            ),
-                            date
-                        )
-                );
-
-        dayContents.forEach(
-            content => {
-
-                cell.appendChild(
-                    createCalendarContent(
-                        content
+            getFilteredContents().filter(
+                item =>
+                    isSameDay(
+                        parseDate(
+                            item.data_publicacao
+                        ),
+                        date
                     )
-                );
-            }
-        );
+            );
+
+        dayContents.forEach(content => {
+            cell.appendChild(
+                createCalendarContent(
+                    content
+                )
+            );
+        });
 
         tasks
             .filter(
@@ -1013,50 +729,34 @@ function renderWeekCalendar() {
                         date
                     )
             )
-            .forEach(
-                task => {
-
-                    cell.appendChild(
-                        createCalendarTask(
-                            task
-                        )
-                    );
-                }
-            );
+            .forEach(task => {
+                cell.appendChild(
+                    createCalendarTask(
+                        task
+                    )
+                );
+            });
 
         const addButton =
-            document.createElement(
-                "button"
-            );
+            document.createElement("button");
 
-        addButton.type =
-            "button";
-
-        addButton.className =
-            "calendar-add";
-
-        addButton.textContent =
-            "+";
+        addButton.type = "button";
+        addButton.className = "calendar-add";
+        addButton.textContent = "+";
+        addButton.title = "Adicionar conteúdo";
 
         addButton.addEventListener(
             "click",
             () => {
-
                 openContentModalForDate(
-                    formatInputDate(
-                        date
-                    )
+                    formatInputDate(date)
                 );
             }
         );
 
-        cell.appendChild(
-            addButton
-        );
+        cell.appendChild(addButton);
 
-        grid.appendChild(
-            cell
-        );
+        grid.appendChild(cell);
     }
 }
 
@@ -1065,67 +765,56 @@ function renderWeekCalendar() {
 ========================================================= */
 
 function renderAgenda() {
+    const grid = document.getElementById(
+        "calendarGrid"
+    );
 
-    const grid =
-        document.getElementById(
-            "calendarGrid"
-        );
-
-    const title =
-        document.getElementById(
-            "calendarMonth"
-        );
+    const title = document.getElementById(
+        "calendarMonth"
+    );
 
     if (!grid) {
         return;
     }
 
     if (title) {
-
         title.textContent =
             "Agenda de marketing";
     }
 
     const items = [];
 
-    getFilteredContents()
-        .forEach(
-            content => {
-
-                const date =
-                    parseDate(
-                        content.data_publicacao
-                    );
-
-                if (date) {
-
-                    items.push({
-                        type: "content",
-                        date,
-                        data: content
-                    });
-                }
-            }
-        );
-
-    tasks.forEach(
-        task => {
-
+    getFilteredContents().forEach(
+        content => {
             const date =
                 parseDate(
-                    task.data_tarefa
+                    content.data_publicacao
                 );
 
             if (date) {
-
                 items.push({
-                    type: "task",
+                    type: "content",
                     date,
-                    data: task
+                    data: content
                 });
             }
         }
     );
+
+    tasks.forEach(task => {
+        const date =
+            parseDate(
+                task.data_tarefa
+            );
+
+        if (date) {
+            items.push({
+                type: "task",
+                date,
+                data: task
+            });
+        }
+    });
 
     items.sort(
         (a, b) =>
@@ -1133,7 +822,6 @@ function renderAgenda() {
     );
 
     if (!items.length) {
-
         grid.innerHTML = `
             <div class="content-empty">
                 <div class="empty-icon">✦</div>
@@ -1145,31 +833,26 @@ function renderAgenda() {
         return;
     }
 
-    grid.innerHTML =
-        `<div class="agenda-list">
+    grid.innerHTML = `
+        <div class="agenda-list">
             ${items
-                .map(
-                    item =>
-                        item.type === "task"
-                            ? renderAgendaTask(
-                                item.data
-                            )
-                            : renderAgendaContent(
-                                item.data
-                            )
+                .map(item =>
+                    item.type === "task"
+                        ? renderAgendaTask(item.data)
+                        : renderAgendaContent(item.data)
                 )
                 .join("")}
-        </div>`;
+        </div>
+    `;
+
+    bindAgendaActions();
 }
 
 /* =========================================================
    AGENDA — CONTEÚDO
 ========================================================= */
 
-function renderAgendaContent(
-    content
-) {
-
+function renderAgendaContent(content) {
     return `
         <button
             type="button"
@@ -1245,10 +928,7 @@ function renderAgendaContent(
    AGENDA — TAREFA
 ========================================================= */
 
-function renderAgendaTask(
-    task
-) {
-
+function renderAgendaTask(task) {
     return `
         <button
             type="button"
@@ -1308,23 +988,73 @@ function renderAgendaTask(
 }
 
 /* =========================================================
+   AÇÕES DA AGENDA
+========================================================= */
+
+function bindAgendaActions() {
+    document
+        .querySelectorAll(
+            ".agenda-item[data-content-id]"
+        )
+        .forEach(button => {
+            button.addEventListener(
+                "click",
+                () => {
+                    const id =
+                        button.dataset.contentId;
+
+                    const content =
+                        contents.find(
+                            item =>
+                                String(item.id) ===
+                                String(id)
+                        );
+
+                    if (content) {
+                        openViewContentModal(
+                            content
+                        );
+                    }
+                }
+            );
+        });
+
+    document
+        .querySelectorAll(
+            ".agenda-item[data-task-id]"
+        )
+        .forEach(button => {
+            button.addEventListener(
+                "click",
+                () => {
+                    const id =
+                        button.dataset.taskId;
+
+                    const task =
+                        tasks.find(
+                            item =>
+                                String(item.id) ===
+                                String(id)
+                        );
+
+                    if (task) {
+                        openTaskModal(task);
+                    }
+                }
+            );
+        });
+}
+
+/* =========================================================
    CONTEÚDO NO CALENDÁRIO
 ========================================================= */
 
-function createCalendarContent(
-    content
-) {
-
+function createCalendarContent(content) {
     const item =
-        document.createElement(
-            "button"
-        );
+        document.createElement("button");
 
-    item.type =
-        "button";
-
-    item.className =
-        "calendar-content";
+    item.type = "button";
+    item.className = "calendar-content";
 
     const status =
         upper(
@@ -1333,13 +1063,10 @@ function createCalendarContent(
         );
 
     item.classList.add(
-        getStatusClass(
-            status
-        )
+        getStatusClass(status)
     );
 
     item.innerHTML = `
-
         <span class="calendar-content-time">
             ${esc(
                 formatTime(
@@ -1356,7 +1083,6 @@ function createCalendarContent(
         </strong>
 
         <span class="calendar-content-meta">
-
             ${esc(
                 content.tipo ||
                 content.formato ||
@@ -1371,14 +1097,12 @@ function createCalendarContent(
                       )
                     : ""
             }
-
         </span>
     `;
 
     item.addEventListener(
         "click",
         event => {
-
             event.stopPropagation();
 
             openViewContentModal(
@@ -1394,18 +1118,11 @@ function createCalendarContent(
    TAREFA NO CALENDÁRIO
 ========================================================= */
 
-function createCalendarTask(
-    task
-) {
-
+function createCalendarTask(task) {
     const item =
-        document.createElement(
-            "button"
-        );
+        document.createElement("button");
 
-    item.type =
-        "button";
-
+    item.type = "button";
     item.className =
         "calendar-content calendar-task";
 
@@ -1416,7 +1133,6 @@ function createCalendarTask(
     );
 
     item.innerHTML = `
-
         <span class="calendar-content-time">
             ${esc(
                 formatTime(
@@ -1440,12 +1156,9 @@ function createCalendarTask(
     item.addEventListener(
         "click",
         event => {
-
             event.stopPropagation();
 
-            openTaskModal(
-                task
-            );
+            openTaskModal(task);
         }
     );
 
@@ -1457,7 +1170,6 @@ function createCalendarTask(
 ========================================================= */
 
 function renderUpcoming() {
-
     const container =
         document.getElementById(
             "upcomingContents"
@@ -1467,55 +1179,47 @@ function renderUpcoming() {
         return;
     }
 
-    const now =
-        new Date();
+    const now = new Date();
 
     const items = [];
 
-    getFilteredContents()
-        .forEach(
-            content => {
-
-                const date =
-                    parseDate(
-                        content.data_publicacao
-                    );
-
-                if (
-                    date &&
-                    date >= now
-                ) {
-
-                    items.push({
-                        type: "content",
-                        date,
-                        data: content
-                    });
-                }
-            }
-        );
-
-    tasks.forEach(
-        task => {
-
+    getFilteredContents().forEach(
+        content => {
             const date =
                 parseDate(
-                    task.data_tarefa
+                    content.data_publicacao
                 );
 
             if (
                 date &&
                 date >= now
             ) {
-
                 items.push({
-                    type: "task",
+                    type: "content",
                     date,
-                    data: task
+                    data: content
                 });
             }
         }
     );
+
+    tasks.forEach(task => {
+        const date =
+            parseDate(
+                task.data_tarefa
+            );
+
+        if (
+            date &&
+            date >= now
+        ) {
+            items.push({
+                type: "task",
+                date,
+                data: task
+            });
+        }
+    });
 
     items.sort(
         (a, b) =>
@@ -1523,20 +1227,12 @@ function renderUpcoming() {
     );
 
     const nextItems =
-        items.slice(
-            0,
-            10
-        );
+        items.slice(0, 10);
 
     if (!nextItems.length) {
-
         container.innerHTML = `
-
             <div class="content-empty">
-
-                <div class="empty-icon">
-                    ✦
-                </div>
+                <div class="empty-icon">✦</div>
 
                 <h3>
                     Nenhuma atividade próxima
@@ -1546,7 +1242,6 @@ function renderUpcoming() {
                     Adicione conteúdos ou tarefas
                     ao calendário.
                 </p>
-
             </div>
         `;
 
@@ -1555,23 +1250,14 @@ function renderUpcoming() {
 
     container.innerHTML =
         nextItems
-            .map(
-                item => {
-
-                    if (
-                        item.type ===
-                        "task"
-                    ) {
-
-                        return renderUpcomingTask(
-                            item.data
-                        );
-                    }
-
-                    return renderUpcomingContent(
+            .map(item =>
+                item.type === "task"
+                    ? renderUpcomingTask(
                         item.data
-                    );
-                }
+                    )
+                    : renderUpcomingContent(
+                        item.data
+                    )
             )
             .join("");
 
@@ -1582,10 +1268,7 @@ function renderUpcoming() {
    PRÓXIMO CONTEÚDO
 ========================================================= */
 
-function renderUpcomingContent(
-    content
-) {
-
+function renderUpcomingContent(content) {
     const status =
         upper(
             content.status ||
@@ -1593,7 +1276,6 @@ function renderUpcomingContent(
         );
 
     return `
-
         <button
             type="button"
             class="upcoming-item ${getStatusClass(status)}"
@@ -1601,7 +1283,6 @@ function renderUpcomingContent(
         >
 
             <div class="upcoming-date">
-
                 <strong>
                     ${esc(
                         formatDayMonth(
@@ -1617,7 +1298,6 @@ function renderUpcomingContent(
                         )
                     )}
                 </span>
-
             </div>
 
             <div class="upcoming-info">
@@ -1638,7 +1318,6 @@ function renderUpcomingContent(
                 </strong>
 
                 <small>
-
                     ${esc(
                         content.plataforma ||
                         "Sem plataforma"
@@ -1652,7 +1331,6 @@ function renderUpcomingContent(
                               )
                             : ""
                     }
-
                 </small>
 
             </div>
@@ -1669,10 +1347,7 @@ function renderUpcomingContent(
    PRÓXIMA TAREFA
 ========================================================= */
 
-function renderUpcomingTask(
-    task
-) {
-
+function renderUpcomingTask(task) {
     const status =
         upper(
             task.status ||
@@ -1680,7 +1355,6 @@ function renderUpcomingTask(
         );
 
     return `
-
         <button
             type="button"
             class="upcoming-item task-item"
@@ -1742,74 +1416,57 @@ function renderUpcomingTask(
 ========================================================= */
 
 function bindUpcomingActions() {
-
     document
         .querySelectorAll(
             ".upcoming-item[data-content-id]"
         )
-        .forEach(
-            button => {
+        .forEach(button => {
+            button.addEventListener(
+                "click",
+                () => {
+                    const id =
+                        button.dataset.contentId;
 
-                button.addEventListener(
-                    "click",
-                    () => {
+                    const content =
+                        contents.find(
+                            item =>
+                                String(item.id) ===
+                                String(id)
+                        );
 
-                        const id =
-                            button.dataset.contentId;
-
-                        const content =
-                            contents.find(
-                                item =>
-                                    String(
-                                        item.id
-                                    ) ===
-                                    String(id)
-                            );
-
-                        if (content) {
-
-                            openViewContentModal(
-                                content
-                            );
-                        }
+                    if (content) {
+                        openViewContentModal(
+                            content
+                        );
                     }
-                );
-            }
-        );
+                }
+            );
+        });
 
     document
         .querySelectorAll(
             ".upcoming-item[data-task-id]"
         )
-        .forEach(
-            button => {
+        .forEach(button => {
+            button.addEventListener(
+                "click",
+                () => {
+                    const id =
+                        button.dataset.taskId;
 
-                button.addEventListener(
-                    "click",
-                    () => {
+                    const task =
+                        tasks.find(
+                            item =>
+                                String(item.id) ===
+                                String(id)
+                        );
 
-                        const id =
-                            button.dataset.taskId;
-
-                        const task =
-                            tasks.find(
-                                item =>
-                                    String(
-                                        item.id
-                                    ) ===
-                                    String(id)
-                            );
-
-                        if (task) {
-
-                            openTaskModal(
-                                task
-                            );
-                        }
+                    if (task) {
+                        openTaskModal(task);
                     }
-                );
-            }
-        );
+                }
+            );
+        });
 }
 
 /* =========================================================
@@ -1817,7 +1474,6 @@ function bindUpcomingActions() {
 ========================================================= */
 
 function renderIdeas() {
-
     const grid =
         document.getElementById(
             "ideasGrid"
@@ -1834,7 +1490,6 @@ function renderIdeas() {
         activeIdeaFilter !==
         "todos"
     ) {
-
         filteredIdeas =
             filteredIdeas.filter(
                 idea =>
@@ -1849,9 +1504,7 @@ function renderIdeas() {
     }
 
     if (!filteredIdeas.length) {
-
         grid.innerHTML = `
-
             <div class="content-empty">
 
                 <div class="empty-icon">
@@ -1884,7 +1537,6 @@ function renderIdeas() {
             );
 
         if (emptyButton) {
-
             emptyButton.addEventListener(
                 "click",
                 openIdeaModal
@@ -1896,9 +1548,7 @@ function renderIdeas() {
 
     grid.innerHTML =
         filteredIdeas
-            .map(
-                renderIdeaCard
-            )
+            .map(renderIdeaCard)
             .join("");
 
     bindIdeaActions();
@@ -1908,10 +1558,7 @@ function renderIdeas() {
    CARD DE IDEIA
 ========================================================= */
 
-function renderIdeaCard(
-    idea
-) {
-
+function renderIdeaCard(idea) {
     const priority =
         upper(
             idea.prioridade ||
@@ -1926,7 +1573,6 @@ function renderIdeaCard(
         );
 
     return `
-
         <article
             class="idea-card"
             data-idea-id="${esc(idea.id)}"
@@ -1985,7 +1631,6 @@ function renderIdeaCard(
             <div class="idea-footer">
 
                 <span>
-
                     ${
                         idea.autor
                             ? "💡 " +
@@ -1994,7 +1639,6 @@ function renderIdeaCard(
                               )
                             : "💡 Equipe"
                     }
-
                 </span>
 
                 <span>
@@ -2017,6 +1661,15 @@ function renderIdeaCard(
                     TRANSFORMAR EM CONTEÚDO
                 </button>
 
+                <button
+                    type="button"
+                    class="idea-delete-btn"
+                    data-id="${esc(idea.id)}"
+                    title="Excluir ideia"
+                >
+                    🗑️ EXCLUIR
+                </button>
+
             </div>
 
         </article>
@@ -2029,52 +1682,237 @@ function renderIdeaCard(
 
 function bindIdeaActions() {
 
+    /* =====================================================
+       TRANSFORMAR EM CONTEÚDO
+    ===================================================== */
+
     document
         .querySelectorAll(
             ".idea-convert-btn"
         )
-        .forEach(
-            button => {
+        .forEach(button => {
 
-                button.addEventListener(
-                    "click",
-                    event => {
+            button.addEventListener(
+                "click",
+                event => {
 
-                        event.stopPropagation();
+                    event.stopPropagation();
 
-                        const id =
-                            button.dataset.id;
+                    const id =
+                        button.dataset.id;
 
-                        const idea =
-                            ideas.find(
-                                item =>
-                                    String(
-                                        item.id
-                                    ) ===
-                                    String(id)
-                            );
-
-                        if (!idea) {
-                            return;
-                        }
-
-                        convertIdeaToContent(
-                            idea
+                    const idea =
+                        ideas.find(
+                            item =>
+                                String(item.id) ===
+                                String(id)
                         );
+
+                    if (!idea) {
+                        return;
                     }
-                );
-            }
-        );
+
+                    convertIdeaToContent(
+                        idea
+                    );
+                }
+            );
+        });
+
+    /* =====================================================
+       EXCLUIR IDEIA
+    ===================================================== */
+
+    document
+        .querySelectorAll(
+            ".idea-delete-btn"
+        )
+        .forEach(button => {
+
+            button.addEventListener(
+                "click",
+                event => {
+
+                    event.stopPropagation();
+
+                    const id =
+                        button.dataset.id;
+
+                    deleteIdea(id);
+                }
+            );
+        });
 }
 
 /* =========================================================
-   TRANSFORMAR IDEIA
+   EXCLUIR IDEIA
 ========================================================= */
 
-function convertIdeaToContent(
-    idea
-) {
+async function deleteIdea(id) {
 
+    const idea =
+        ideas.find(
+            item =>
+                String(item.id) ===
+                String(id)
+        );
+
+    if (!idea) {
+        showMessage(
+            "Ideia não encontrada."
+        );
+
+        return;
+    }
+
+    const title =
+        idea.titulo ||
+        "Ideia sem título";
+
+    const confirmed =
+        confirm(
+            `Deseja realmente excluir a ideia "${title}"?\n\nEssa ação não poderá ser desfeita.`
+        );
+
+    if (!confirmed) {
+        return;
+    }
+
+    const card =
+        document.querySelector(
+            `.idea-card[data-idea-id="${CSS.escape(String(id))}"]`
+        );
+
+    const deleteButton =
+        card
+            ? card.querySelector(
+                ".idea-delete-btn"
+            )
+            : null;
+
+    try {
+
+        /* =================================================
+           DESABILITAR BOTÃO
+        ================================================= */
+
+        if (deleteButton) {
+            deleteButton.disabled = true;
+            deleteButton.textContent = "EXCLUINDO...";
+        }
+
+        /* =================================================
+           EXCLUIR NO SUPABASE
+        ================================================= */
+
+        const {
+            error
+        } =
+            await db
+                .from(
+                    "ideias_posts"
+                )
+                .delete()
+                .eq(
+                    "id",
+                    id
+                );
+
+        if (error) {
+            throw error;
+        }
+
+        /* =================================================
+           REMOVER DO ESTADO LOCAL
+        ================================================= */
+
+        ideas =
+            ideas.filter(
+                item =>
+                    String(item.id) !==
+                    String(id)
+            );
+
+        /* =================================================
+           REMOVER CARD DA TELA
+        ================================================= */
+
+        if (card) {
+            card.remove();
+        }
+
+        /* =================================================
+           ATUALIZAR RESUMO
+        ================================================= */
+
+        updateSummary();
+
+        /* =================================================
+           SE NÃO HOUVER MAIS IDEIAS
+        ================================================= */
+
+        const grid =
+            document.getElementById(
+                "ideasGrid"
+            );
+
+        if (
+            grid &&
+            ideas.filter(idea => {
+
+                if (
+                    activeIdeaFilter ===
+                    "todos"
+                ) {
+                    return true;
+                }
+
+                return (
+                    upper(
+                        idea.tipo ||
+                        idea.formato
+                    ) ===
+                    upper(
+                        activeIdeaFilter
+                    )
+                );
+            }).length === 0
+        ) {
+            renderIdeas();
+        }
+
+        /* =================================================
+           MENSAGEM
+        ================================================= */
+
+        showMessage(
+            "Ideia excluída com sucesso."
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao excluir ideia:",
+            error
+        );
+
+        if (deleteButton) {
+            deleteButton.disabled = false;
+            deleteButton.textContent = "🗑️ EXCLUIR";
+        }
+
+        showMessage(
+            "Erro ao excluir ideia: " +
+            getErrorMessage(error)
+        );
+    }
+}
+
+/* =========================================================
+   TRANSFORMAR IDEIA EM CONTEÚDO
+========================================================= */
+
+function convertIdeaToContent(idea) {
     resetContentForm();
 
     setValue(
@@ -2125,8 +1963,7 @@ function convertIdeaToContent(
         "Transformar ideia em conteúdo"
     );
 
-    currentEditingContent =
-        null;
+    currentEditingContent = null;
 
     openContentModal();
 }
@@ -2139,83 +1976,46 @@ function bindEvents() {
 
     /* Atualizar */
 
-    const refresh =
-        document.getElementById(
-            "refreshMarketing"
-        );
-
-    if (refresh) {
-
-        refresh.addEventListener(
-            "click",
-            loadMarketing
-        );
-    }
+    bindClick(
+        "refreshMarketing",
+        loadMarketing
+    );
 
     /* Novo conteúdo */
 
-    const newContent =
-        document.getElementById(
-            "newContentBtn"
-        );
-
-    if (newContent) {
-
-        newContent.addEventListener(
-            "click",
-            () => {
-
-                resetContentForm();
-
-                openContentModal();
-            }
-        );
-    }
+    bindClick(
+        "newContentBtn",
+        () => {
+            resetContentForm();
+            openContentModal();
+        }
+    );
 
     /* Nova ideia */
 
     [
         "newIdeaBtn",
         "newIdeaBtnPanel"
-    ].forEach(
-        id => {
-
-            const button =
-                document.getElementById(
-                    id
-                );
-
-            if (button) {
-
-                button.addEventListener(
-                    "click",
-                    openIdeaModal
-                );
-            }
-        }
-    );
+    ].forEach(id => {
+        bindClick(
+            id,
+            openIdeaModal
+        );
+    });
 
     /* Nova produção */
 
-    const newTask =
-        document.getElementById(
-            "newTaskBtn"
-        );
+    bindClick(
+        "newTaskBtn",
+        () => {
+            resetTaskForm();
+            openTaskModal();
+        }
+    );
 
-    if (newTask) {
-
-        newTask.addEventListener(
-            "click",
-            () => {
-
-                resetTaskForm();
-
-                openTaskModal();
-            }
-        );
-    }
-
-    /* Fechar modais */
+    /* =====================================================
+       FECHAR MODAIS
+    ===================================================== */
 
     bindClick(
         "closeContentModal",
@@ -2242,7 +2042,9 @@ function bindEvents() {
         closeViewContentModal
     );
 
-    /* Navegação calendário */
+    /* =====================================================
+       NAVEGAÇÃO CALENDÁRIO
+    ===================================================== */
 
     bindClick(
         "prevMonth",
@@ -2252,13 +2054,10 @@ function bindEvents() {
                 activeCalendarView ===
                 "week"
             ) {
-
                 currentDate.setDate(
                     currentDate.getDate() - 7
                 );
-
             } else {
-
                 currentDate.setMonth(
                     currentDate.getMonth() - 1
                 );
@@ -2276,13 +2075,10 @@ function bindEvents() {
                 activeCalendarView ===
                 "week"
             ) {
-
                 currentDate.setDate(
                     currentDate.getDate() + 7
                 );
-
             } else {
-
                 currentDate.setMonth(
                     currentDate.getMonth() + 1
                 );
@@ -2295,15 +2091,14 @@ function bindEvents() {
     bindClick(
         "todayBtn",
         () => {
-
-            currentDate =
-                new Date();
-
+            currentDate = new Date();
             renderCalendar();
         }
     );
 
-    /* Formulários */
+    /* =====================================================
+       FORMULÁRIO CONTEÚDO
+    ===================================================== */
 
     const contentForm =
         document.getElementById(
@@ -2311,12 +2106,15 @@ function bindEvents() {
         );
 
     if (contentForm) {
-
         contentForm.addEventListener(
             "submit",
             saveContent
         );
     }
+
+    /* =====================================================
+       FORMULÁRIO IDEIA
+    ===================================================== */
 
     const ideaForm =
         document.getElementById(
@@ -2324,12 +2122,15 @@ function bindEvents() {
         );
 
     if (ideaForm) {
-
         ideaForm.addEventListener(
             "submit",
             saveIdea
         );
     }
+
+    /* =====================================================
+       FORMULÁRIO TAREFA
+    ===================================================== */
 
     const taskForm =
         document.getElementById(
@@ -2337,14 +2138,15 @@ function bindEvents() {
         );
 
     if (taskForm) {
-
         taskForm.addEventListener(
             "submit",
             saveTask
         );
     }
 
-    /* Editar */
+    /* =====================================================
+       EDITAR
+    ===================================================== */
 
     bindClick(
         "editContentBtn",
@@ -2353,7 +2155,6 @@ function bindEvents() {
             if (
                 currentViewingContent
             ) {
-
                 openEditContentModal(
                     currentViewingContent
                 );
@@ -2361,14 +2162,18 @@ function bindEvents() {
         }
     );
 
-    /* Excluir */
+    /* =====================================================
+       EXCLUIR CONTEÚDO
+    ===================================================== */
 
     bindClick(
         "deleteContentBtn",
         deleteCurrentContent
     );
 
-    /* Filtros */
+    /* =====================================================
+       FILTROS
+    ===================================================== */
 
     bindChange(
         "contentTypeFilter",
@@ -2390,7 +2195,9 @@ function bindEvents() {
         clearFilters
     );
 
-    /* Visualização */
+    /* =====================================================
+       VISUALIZAÇÃO
+    ===================================================== */
 
     const calendarView =
         document.getElementById(
@@ -2398,7 +2205,6 @@ function bindEvents() {
         );
 
     if (calendarView) {
-
         calendarView.addEventListener(
             "change",
             () => {
@@ -2412,97 +2218,131 @@ function bindEvents() {
         );
     }
 
-    /* Filtros de ideias */
+    /* =====================================================
+       FILTROS IDEIAS
+    ===================================================== */
 
     document
         .querySelectorAll(
             "[data-idea-filter]"
         )
-        .forEach(
-            button => {
+        .forEach(button => {
 
-                button.addEventListener(
-                    "click",
-                    () => {
+            button.addEventListener(
+                "click",
+                () => {
 
-                        document
-                            .querySelectorAll(
-                                "[data-idea-filter]"
+                    document
+                        .querySelectorAll(
+                            "[data-idea-filter]"
+                        )
+                        .forEach(item =>
+                            item.classList.remove(
+                                "active"
                             )
-                            .forEach(
-                                item =>
-                                    item.classList.remove(
-                                        "active"
-                                    )
-                            );
-
-                        button.classList.add(
-                            "active"
                         );
 
-                        activeIdeaFilter =
-                            String(
-                                button.dataset.ideaFilter ||
-                                "todos"
-                            ).toLowerCase();
+                    button.classList.add(
+                        "active"
+                    );
 
-                        renderIdeas();
-                    }
-                );
-            }
-        );
+                    activeIdeaFilter =
+                        String(
+                            button.dataset.ideaFilter ||
+                            "todos"
+                        ).toLowerCase();
 
-    /* Quick tasks */
+                    renderIdeas();
+                }
+            );
+        });
+
+    /* =====================================================
+       QUICK TASKS
+    ===================================================== */
 
     document
         .querySelectorAll(
             ".quick-task"
         )
-        .forEach(
-            button => {
+        .forEach(button => {
 
-                button.addEventListener(
-                    "click",
-                    () => {
+            button.addEventListener(
+                "click",
+                () => {
 
-                        setValue(
-                            "taskTitle",
-                            button.dataset.task ||
-                            ""
-                        );
-                    }
-                );
-            }
-        );
+                    setValue(
+                        "taskTitle",
+                        button.dataset.task ||
+                        ""
+                    );
+                }
+            );
+        });
 
-    /* Clique fora */
+    /* =====================================================
+       CLIQUE FORA DO MODAL
+    ===================================================== */
 
     document
         .querySelectorAll(
             ".modal"
         )
-        .forEach(
-            modal => {
+        .forEach(modal => {
 
-                modal.addEventListener(
-                    "click",
-                    event => {
+            modal.addEventListener(
+                "click",
+                event => {
 
-                        if (
-                            event.target ===
-                            modal
-                        ) {
-
-                            modal.classList.add(
-                                "hidden"
-                            );
-                        }
+                    if (
+                        event.target !==
+                        modal
+                    ) {
+                        return;
                     }
-                );
-            }
-        );
 
-    /* ESC */
+                    if (
+                        modal.id ===
+                        "contentModal"
+                    ) {
+                        closeContentModal();
+                        return;
+                    }
+
+                    if (
+                        modal.id ===
+                        "ideaModal"
+                    ) {
+                        closeIdeaModal();
+                        return;
+                    }
+
+                    if (
+                        modal.id ===
+                        "taskModal"
+                    ) {
+                        closeTaskModal();
+                        return;
+                    }
+
+                    if (
+                        modal.id ===
+                        "viewContentModal"
+                    ) {
+                        closeViewContentModal();
+                        return;
+                    }
+
+                    modal.classList.add(
+                        "hidden"
+                    );
+                }
+            );
+        });
+
+    /* =====================================================
+       ESC
+    ===================================================== */
 
     document.addEventListener(
         "keydown",
@@ -2512,7 +2352,6 @@ function bindEvents() {
                 event.key ===
                 "Escape"
             ) {
-
                 closeAllModals();
             }
         }
@@ -2524,20 +2363,16 @@ function bindEvents() {
 ========================================================= */
 
 function refreshMarketingView() {
-
     updateSummary();
-
     renderCalendar();
-
     renderUpcoming();
 }
 
 /* =========================================================
-   FILTROS
+   APLICAR FILTROS
 ========================================================= */
 
 function applyFilters() {
-
     refreshMarketingView();
 }
 
@@ -2591,6 +2426,29 @@ function openContentModal() {
             : "Novo conteúdo"
     );
 }
+
+/* =========================================================
+   FECHAR MODAL DE CONTEÚDO
+========================================================= */
+
+function closeContentModal() {
+
+    const modal =
+        document.getElementById(
+            "contentModal"
+        );
+
+    if (modal) {
+        modal.classList.add(
+            "hidden"
+        );
+    }
+
+    currentEditingContent = null;
+}
+
+window.closeContentModal =
+    closeContentModal;
 
 /* =========================================================
    MODAL POR DATA
@@ -2707,7 +2565,6 @@ function openEditContentModal(
         );
 
     if (deleteButton) {
-
         deleteButton.classList.remove(
             "hidden"
         );
@@ -2755,7 +2612,6 @@ function resetContentForm() {
         );
 
     if (deleteButton) {
-
         deleteButton.classList.add(
             "hidden"
         );
@@ -2828,12 +2684,15 @@ function openViewContentModal(
         );
 
     if (modal) {
-
         modal.classList.remove(
             "hidden"
         );
     }
 }
+
+/* =========================================================
+   FECHAR VISUALIZAÇÃO
+========================================================= */
 
 function closeViewContentModal() {
 
@@ -2843,11 +2702,12 @@ function closeViewContentModal() {
         );
 
     if (modal) {
-
         modal.classList.add(
             "hidden"
         );
     }
+
+    currentViewingContent = null;
 }
 
 /* =========================================================
@@ -2883,14 +2743,12 @@ async function saveContent(
             );
 
         if (!title) {
-
             throw new Error(
                 "Informe o título do conteúdo."
             );
         }
 
         if (!dateValue) {
-
             throw new Error(
                 "Informe a data do conteúdo."
             );
@@ -3133,7 +2991,6 @@ function closeIdeaModal() {
         );
 
     if (modal) {
-
         modal.classList.add(
             "hidden"
         );
@@ -3168,27 +3025,10 @@ async function saveIdea(
             );
 
         if (!title) {
-
             throw new Error(
                 "Informe o título da ideia."
             );
         }
-
-        /*
-         * IMPORTANTE:
-         * A tabela ideias_posts conhecida possui:
-         * titulo
-         * descricao
-         * plataforma
-         * formato
-         * prioridade
-         * autor
-         * status
-         *
-         * Não enviamos ideaResponsible,
-         * pois esse campo não faz parte
-         * do schema conhecido.
-         */
 
         const idea = {
 
@@ -3294,6 +3134,11 @@ function openTaskModal(
 
     if (task) {
 
+        setText(
+            "taskModalTitle",
+            "Editar produção"
+        );
+
         setValue(
             "taskTitle",
             task.titulo
@@ -3343,7 +3188,6 @@ function closeTaskModal() {
         );
 
     if (modal) {
-
         modal.classList.add(
             "hidden"
         );
@@ -3370,6 +3214,11 @@ function resetTaskForm() {
     setValue(
         "taskStatus",
         "PENDENTE"
+    );
+
+    setText(
+        "taskModalTitle",
+        "Nova produção"
     );
 }
 
@@ -3406,18 +3255,22 @@ async function saveTask(
             );
 
         if (!title) {
-
             throw new Error(
                 "Informe o nome da produção."
             );
         }
 
         if (!dateValue) {
-
             throw new Error(
                 "Informe a data da produção."
             );
         }
+
+        const editingId =
+            currentEditingTask &&
+            currentEditingTask.id
+                ? currentEditingTask.id
+                : null;
 
         const payload = {
 
@@ -3451,10 +3304,7 @@ async function saveTask(
 
         let result;
 
-        if (
-            currentEditingTask &&
-            currentEditingTask.id
-        ) {
+        if (editingId) {
 
             result =
                 await db
@@ -3466,7 +3316,7 @@ async function saveTask(
                     )
                     .eq(
                         "id",
-                        currentEditingTask.id
+                        editingId
                     );
 
         } else {
@@ -3490,13 +3340,10 @@ async function saveTask(
         closeTaskModal();
 
         showMessage(
-            currentEditingTask
+            editingId
                 ? "Produção atualizada com sucesso."
                 : "Produção cadastrada com sucesso."
         );
-
-        currentEditingTask =
-            null;
 
         await loadMarketing();
 
@@ -3598,25 +3445,20 @@ function normalizeType(
     ];
 
     if (
-        allowed.includes(
-            type
-        )
+        allowed.includes(type)
     ) {
-
         return type;
     }
 
     if (
         type === "VÍDEO"
     ) {
-
         return "VIDEO";
     }
 
     if (
         type === "PRODUÇÃO"
     ) {
-
         return "PRODUCAO";
     }
 
@@ -3647,11 +3489,8 @@ function normalizeFormat(
     ];
 
     if (
-        formats.includes(
-            type
-        )
+        formats.includes(type)
     ) {
-
         return type === "VIDEO"
             ? "VÍDEO"
             : type;
@@ -3676,11 +3515,8 @@ function normalizePriority(
             "NORMAL",
             "ALTA",
             "URGENTE"
-        ].includes(
-            priority
-        )
+        ].includes(priority)
     ) {
-
         return priority;
     }
 
@@ -3713,7 +3549,6 @@ function setText(
         );
 
     if (element) {
-
         element.textContent =
             value ?? "";
     }
@@ -3730,7 +3565,6 @@ function setValue(
         );
 
     if (element) {
-
         element.value =
             value ?? "";
     }
@@ -3820,7 +3654,6 @@ function parseDate(
             date.getTime()
         )
     ) {
-
         return null;
     }
 
@@ -4271,7 +4104,6 @@ function showLoading() {
         );
 
     if (grid) {
-
         grid.innerHTML = `
             <div class="content-loading">
                 Carregando ideias...
@@ -4285,7 +4117,6 @@ function showLoading() {
         );
 
     if (calendar) {
-
         calendar.innerHTML = `
             <div class="content-loading">
                 Carregando calendário...
@@ -4295,26 +4126,29 @@ function showLoading() {
 }
 
 /* =========================================================
-   FECHAR TODOS
+   FECHAR TODOS OS MODAIS
 ========================================================= */
 
 function closeAllModals() {
+
+    closeContentModal();
+    closeIdeaModal();
+    closeTaskModal();
+    closeViewContentModal();
 
     document
         .querySelectorAll(
             ".modal"
         )
-        .forEach(
-            modal => {
+        .forEach(modal => {
+            modal.classList.add(
+                "hidden"
+            );
+        });
 
-                modal.classList.add(
-                    "hidden"
-                );
-            }
-        );
-
-    currentEditingTask =
-        null;
+    currentEditingContent = null;
+    currentViewingContent = null;
+    currentEditingTask = null;
 }
 
 /* =========================================================
