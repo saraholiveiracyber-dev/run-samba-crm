@@ -2,7 +2,6 @@
 <html lang="pt-BR">
 
 <head>
-
     <meta charset="UTF-8">
 
     <meta
@@ -22,66 +21,47 @@
 
     <title>Inscritos | Run & Samba CRM</title>
 
-
     <!-- =====================================================
          CSS
     ====================================================== -->
-
     <link
         rel="stylesheet"
         href="css/inscritos.css"
     >
 
-
     <!-- =====================================================
          SUPABASE
     ====================================================== -->
-
-    <script
-        src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
-    ></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <!-- =====================================================
          CONFIGURAÇÃO
     ====================================================== -->
-
     <script src="js/config.js"></script>
-
 
     <!-- =====================================================
          AUTENTICAÇÃO
     ====================================================== -->
-
     <script src="js/auth.js"></script>
-
 
     <!-- =====================================================
          SCRIPT DA PÁGINA
     ====================================================== -->
-
     <script
         src="js/inscritos.js"
         defer
     ></script>
-
 </head>
 
 
 <body>
 
-
 <div class="app">
-
 
     <!-- =====================================================
          SIDEBAR
     ====================================================== -->
-
     <aside class="sidebar">
-
-
-        <!-- MARCA -->
 
         <div class="brand">
 
@@ -96,23 +76,24 @@
         </div>
 
 
-        <!-- NAVEGAÇÃO -->
-
+        <!-- =================================================
+             NAVEGAÇÃO
+        ================================================== -->
         <div class="sidebar-section">
 
             <span class="sidebar-heading">
                 GESTÃO
             </span>
 
-
             <nav>
 
-
                 <!-- DASHBOARD -->
-
                 <a href="dashboard.html">
 
-                    <span class="nav-icon">
+                    <span
+                        class="nav-icon"
+                        aria-hidden="true"
+                    >
                         ◈
                     </span>
 
@@ -124,14 +105,16 @@
 
 
                 <!-- INSCRITOS -->
-
                 <a
                     href="inscritos.html"
                     class="active"
                     aria-current="page"
                 >
 
-                    <span class="nav-icon">
+                    <span
+                        class="nav-icon"
+                        aria-hidden="true"
+                    >
                         ◉
                     </span>
 
@@ -143,10 +126,12 @@
 
 
                 <!-- MARKETING -->
-
                 <a href="marketing.html">
 
-                    <span class="nav-icon">
+                    <span
+                        class="nav-icon"
+                        aria-hidden="true"
+                    >
                         ✦
                     </span>
 
@@ -156,18 +141,15 @@
 
                 </a>
 
-
             </nav>
 
         </div>
 
 
         <!-- =================================================
-             RODAPÉ
+             RODAPÉ DA SIDEBAR
         ================================================== -->
-
         <div class="sidebar-bottom">
-
 
             <div class="event-mini">
 
@@ -194,26 +176,20 @@
                 SAIR
             </button>
 
-
         </div>
-
 
     </aside>
 
 
     <!-- =====================================================
-         CONTEÚDO
+         CONTEÚDO PRINCIPAL
     ====================================================== -->
-
     <main class="content">
-
 
         <!-- =================================================
              HEADER
         ================================================== -->
-
         <header class="topbar">
-
 
             <div class="page-heading">
 
@@ -233,7 +209,6 @@
 
 
             <!-- EXPORTAR -->
-
             <div class="top-actions">
 
                 <button
@@ -246,7 +221,10 @@
                         EXPORTAR CSV
                     </span>
 
-                    <span class="button-arrow">
+                    <span
+                        class="button-arrow"
+                        aria-hidden="true"
+                    >
                         ↓
                     </span>
 
@@ -254,22 +232,18 @@
 
             </div>
 
-
         </header>
 
 
         <!-- =================================================
              FILTROS
         ================================================== -->
-
         <section
             class="toolbar"
             aria-label="Filtros de participantes"
         >
 
-
             <!-- BUSCA -->
-
             <div class="filter-search">
 
                 <span
@@ -291,7 +265,6 @@
 
 
             <!-- PAGAMENTO -->
-
             <select
                 id="paymentFilter"
                 aria-label="Filtrar por pagamento"
@@ -317,7 +290,6 @@
 
 
             <!-- PERCURSO -->
-
             <select
                 id="routeFilter"
                 aria-label="Filtrar por percurso"
@@ -339,7 +311,6 @@
 
 
             <!-- CAMISETA -->
-
             <select
                 id="shirtFilter"
                 aria-label="Filtrar por camiseta"
@@ -367,14 +338,12 @@
 
             </select>
 
-
         </section>
 
 
         <!-- =================================================
              LEGENDA DE STATUS
         ================================================== -->
-
         <section
             class="status-legend"
             aria-label="Legenda de status"
@@ -395,9 +364,7 @@
 
             <div class="status-legend-items">
 
-
                 <!-- PAGO -->
-
                 <div class="status-legend-item">
 
                     <span class="legend-dot legend-paid"></span>
@@ -410,7 +377,6 @@
 
 
                 <!-- PENDENTE -->
-
                 <div class="status-legend-item">
 
                     <span class="legend-dot legend-pending"></span>
@@ -423,7 +389,6 @@
 
 
                 <!-- MENSAGEM ENVIADA -->
-
                 <div class="status-legend-item">
 
                     <span class="legend-dot legend-message"></span>
@@ -436,7 +401,6 @@
 
 
                 <!-- CANCELADO -->
-
                 <div class="status-legend-item">
 
                     <span class="legend-dot legend-cancelled"></span>
@@ -449,7 +413,6 @@
 
 
                 <!-- NOVO -->
-
                 <div class="status-legend-item">
 
                     <span class="legend-dot legend-new"></span>
@@ -462,7 +425,6 @@
 
 
                 <!-- CLIENTE RESPONDEU -->
-
                 <div class="status-legend-item">
 
                     <span class="legend-dot legend-replied"></span>
@@ -473,7 +435,6 @@
 
                 </div>
 
-
             </div>
 
         </section>
@@ -482,14 +443,9 @@
         <!-- =================================================
              PAINEL DA TABELA
         ================================================== -->
-
         <section class="panel">
 
-
-            <!-- CABEÇALHO -->
-
             <div class="table-meta">
-
 
                 <div class="table-title">
 
@@ -510,12 +466,12 @@
                     aria-live="polite"
                 ></span>
 
-
             </div>
 
 
-            <!-- TABELA -->
-
+            <!-- =================================================
+                 TABELA
+            ================================================== -->
             <div class="table-wrap">
 
                 <table>
@@ -576,14 +532,12 @@
 
             </div>
 
-
         </section>
 
 
         <!-- =================================================
              MENSAGEM
         ================================================== -->
-
         <div
             id="message"
             class="message"
@@ -591,18 +545,14 @@
             aria-live="polite"
         ></div>
 
-
     </main>
-
 
 </div>
 
 
-
 <!-- =========================================================
-     MODAL
+     MODAL DO PARTICIPANTE
 ========================================================== -->
-
 <div
     id="editModal"
     class="modal hidden"
@@ -611,21 +561,16 @@
     aria-labelledby="modalName"
 >
 
-
     <!-- OVERLAY -->
-
     <div class="modal-overlay"></div>
 
 
     <!-- CAIXA -->
-
     <div class="modal-box">
-
 
         <!-- =================================================
              FECHAR
         ================================================== -->
-
         <button
             id="closeModal"
             class="modal-close"
@@ -639,7 +584,6 @@
         <!-- =================================================
              CABEÇALHO
         ================================================== -->
-
         <div class="modal-header">
 
             <span class="eyebrow">
@@ -654,9 +598,8 @@
 
 
         <!-- =================================================
-             DADOS DO PARTICIPANTE
+             DADOS
         ================================================== -->
-
         <div
             id="modalData"
             class="detail-grid"
@@ -666,7 +609,6 @@
         <!-- =================================================
              PAGAMENTO
         ================================================== -->
-
         <div class="payment-editor">
 
             <label for="modalPayment">
@@ -695,7 +637,6 @@
         <!-- =================================================
              SALVAR PAGAMENTO
         ================================================== -->
-
         <div class="modal-actions">
 
             <button
@@ -709,12 +650,10 @@
         </div>
 
 
-        <!-- =====================================================
-             F9 — ACOMPANHAMENTO DO CONTATO
-        ===================================================== -->
-
+        <!-- =================================================
+             F9 — ACOMPANHAMENTO
+        ================================================== -->
         <section class="contact-followup">
-
 
             <div class="contact-followup-header">
 
@@ -738,7 +677,6 @@
 
 
             <!-- STATUS DO CONTATO -->
-
             <div class="contact-status-box">
 
                 <label for="contactStatus">
@@ -759,13 +697,16 @@
                         CLIENTE RESPONDEU
                     </option>
 
+                    <option value="NAO_RESPONDIDO">
+                        NÃO RESPONDIDO
+                    </option>
+
                 </select>
 
             </div>
 
 
             <!-- RESPOSTA DO PARTICIPANTE -->
-
             <div
                 class="contact-response-group"
                 id="clientResponseGroup"
@@ -786,7 +727,6 @@
 
 
             <!-- RODAPÉ -->
-
             <div class="contact-followup-footer">
 
                 <span class="contact-followup-hint">
@@ -803,23 +743,19 @@
 
             </div>
 
-
         </section>
 
 
         <!-- =================================================
              COMUNICAÇÃO — PAGAMENTO PENDENTE
         ================================================== -->
-
         <section
             id="pendingCommunication"
             class="pending-communication hidden"
             aria-label="Comunicação com participante"
         >
 
-
             <!-- CABEÇALHO -->
-
             <div class="communication-header">
 
                 <span class="eyebrow">
@@ -844,14 +780,11 @@
 
 
             <!-- BOTÕES -->
-
             <div class="communication-actions">
-
 
                 <!-- =================================================
                      WHATSAPP
                 ================================================== -->
-
                 <a
                     id="whatsappBtn"
                     class="communication-btn whatsapp-btn"
@@ -868,7 +801,6 @@
                         ☎
                     </span>
 
-
                     <span class="communication-text">
 
                         <strong>
@@ -880,7 +812,6 @@
                         </small>
 
                     </span>
-
 
                     <span
                         class="communication-arrow"
@@ -895,7 +826,6 @@
                 <!-- =================================================
                      E-MAIL
                 ================================================== -->
-
                 <a
                     id="emailBtn"
                     class="communication-btn email-btn"
@@ -912,7 +842,6 @@
                         ✉
                     </span>
 
-
                     <span class="communication-text">
 
                         <strong>
@@ -925,7 +854,6 @@
 
                     </span>
 
-
                     <span
                         class="communication-arrow"
                         aria-hidden="true"
@@ -935,19 +863,13 @@
 
                 </a>
 
-
             </div>
-
 
         </section>
 
-
     </div>
-
 
 </div>
 
-
 </body>
-
 </html>

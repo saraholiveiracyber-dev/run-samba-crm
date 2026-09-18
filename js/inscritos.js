@@ -4,7 +4,6 @@
    PARTICIPANTES + PAGAMENTO + COMUNICAÇÃO + F9
 
    STATUS VISUAL AO LADO DO NOME:
-
    🟢 PAGO
    🔴 CANCELADO
    🔵 MENSAGEM ENVIADA
@@ -23,6 +22,7 @@
 
 "use strict";
 
+
 /* =========================================================
    ESTADO
    ========================================================= */
@@ -31,58 +31,72 @@ let db = null;
 let allRows = [];
 let selectedId = null;
 
+
 /* =========================================================
    INICIALIZAÇÃO
    ========================================================= */
 
 async function init() {
+
     try {
+
         /* =====================================================
            SUPABASE
-           ===================================================== */
+        ===================================================== */
 
         db = window.supabaseClient;
 
         if (!db) {
+
             showMessage(
                 "Supabase não foi inicializado. Verifique o config.js."
             );
+
             return;
         }
 
+
         /* =====================================================
            AUTENTICAÇÃO
-           ===================================================== */
+        ===================================================== */
 
         if (
             !window.crmAuth ||
             typeof window.crmAuth.requireAuth !== "function"
         ) {
+
             showMessage(
                 "Sistema de autenticação não encontrado."
             );
+
             return;
         }
 
-        const session = await window.crmAuth.requireAuth();
+
+        const session =
+            await window.crmAuth.requireAuth();
 
         if (!session) {
             return;
         }
 
-        /* =====================================================
-           CARREGAR DADOS
-           ===================================================== */
-
-        await loadRows();
 
         /* =====================================================
            EVENTOS
-           ===================================================== */
+        ===================================================== */
 
         bindEvents();
 
+
+        /* =====================================================
+           CARREGAR DADOS
+        ===================================================== */
+
+        await loadRows();
+
+
     } catch (error) {
+
         console.error(
             "Erro na inicialização do CRM:",
             error
@@ -95,41 +109,67 @@ async function init() {
                 "Erro desconhecido."
             )
         );
+
     }
+
 }
+
 
 /* =========================================================
    CARREGAR INSCRIÇÕES
    ========================================================= */
 
 async function loadRows() {
+
     setLoading("Carregando inscrições...");
 
-    const {
-        data,
-        error
-    } = await db
-        .from("inscricoes")
-        .select("*")
-        .order("created_at", {
-            ascending: false
-        });
 
-    if (error) {
+    try {
+
+        const {
+            data,
+            error
+        } = await db
+            .from("inscricoes")
+            .select("*")
+            .order(
+                "created_at",
+                {
+                    ascending: false
+                }
+            );
+
+
+        if (error) {
+            throw error;
+        }
+
+
+        allRows =
+            Array.isArray(data)
+                ? data
+                : [];
+
+
+        render();
+
+
+    } catch (error) {
+
         console.error(
             "Erro Supabase:",
             error
         );
 
-        showMessage(
-            "Erro ao carregar inscrições: " +
-            error.message
-        );
 
         const body =
-            document.getElementById("tableBody");
+            document.getElementById(
+                "tableBody"
+            );
+
 
         if (body) {
+
             body.innerHTML = `
                 <tr>
                     <td
@@ -139,28 +179,35 @@ async function loadRows() {
                         <strong>
                             Erro ao carregar inscrições.
                         </strong>
+
                         <br>
+
                         <small>
-                            ${esc(error.message)}
+                            ${esc(error?.message || "Erro desconhecido.")}
                         </small>
                     </td>
                 </tr>
             `;
+
         }
 
+
+        showMessage(
+            "Erro ao carregar inscrições: " +
+            (
+                error?.message ||
+                "Erro desconhecido."
+            )
+        );
+
+    } finally {
+
         setLoading("");
-        return;
+
     }
 
-    allRows =
-        Array.isArray(data)
-            ? data
-            : [];
-
-    render();
-
-    setLoading("");
 }
+
 
 /* =========================================================
    EVENTOS
@@ -168,9 +215,10 @@ async function loadRows() {
 
 function bindEvents() {
 
+
     /* =====================================================
        FILTROS
-       ===================================================== */
+    ===================================================== */
 
     [
         "search",
@@ -186,53 +234,73 @@ function bindEvents() {
             return;
         }
 
+
         element.addEventListener(
             "input",
             render
         );
 
+
         element.addEventListener(
             "change",
             render
         );
+
     });
+
 
     /* =====================================================
        EXPORTAR
-       ===================================================== */
+    ===================================================== */
 
     const exportBtn =
-        document.getElementById("exportBtn");
+        document.getElementById(
+            "exportBtn"
+        );
+
 
     if (exportBtn) {
+
         exportBtn.addEventListener(
             "click",
             exportCSV
         );
+
     }
+
 
     /* =====================================================
        FECHAR MODAL
-       ===================================================== */
+    ===================================================== */
 
     const closeBtn =
-        document.getElementById("closeModal");
+        document.getElementById(
+            "closeModal"
+        );
+
 
     if (closeBtn) {
+
         closeBtn.addEventListener(
             "click",
             closeModal
         );
+
     }
+
 
     /* =====================================================
        OVERLAY
-       ===================================================== */
+    ===================================================== */
 
     const modal =
-        document.getElementById("editModal");
+        document.getElementById(
+            "editModal"
+        );
+
 
     if (modal) {
+
         modal.addEventListener(
             "click",
             event => {
@@ -243,45 +311,60 @@ function bindEvents() {
                         "modal-overlay"
                     )
                 ) {
+
                     closeModal();
+
                 }
+
             }
         );
+
     }
+
 
     /* =====================================================
        SALVAR PAGAMENTO
-       ===================================================== */
+    ===================================================== */
 
-    const saveBtn =
-        document.getElementById("savePayment");
+    const savePaymentBtn =
+        document.getElementById(
+            "savePayment"
+        );
 
-    if (saveBtn) {
-        saveBtn.addEventListener(
+
+    if (savePaymentBtn) {
+
+        savePaymentBtn.addEventListener(
             "click",
             savePayment
         );
+
     }
+
 
     /* =====================================================
        SALVAR F9
-       ===================================================== */
+    ===================================================== */
 
     const saveContactBtn =
         document.getElementById(
             "saveContactFollowup"
         );
 
+
     if (saveContactBtn) {
+
         saveContactBtn.addEventListener(
             "click",
             saveContactFollowup
         );
+
     }
+
 
     /* =====================================================
        ESC
-       ===================================================== */
+    ===================================================== */
 
     document.addEventListener(
         "keydown",
@@ -291,26 +374,37 @@ function bindEvents() {
                 return;
             }
 
+
             const modal =
                 document.getElementById(
                     "editModal"
                 );
 
+
             if (
                 modal &&
-                !modal.classList.contains("hidden")
+                !modal.classList.contains(
+                    "hidden"
+                )
             ) {
+
                 closeModal();
+
             }
+
         }
     );
 
+
     /* =====================================================
        LOGOUT
-       ===================================================== */
+    ===================================================== */
 
     const logoutBtn =
-        document.getElementById("logoutBtn");
+        document.getElementById(
+            "logoutBtn"
+        );
+
 
     if (
         logoutBtn &&
@@ -325,7 +419,9 @@ function bindEvents() {
                 logoutBtn.disabled = true;
                 logoutBtn.textContent = "SAINDO...";
 
+
                 try {
+
                     await window.crmAuth.logout();
 
                 } catch (error) {
@@ -335,13 +431,19 @@ function bindEvents() {
                         error
                     );
 
+
                     logoutBtn.disabled = false;
                     logoutBtn.textContent = "SAIR";
+
                 }
+
             }
         );
+
     }
+
 }
+
 
 /* =========================================================
    FILTRAR
@@ -350,16 +452,28 @@ function bindEvents() {
 function filtered() {
 
     const searchElement =
-        document.getElementById("search");
+        document.getElementById(
+            "search"
+        );
+
 
     const paymentElement =
-        document.getElementById("paymentFilter");
+        document.getElementById(
+            "paymentFilter"
+        );
+
 
     const routeElement =
-        document.getElementById("routeFilter");
+        document.getElementById(
+            "routeFilter"
+        );
+
 
     const shirtElement =
-        document.getElementById("shirtFilter");
+        document.getElementById(
+            "shirtFilter"
+        );
+
 
     const q =
         String(
@@ -368,12 +482,14 @@ function filtered() {
             .toLowerCase()
             .trim();
 
+
     const payment =
         String(
             paymentElement?.value || ""
         )
             .trim()
             .toUpperCase();
+
 
     const route =
         String(
@@ -382,6 +498,7 @@ function filtered() {
             .trim()
             .toUpperCase();
 
+
     const shirt =
         String(
             shirtElement?.value || ""
@@ -389,36 +506,43 @@ function filtered() {
             .trim()
             .toUpperCase();
 
+
     return allRows.filter(row => {
+
 
         /* =================================================
            BUSCA
-           ================================================= */
+        ================================================= */
 
         const text = [
+
             row.nome,
             row.cpf,
             row.email,
             row.telefone
+
         ]
-            .map(value =>
-                String(value ?? "")
+            .map(
+                value =>
+                    String(value ?? "")
             )
             .join(" ")
             .toLowerCase();
 
+
         /* =================================================
            PAGAMENTO
-           ================================================= */
+        ================================================= */
 
         const statusPagamento =
             normalizarPagamento(
                 row.status_pagamento
             );
 
+
         /* =================================================
            PERCURSO
-           ================================================= */
+        ================================================= */
 
         const percurso =
             String(
@@ -427,9 +551,10 @@ function filtered() {
                 .trim()
                 .toUpperCase();
 
+
         /* =================================================
            CAMISETA
-           ================================================= */
+        ================================================= */
 
         const camiseta =
             String(
@@ -438,17 +563,26 @@ function filtered() {
                 .trim()
                 .toUpperCase();
 
+
         return (
+
             (!q || text.includes(q)) &&
+
             (!payment ||
                 statusPagamento === payment) &&
+
             (!route ||
                 percurso === route) &&
+
             (!shirt ||
                 camiseta === shirt)
+
         );
+
     });
+
 }
+
 
 /* =========================================================
    NORMALIZAR PAGAMENTO
@@ -461,18 +595,41 @@ function normalizarPagamento(value) {
             .trim()
             .toUpperCase()
             .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "");
+            .replace(
+                /[\u0300-\u036f]/g,
+                ""
+            );
+
 
     if (status === "PAGO") {
         return "PAGO";
     }
 
+
     if (status === "CANCELADO") {
         return "CANCELADO";
     }
 
+
     return "PENDENTE";
+
 }
+
+
+/* =========================================================
+   VERIFICAR PAGAMENTO VAZIO
+   ========================================================= */
+
+function pagamentoEstaVazio(value) {
+
+    return (
+        value === null ||
+        value === undefined ||
+        String(value).trim() === ""
+    );
+
+}
+
 
 /* =========================================================
    NORMALIZAR STATUS DO CONTATO
@@ -485,36 +642,56 @@ function normalizarStatusContato(value) {
             .trim()
             .toUpperCase()
             .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "")
-            .replace(/\s+/g, "_");
+            .replace(
+                /[\u0300-\u036f]/g,
+                ""
+            )
+            .replace(
+                /[\s-]+/g,
+                "_"
+            );
+
 
     if (
         status === "MENSAGEM_ENVIADA" ||
-        status === "ENVIADA"
+        status === "ENVIADA" ||
+        status === "MENSAGEM"
     ) {
+
         return "MENSAGEM_ENVIADA";
+
     }
+
 
     if (
         status === "RESPONDEU" ||
         status === "CLIENTE_RESPONDEU"
     ) {
+
         return "RESPONDEU";
+
     }
+
 
     if (
         status === "NAO_RESPONDIDO" ||
         status === "NAO_RESPONDEU"
     ) {
+
         return "NAO_RESPONDIDO";
+
     }
+
 
     if (status === "NOVO") {
         return "NOVO";
     }
 
+
     return "NOVO";
+
 }
+
 
 /* =========================================================
    TEXTO DO STATUS DO CONTATO
@@ -529,19 +706,26 @@ function textoStatusContato(status) {
         case "MENSAGEM_ENVIADA":
             return "MENSAGEM ENVIADA";
 
+
         case "RESPONDEU":
             return "CLIENTE RESPONDEU";
+
 
         case "NAO_RESPONDIDO":
             return "NÃO RESPONDIDO";
 
+
         case "NOVO":
             return "NOVO";
 
+
         default:
             return "NOVO";
+
     }
+
 }
+
 
 /* =========================================================
    CLASSE DO STATUS DO CONTATO
@@ -556,120 +740,174 @@ function contactClass(status) {
         case "MENSAGEM_ENVIADA":
             return "contact-message";
 
+
         case "RESPONDEU":
             return "contact-replied";
+
 
         case "NAO_RESPONDIDO":
             return "contact-not-replied";
 
+
         case "NOVO":
             return "contact-new";
 
+
         default:
             return "contact-new";
+
     }
+
 }
 
+
 /* =========================================================
-   STATUS VISUAL AO LADO DO NOME
-
-   REGRA:
-
-   1. PAGO       = VERDE
-   2. CANCELADO  = VERMELHO
-   3. MENSAGEM   = AZUL
-   4. PENDENTE   = AMARELO
-   5. NOVO       = CINZA
-
-   IMPORTANTE:
-
-   - Apenas UMA bolinha aparece.
-   - PAGO não mostra mensagem enviada.
-   - CANCELADO não mostra mensagem enviada.
-   - MENSAGEM ENVIADA não mostra pendente.
-   - CLIENTE RESPONDEU não aparece na bolinha.
-   - NÃO RESPONDIDO não aparece na bolinha.
+   STATUS VISUAL DO PARTICIPANTE
    ========================================================= */
 
 function obterStatusVisualParticipante(row) {
 
+    const pagamentoBruto =
+        row.status_pagamento;
+
+
     const pagamento =
         normalizarPagamento(
-            row.status_pagamento
+            pagamentoBruto
         );
+
 
     const contato =
         normalizarStatusContato(
             row.status_contato
         );
 
+
     /* =====================================================
-       PRIORIDADE 1 — PAGO
-       ===================================================== */
+       1 — PAGO
+    ===================================================== */
 
     if (pagamento === "PAGO") {
 
         return {
+
             status: "PAGO",
+
             classe: "paid",
+
             titulo: "Pagamento confirmado"
+
         };
+
     }
 
+
     /* =====================================================
-       PRIORIDADE 2 — CANCELADO
-       ===================================================== */
+       2 — CANCELADO
+    ===================================================== */
 
     if (pagamento === "CANCELADO") {
 
         return {
+
             status: "CANCELADO",
+
             classe: "cancelled",
+
             titulo: "Inscrição cancelada"
+
         };
+
     }
 
-    /* =====================================================
-       PRIORIDADE 3 — MENSAGEM ENVIADA
-       ===================================================== */
 
-    if (contato === "MENSAGEM_ENVIADA") {
+    /* =====================================================
+       3 — MENSAGEM ENVIADA
+    ===================================================== */
+
+    if (
+        contato === "MENSAGEM_ENVIADA"
+    ) {
 
         return {
+
             status: "MENSAGEM ENVIADA",
+
             classe: "contact-message",
+
             titulo: "Mensagem enviada"
+
         };
+
     }
 
+
     /* =====================================================
-       PRIORIDADE 4 — PENDENTE
-       ===================================================== */
+       4 — NOVO
+    ===================================================== */
+
+    if (
+        pagamentoEstaVazio(
+            pagamentoBruto
+        ) &&
+        contato === "NOVO"
+    ) {
+
+        return {
+
+            status: "NOVO",
+
+            classe: "contact-new",
+
+            titulo: "Inscrição recente"
+
+        };
+
+    }
+
+
+    /* =====================================================
+       5 — PENDENTE
+    ===================================================== */
 
     if (pagamento === "PENDENTE") {
 
         return {
+
             status: "PENDENTE",
+
             classe: "pending",
+
             titulo: "Pagamento pendente"
+
         };
+
     }
 
+
     /* =====================================================
-       NOVO
-       ===================================================== */
+       FALLBACK
+    ===================================================== */
 
     return {
+
         status: "NOVO",
+
         classe: "contact-new",
+
         titulo: "Inscrição recente"
+
     };
+
 }
+
 
 /* =========================================================
    CRIAR STATUS DO PARTICIPANTE
 
-   SOMENTE UMA BOLINHA AO LADO DO NOME.
+   IMPORTANTE:
+   O NOME AGORA É CLICÁVEL.
+   Clicar no nome abre o mesmo modal do botão VER.
    ========================================================= */
 
 function criarStatusParticipante(row) {
@@ -677,12 +915,20 @@ function criarStatusParticipante(row) {
     const visual =
         obterStatusVisualParticipante(row);
 
+
     return `
+
         <div class="participant-name-line">
 
-            <strong class="participant-name">
+            <button
+                type="button"
+                class="participant-name participant-name-button"
+                data-id="${esc(row.id)}"
+                title="Ver participante"
+            >
                 ${esc(row.nome || "—")}
-            </strong>
+            </button>
+
 
             <span
                 class="participant-status-dot ${esc(visual.classe)}"
@@ -693,6 +939,7 @@ function criarStatusParticipante(row) {
 
         </div>
 
+
         ${
             row.email
                 ? `
@@ -702,8 +949,11 @@ function criarStatusParticipante(row) {
                 `
                 : ""
         }
+
     `;
+
 }
+
 
 /* =========================================================
    RENDERIZAR TABELA
@@ -714,12 +964,16 @@ function render() {
     const rows =
         filtered();
 
+
     /* =====================================================
        CONTADOR
-       ===================================================== */
+    ===================================================== */
 
     const count =
-        document.getElementById("count");
+        document.getElementById(
+            "count"
+        );
+
 
     if (count) {
 
@@ -729,42 +983,53 @@ function render() {
                     ? "inscrição"
                     : "inscrições"
             }`;
+
     }
+
 
     /* =====================================================
        TABELA
-       ===================================================== */
+    ===================================================== */
 
     const body =
-        document.getElementById("tableBody");
+        document.getElementById(
+            "tableBody"
+        );
+
 
     if (!body) {
         return;
     }
 
+
     /* =====================================================
        NENHUM RESULTADO
-       ===================================================== */
+    ===================================================== */
 
     if (!rows.length) {
 
         body.innerHTML = `
+
             <tr>
+
                 <td
                     colspan="7"
                     class="empty-cell"
                 >
                     Nenhum participante encontrado.
                 </td>
+
             </tr>
+
         `;
 
         return;
     }
 
+
     /* =====================================================
        LINHAS
-       ===================================================== */
+    ===================================================== */
 
     body.innerHTML =
         rows
@@ -775,50 +1040,68 @@ function render() {
                         row.status_pagamento
                     );
 
+
                 return `
+
                     <tr>
 
                         <!-- PARTICIPANTE -->
 
                         <td class="participant-cell">
+
                             ${criarStatusParticipante(row)}
+
                         </td>
+
 
                         <!-- CPF -->
 
                         <td>
+
                             ${esc(
                                 formatCPF(row.cpf)
                             )}
+
                         </td>
+
 
                         <!-- TELEFONE -->
 
                         <td>
+
                             ${esc(
                                 formatPhone(row.telefone)
                             )}
+
                         </td>
+
 
                         <!-- PERCURSO -->
 
                         <td>
+
                             ${esc(
                                 row.percurso || "—"
                             )}
+
                         </td>
+
 
                         <!-- CAMISETA -->
 
                         <td>
+
                             ${esc(
                                 row.camiseta || "—"
                             )}
+
                         </td>
+
 
                         <!-- PAGAMENTO -->
 
                         <td>
+
                             <span
                                 class="status-badge ${paymentClass(
                                     pagamento
@@ -826,11 +1109,14 @@ function render() {
                             >
                                 ${esc(pagamento)}
                             </span>
+
                         </td>
+
 
                         <!-- AÇÕES -->
 
                         <td>
+
                             <button
                                 type="button"
                                 class="action-btn"
@@ -838,16 +1124,20 @@ function render() {
                             >
                                 VER
                             </button>
+
                         </td>
 
                     </tr>
+
                 `;
+
             })
             .join("");
 
+
     /* =====================================================
        BOTÕES VER
-       ===================================================== */
+    ===================================================== */
 
     body
         .querySelectorAll(".action-btn")
@@ -860,10 +1150,36 @@ function render() {
                     openModal(
                         button.dataset.id
                     );
+
                 }
             );
+
         });
+
+
+    /* =====================================================
+       NOME CLICÁVEL
+    ===================================================== */
+
+    body
+        .querySelectorAll(".participant-name-button")
+        .forEach(button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    openModal(
+                        button.dataset.id
+                    );
+
+                }
+            );
+
+        });
+
 }
+
 
 /* =========================================================
    ABRIR MODAL
@@ -878,71 +1194,94 @@ function openModal(id) {
                 String(id)
         );
 
+
     if (!participant) {
+
+        showMessage(
+            "Participante não encontrado."
+        );
+
         return;
     }
 
+
     selectedId =
         participant.id;
+
 
     const modal =
         document.getElementById(
             "editModal"
         );
 
+
     const modalName =
         document.getElementById(
             "modalName"
         );
+
 
     const modalPayment =
         document.getElementById(
             "modalPayment"
         );
 
+
     const modalData =
         document.getElementById(
             "modalData"
         );
 
+
     if (!modal) {
         return;
     }
 
+
     /* =====================================================
        NOME
-       ===================================================== */
+    ===================================================== */
 
     if (modalName) {
 
         modalName.textContent =
             participant.nome ||
             "Participante";
+
     }
+
 
     /* =====================================================
        PAGAMENTO
-       ===================================================== */
+    ===================================================== */
 
     const pagamento =
         normalizarPagamento(
             participant.status_pagamento
         );
 
+
     if (modalPayment) {
 
         modalPayment.value =
             pagamento;
+
     }
 
+
     /* =====================================================
-       DADOS
-       ===================================================== */
+       CONTATO
+    ===================================================== */
 
     const contato =
         normalizarStatusContato(
             participant.status_contato
         );
+
+
+    /* =====================================================
+       DADOS
+    ===================================================== */
 
     const fields = [
 
@@ -1003,12 +1342,14 @@ function openModal(id) {
 
     ];
 
+
     if (modalData) {
 
         modalData.innerHTML =
             fields
                 .map(
                     ([label, value]) => `
+
                         <div class="detail-item">
 
                             <span>
@@ -1022,52 +1363,65 @@ function openModal(id) {
                             </strong>
 
                         </div>
+
                     `
                 )
                 .join("");
+
     }
 
+
     /* =====================================================
-       COMUNICAÇÃO DE PAGAMENTO
-       ===================================================== */
+       COMUNICAÇÃO
+    ===================================================== */
 
     configurarComunicacao(
         participant
     );
 
+
     /* =====================================================
        F9
-       ===================================================== */
+    ===================================================== */
 
     configurarAcompanhamentoContato(
         participant
     );
 
+
     /* =====================================================
        ABRIR MODAL
-       ===================================================== */
+    ===================================================== */
 
-    modal.classList.remove("hidden");
+    modal.classList.remove(
+        "hidden"
+    );
+
 
     document.body.classList.add(
         "modal-open"
     );
 
+
     /* =====================================================
        FOCO
-       ===================================================== */
+    ===================================================== */
 
     setTimeout(
         () => {
 
             if (modalPayment) {
+
                 modalPayment.focus();
+
             }
 
         },
         100
     );
+
 }
+
 
 /* =========================================================
    CONFIGURAR COMUNICAÇÃO
@@ -1082,32 +1436,39 @@ function configurarComunicacao(
             "pendingCommunication"
         );
 
+
     const whatsappBtn =
         document.getElementById(
             "whatsappBtn"
         );
+
 
     const emailBtn =
         document.getElementById(
             "emailBtn"
         );
 
+
     if (
         !communicationBox ||
         !whatsappBtn ||
         !emailBtn
     ) {
+
         return;
+
     }
+
 
     const pagamento =
         normalizarPagamento(
             participante.status_pagamento
         );
 
+
     /* =====================================================
        SÓ MOSTRAR PARA PAGAMENTO PENDENTE
-       ===================================================== */
+    ===================================================== */
 
     if (pagamento !== "PENDENTE") {
 
@@ -1115,59 +1476,65 @@ function configurarComunicacao(
             "hidden"
         );
 
+
         whatsappBtn.removeAttribute(
             "href"
         );
+
 
         emailBtn.removeAttribute(
             "href"
         );
 
+
         whatsappBtn.onclick = null;
         emailBtn.onclick = null;
 
-        whatsappBtn.style.display =
-            "none";
-
-        emailBtn.style.display =
-            "none";
 
         return;
+
     }
+
 
     /* =====================================================
        MOSTRAR
-       ===================================================== */
+    ===================================================== */
 
     communicationBox.classList.remove(
         "hidden"
     );
 
+
     const nome =
         participante.nome ||
         "participante";
+
 
     const telefone =
         participante.telefone ||
         "";
 
+
     const email =
         participante.email ||
         "";
+
 
     const mensagem =
         criarMensagemPagamento(
             nome
         );
 
+
     /* =====================================================
        WHATSAPP
-       ===================================================== */
+    ===================================================== */
 
     const numero =
         normalizarTelefone(
             telefone
         );
+
 
     whatsappBtn.onclick = null;
 
@@ -1175,11 +1542,14 @@ function configurarComunicacao(
         "href"
     );
 
+
     whatsappBtn.target =
         "_blank";
 
+
     whatsappBtn.rel =
         "noopener noreferrer";
+
 
     if (numero) {
 
@@ -1191,13 +1561,7 @@ function configurarComunicacao(
                 mensagem
             );
 
-        whatsappBtn.style.display =
-            "inline-flex";
-
     } else {
-
-        whatsappBtn.style.display =
-            "inline-flex";
 
         whatsappBtn.onclick =
             function(event) {
@@ -1207,12 +1571,15 @@ function configurarComunicacao(
                 alert(
                     "Este participante não possui telefone cadastrado."
                 );
+
             };
+
     }
+
 
     /* =====================================================
        E-MAIL
-       ===================================================== */
+    ===================================================== */
 
     emailBtn.onclick = null;
 
@@ -1220,16 +1587,20 @@ function configurarComunicacao(
         "href"
     );
 
+
     emailBtn.target =
         "_blank";
 
+
     emailBtn.rel =
         "noopener noreferrer";
+
 
     if (email) {
 
         const assunto =
             criarAssuntoEmail();
+
 
         const gmailUrl =
             "https://mail.google.com/mail/?view=cm" +
@@ -1247,16 +1618,11 @@ function configurarComunicacao(
                 mensagem
             );
 
+
         emailBtn.href =
             gmailUrl;
 
-        emailBtn.style.display =
-            "inline-flex";
-
     } else {
-
-        emailBtn.style.display =
-            "inline-flex";
 
         emailBtn.onclick =
             function(event) {
@@ -1266,9 +1632,13 @@ function configurarComunicacao(
                 alert(
                     "Este participante não possui e-mail cadastrado."
                 );
+
             };
+
     }
+
 }
+
 
 /* =========================================================
    NORMALIZAR TELEFONE
@@ -1282,74 +1652,87 @@ function normalizarTelefone(
         return "";
     }
 
+
     let numero =
         String(telefone)
-            .replace(/\D/g, "");
+            .replace(
+                /\D/g,
+                ""
+            );
+
 
     if (
         numero.startsWith("55")
     ) {
+
         return numero;
+
     }
+
 
     if (
         numero.length === 10 ||
         numero.length === 11
     ) {
+
         numero =
             "55" +
             numero;
+
     }
 
+
     return numero;
+
 }
 
+
 /* =========================================================
-   MENSAGEM PAGAMENTO
+   MENSAGEM WHATSAPP
    ========================================================= */
 
-function criarMensagemPagamento(
-    nome
-) {
+function criarMensagemPagamento(nome) {
 
     const primeiroNome =
         String(
-            nome ||
-            "participante"
+            nome || "participante"
         )
             .trim()
             .split(/\s+/)[0];
 
-    return `Olá, ${primeiroNome}! 🏃‍♀️🔥
 
-🚨 ÚLTIMA CHANCE: O 2º LOTE DA RUN & SAMBA ESTÁ CHEGANDO!
+    return `Olá, ${primeiroNome}!
 
-Você já iniciou sua inscrição na RUN & SAMBA – 2ª Edição, mas identificamos que o pagamento ainda não foi confirmado.
+Aqui é da organização da RUN & SAMBA – 2ª Edição.
 
-⏳ O prazo está acabando! O lote atual está prestes a ser encerrado, e os valores serão atualizados na mudança para o 2º lote.
+Identificamos que sua inscrição foi iniciada, porém o pagamento ainda não foi confirmado.
 
-💰 Garanta agora sua inscrição pelo valor atual e evite pagar mais caro depois!
+Estamos nos últimos dias do lote atual, e a mudança para o 2º lote está próxima. Após essa virada, os valores serão atualizados.
 
-🏅 RUN & SAMBA – 2ª EDIÇÃO
+Por isso, se você deseja participar da RUN & SAMBA, este é o momento de confirmar sua inscrição pelo valor atual.
 
-📅 20 de novembro de 2026
+RUN & SAMBA – 2ª EDIÇÃO
 
-📍 Luziânia – GO
+20 de novembro de 2026
+Luziânia – GO
+Percursos de 5K e 10K
 
-🏃 Percursos de 5K e 10K
-
-⚠️ Não deixe para a última hora! Após a virada do lote, não será possível garantir o valor atual.
-
-👉 Finalize seu pagamento agora e confirme sua participação!
+Finalize seu pagamento pelo link oficial da inscrição:
 
 https://izypass.com.br/evento/run-and-samba-2-edicao_luziania_20-11-2026
 
-🔥 Prepare-se para viver essa experiência. A linha de largada espera por você!
+Não deixe para depois. Após o encerramento do lote atual, não será possível garantir o valor vigente.
+
+Esperamos você na linha de largada para viver essa experiência com a gente.
 
 RUN & SAMBA
+Corra. Sinta. Viva.
 
-Corra. Sinta. Viva.`;
+Atenciosamente,
+Organização Run & Samba`;
+
 }
+
 
 /* =========================================================
    ASSUNTO E-MAIL
@@ -1358,9 +1741,11 @@ Corra. Sinta. Viva.`;
 function criarAssuntoEmail() {
 
     return (
-        "🚨 Última chance: 2º lote da Run & Samba está chegando!"
+        "Última chance: 2º lote da Run & Samba está chegando!"
     );
+
 }
+
 
 /* =========================================================
    FECHAR MODAL
@@ -1373,20 +1758,26 @@ function closeModal() {
             "editModal"
         );
 
+
     if (modal) {
 
         modal.classList.add(
             "hidden"
         );
+
     }
+
 
     document.body.classList.remove(
         "modal-open"
     );
 
+
     selectedId =
         null;
+
 }
+
 
 /* =========================================================
    SALVAR PAGAMENTO
@@ -1403,6 +1794,7 @@ async function savePayment() {
         return;
     }
 
+
     if (!db) {
 
         showMessage(
@@ -1412,55 +1804,69 @@ async function savePayment() {
         return;
     }
 
+
     const select =
         document.getElementById(
             "modalPayment"
         );
+
 
     const btn =
         document.getElementById(
             "savePayment"
         );
 
+
     if (!select || !btn) {
         return;
     }
+
 
     const value =
         normalizarPagamento(
             select.value
         );
 
+
     btn.disabled = true;
 
     btn.textContent =
         "SALVANDO...";
 
+
     try {
+
+        const agora =
+            new Date().toISOString();
+
 
         const {
             error
         } = await db
             .from("inscricoes")
             .update({
+
                 status_pagamento:
                     value,
 
                 updated_at:
-                    new Date().toISOString()
+                    agora
+
             })
             .eq(
                 "id",
                 selectedId
             );
 
+
         if (error) {
             throw error;
         }
 
+
         /* =================================================
-           ATUALIZAR MEMÓRIA
-           ================================================= */
+           MEMÓRIA LOCAL
+        ================================================= */
 
         const item =
             allRows.find(
@@ -1469,32 +1875,42 @@ async function savePayment() {
                     String(selectedId)
             );
 
+
         if (item) {
 
             item.status_pagamento =
                 value;
 
             item.updated_at =
-                new Date().toISOString();
+                agora;
+
         }
+
 
         /* =================================================
            ATUALIZAR TABELA
-           ================================================= */
+        ================================================= */
 
         render();
 
+
         /* =================================================
            ATUALIZAR COMUNICAÇÃO
-           ================================================= */
+        ================================================= */
 
         if (item) {
-            configurarComunicacao(item);
+
+            configurarComunicacao(
+                item
+            );
+
         }
+
 
         showMessage(
             "Pagamento atualizado com sucesso."
         );
+
 
     } catch (error) {
 
@@ -1502,6 +1918,7 @@ async function savePayment() {
             "Erro ao atualizar pagamento:",
             error
         );
+
 
         showMessage(
             "Erro ao atualizar pagamento: " +
@@ -1511,15 +1928,18 @@ async function savePayment() {
             )
         );
 
+
     } finally {
 
-        btn.disabled =
-            false;
+        btn.disabled = false;
 
         btn.textContent =
             "SALVAR PAGAMENTO";
+
     }
+
 }
+
 
 /* =========================================================
    F9 — CONFIGURAR ACOMPANHAMENTO
@@ -1534,55 +1954,65 @@ function configurarAcompanhamentoContato(
             "contactStatus"
         );
 
+
     const responseField =
         document.getElementById(
             "clientResponse"
         );
+
 
     const responseGroup =
         document.getElementById(
             "clientResponseGroup"
         );
 
+
     if (
         !statusSelect ||
         !responseField
     ) {
+
         return;
+
     }
+
 
     /* =====================================================
        STATUS
-       ===================================================== */
+    ===================================================== */
 
     const status =
         normalizarStatusContato(
             participante.status_contato
         );
 
+
     statusSelect.value =
         status;
 
+
     /* =====================================================
        RESPOSTA
-       ===================================================== */
+    ===================================================== */
 
     responseField.value =
         participante.resposta_cliente ||
         "";
 
+
     /* =====================================================
        MOSTRAR / OCULTAR
-       ===================================================== */
+    ===================================================== */
 
     atualizarCampoRespostaContato(
         status,
         responseGroup
     );
 
+
     /* =====================================================
        ALTERAÇÃO
-       ===================================================== */
+    ===================================================== */
 
     statusSelect.onchange =
         function() {
@@ -1592,12 +2022,16 @@ function configurarAcompanhamentoContato(
                     this.value
                 );
 
+
             atualizarCampoRespostaContato(
                 novoStatus,
                 responseGroup
             );
+
         };
+
 }
+
 
 /* =========================================================
    F9 — CAMPO DE RESPOSTA
@@ -1612,6 +2046,7 @@ function atualizarCampoRespostaContato(
         return;
     }
 
+
     if (
         normalizarStatusContato(status) ===
         "RESPONDEU"
@@ -1624,8 +2059,11 @@ function atualizarCampoRespostaContato(
 
         responseGroup.style.display =
             "none";
+
     }
+
 }
+
 
 /* =========================================================
    F9 — SALVAR ACOMPANHAMENTO
@@ -1642,6 +2080,7 @@ async function saveContactFollowup() {
         return;
     }
 
+
     if (!db) {
 
         showMessage(
@@ -1651,20 +2090,24 @@ async function saveContactFollowup() {
         return;
     }
 
+
     const statusSelect =
         document.getElementById(
             "contactStatus"
         );
+
 
     const responseField =
         document.getElementById(
             "clientResponse"
         );
 
+
     const button =
         document.getElementById(
             "saveContactFollowup"
         );
+
 
     if (
         !statusSelect ||
@@ -1677,27 +2120,31 @@ async function saveContactFollowup() {
         );
 
         return;
+
     }
+
 
     /* =====================================================
        STATUS
-       ===================================================== */
+    ===================================================== */
 
     const status =
         normalizarStatusContato(
             statusSelect.value
         );
 
+
     /* =====================================================
        RESPOSTA
-       ===================================================== */
+    ===================================================== */
 
     const resposta =
         responseField.value.trim();
 
+
     /* =====================================================
        VALIDAÇÃO
-       ===================================================== */
+    ===================================================== */
 
     if (
         status === "RESPONDEU" &&
@@ -1708,24 +2155,29 @@ async function saveContactFollowup() {
             "Digite a resposta do cliente."
         );
 
+
         responseField.focus();
 
         return;
+
     }
+
 
     button.disabled = true;
 
     button.textContent =
         "SALVANDO...";
 
+
     try {
 
         const agora =
             new Date().toISOString();
 
+
         /* =================================================
-           ATUALIZAR SUPABASE
-           ================================================= */
+           SUPABASE
+        ================================================= */
 
         const {
             error
@@ -1750,13 +2202,15 @@ async function saveContactFollowup() {
                 selectedId
             );
 
+
         if (error) {
             throw error;
         }
 
+
         /* =================================================
            MEMÓRIA LOCAL
-           ================================================= */
+        ================================================= */
 
         const participant =
             allRows.find(
@@ -1764,6 +2218,7 @@ async function saveContactFollowup() {
                     String(row.id) ===
                     String(selectedId)
             );
+
 
         if (participant) {
 
@@ -1777,31 +2232,38 @@ async function saveContactFollowup() {
 
             participant.contato_atualizado_em =
                 agora;
+
         }
+
 
         /* =================================================
            ATUALIZAR TABELA
-           ================================================= */
+        ================================================= */
 
         render();
 
+
         /* =================================================
            ATUALIZAR F9
-           ================================================= */
+        ================================================= */
 
         configurarAcompanhamentoContato(
             participant || {
+
                 status_contato:
                     status,
 
                 resposta_cliente:
                     resposta
+
             }
         );
+
 
         showMessage(
             "Acompanhamento salvo com sucesso."
         );
+
 
     } catch (error) {
 
@@ -1809,6 +2271,7 @@ async function saveContactFollowup() {
             "Erro ao salvar acompanhamento:",
             error
         );
+
 
         showMessage(
             "Erro ao salvar acompanhamento: " +
@@ -1818,15 +2281,18 @@ async function saveContactFollowup() {
             )
         );
 
+
     } finally {
 
-        button.disabled =
-            false;
+        button.disabled = false;
 
         button.textContent =
             "SALVAR ACOMPANHAMENTO";
+
     }
+
 }
+
 
 /* =========================================================
    EXPORTAR CSV
@@ -1837,6 +2303,7 @@ function exportCSV() {
     const rows =
         filtered();
 
+
     if (!rows.length) {
 
         showMessage(
@@ -1845,6 +2312,7 @@ function exportCSV() {
 
         return;
     }
+
 
     const columns = [
 
@@ -1867,11 +2335,13 @@ function exportCSV() {
 
     ];
 
+
     const csv = [
 
         columns.join(";"),
 
         ...rows.map(
+
             row =>
                 columns
                     .map(
@@ -1881,45 +2351,58 @@ function exportCSV() {
                             )
                     )
                     .join(";")
+
         )
 
     ].join("\n");
 
+
     const blob =
         new Blob(
+
             [
                 "\ufeff" +
                 csv
             ],
+
             {
                 type:
                     "text/csv;charset=utf-8"
             }
+
         );
+
 
     const url =
         URL.createObjectURL(
             blob
         );
 
+
     const link =
         document.createElement(
             "a"
         );
 
+
     link.href =
         url;
 
+
     link.download =
         "run-samba-inscricoes.csv";
+
 
     document.body.appendChild(
         link
     );
 
+
     link.click();
 
+
     link.remove();
+
 
     setTimeout(
         () => {
@@ -1932,6 +2415,7 @@ function exportCSV() {
         1000
     );
 
+
     showMessage(
         `${rows.length} ${
             rows.length === 1
@@ -1939,7 +2423,9 @@ function exportCSV() {
                 : "inscrições exportadas"
         }.`
     );
+
 }
+
 
 /* =========================================================
    CSV CELL
@@ -1953,7 +2439,9 @@ function csvCell(value) {
         /"/g,
         '""'
     )}"`;
+
 }
+
 
 /* =========================================================
    CPF
@@ -1968,18 +2456,23 @@ function formatCPF(cpf) {
                 ""
             );
 
+
     if (
         value.length !== 11
     ) {
 
         return cpf || "—";
+
     }
+
 
     return value.replace(
         /(\d{3})(\d{3})(\d{3})(\d{2})/,
         "$1.$2.$3-$4"
     );
+
 }
+
 
 /* =========================================================
    TELEFONE
@@ -1994,9 +2487,10 @@ function formatPhone(phone) {
                 ""
             );
 
+
     /* =====================================================
-       DDI 55
-       ===================================================== */
+       DDI 55 + CELULAR
+    ===================================================== */
 
     if (
         value.length === 13 &&
@@ -2006,30 +2500,39 @@ function formatPhone(phone) {
         const local =
             value.substring(2);
 
-        if (
-            local.length === 11
-        ) {
 
-            return local.replace(
-                /(\d{2})(\d{5})(\d{4})/,
-                "($1) $2-$3"
-            );
-        }
+        return local.replace(
+            /(\d{2})(\d{5})(\d{4})/,
+            "($1) $2-$3"
+        );
 
-        if (
-            local.length === 10
-        ) {
-
-            return local.replace(
-                /(\d{2})(\d{4})(\d{4})/,
-                "($1) $2-$3"
-            );
-        }
     }
+
+
+    /* =====================================================
+       DDI 55 + FIXO
+    ===================================================== */
+
+    if (
+        value.length === 12 &&
+        value.startsWith("55")
+    ) {
+
+        const local =
+            value.substring(2);
+
+
+        return local.replace(
+            /(\d{2})(\d{4})(\d{4})/,
+            "($1) $2-$3"
+        );
+
+    }
+
 
     /* =====================================================
        BRASIL — 11 DÍGITOS
-       ===================================================== */
+    ===================================================== */
 
     if (
         value.length === 11
@@ -2039,11 +2542,13 @@ function formatPhone(phone) {
             /(\d{2})(\d{5})(\d{4})/,
             "($1) $2-$3"
         );
+
     }
+
 
     /* =====================================================
        BRASIL — 10 DÍGITOS
-       ===================================================== */
+    ===================================================== */
 
     if (
         value.length === 10
@@ -2053,10 +2558,14 @@ function formatPhone(phone) {
             /(\d{2})(\d{4})(\d{4})/,
             "($1) $2-$3"
         );
+
     }
 
+
     return phone || "—";
+
 }
+
 
 /* =========================================================
    DATA
@@ -2068,12 +2577,14 @@ function formatDate(date) {
         return "—";
     }
 
+
     const value =
         String(date);
 
+
     /* =====================================================
        YYYY-MM-DD
-       ===================================================== */
+    ===================================================== */
 
     if (
         /^\d{4}-\d{2}-\d{2}$/.test(
@@ -2088,12 +2599,15 @@ function formatDate(date) {
         ] =
             value.split("-");
 
+
         return `${day}/${month}/${year}`;
+
     }
+
 
     /* =====================================================
        DATA ISO
-       ===================================================== */
+    ===================================================== */
 
     if (
         value.includes("T")
@@ -2101,6 +2615,7 @@ function formatDate(date) {
 
         const parsed =
             new Date(value);
+
 
         if (
             !Number.isNaN(
@@ -2111,11 +2626,16 @@ function formatDate(date) {
             return parsed.toLocaleDateString(
                 "pt-BR"
             );
+
         }
+
     }
 
+
     return value;
+
 }
+
 
 /* =========================================================
    DINHEIRO
@@ -2130,9 +2650,12 @@ function formatMoney(value) {
     ) {
 
         return "—";
+
     }
 
+
     let number;
+
 
     if (
         typeof value === "number"
@@ -2154,6 +2677,7 @@ function formatMoney(value) {
                     /\s/g,
                     ""
                 );
+
 
         if (
             normalized.includes(",")
@@ -2178,8 +2702,11 @@ function formatMoney(value) {
                 Number(
                     normalized
                 );
+
         }
+
     }
+
 
     if (
         !Number.isFinite(
@@ -2188,7 +2715,9 @@ function formatMoney(value) {
     ) {
 
         return String(value);
+
     }
+
 
     return number.toLocaleString(
         "pt-BR",
@@ -2197,7 +2726,9 @@ function formatMoney(value) {
             currency: "BRL"
         }
     );
+
 }
+
 
 /* =========================================================
    CLASSE PAGAMENTO
@@ -2210,22 +2741,29 @@ function paymentClass(value) {
             value
         );
 
+
     if (
         status === "PAGO"
     ) {
 
         return "paid";
+
     }
+
 
     if (
         status === "CANCELADO"
     ) {
 
         return "cancelled";
+
     }
 
+
     return "pending";
+
 }
+
 
 /* =========================================================
    ESCAPAR HTML
@@ -2233,40 +2771,34 @@ function paymentClass(value) {
 
 function esc(value) {
 
+    const entities = {
+
+        "&": "&amp;",
+
+        "<": "&lt;",
+
+        ">": "&gt;",
+
+        '"': "&quot;",
+
+        "'": "&#039;"
+
+    };
+
+
     return String(
         value ?? ""
-    )
-        .replace(
-            /[&<>"']/g,
-            character => {
+    ).replace(
+        /[&<>"']/g,
+        character =>
+            entities[character]
+    );
 
-                const entities = {
-
-                    "&":
-                        "&amp;",
-
-                    "<":
-                        "&lt;",
-
-                    ">":
-                        "&gt;",
-
-                    '"':
-                        "&quot;",
-
-                    "'":
-                        "&#039;"
-                };
-
-                return entities[
-                    character
-                ];
-            }
-        );
 }
 
+
 /* =========================================================
-   MENSAGEM
+   MENSAGEM / TOAST
    ========================================================= */
 
 function showMessage(text) {
@@ -2276,20 +2808,25 @@ function showMessage(text) {
             "message"
         );
 
+
     if (!el) {
         return;
     }
 
+
     el.textContent =
         text;
+
 
     el.classList.add(
         "show"
     );
 
+
     clearTimeout(
         showMessage.timer
     );
+
 
     showMessage.timer =
         setTimeout(
@@ -2305,7 +2842,9 @@ function showMessage(text) {
             },
             5000
         );
+
 }
+
 
 /* =========================================================
    LOADING
@@ -2318,12 +2857,16 @@ function setLoading(text) {
             "loading"
         );
 
+
     if (el) {
 
         el.textContent =
             text;
+
     }
+
 }
+
 
 /* =========================================================
    INICIAR
@@ -2342,5 +2885,5 @@ if (
 } else {
 
     init();
-}
 
+}
