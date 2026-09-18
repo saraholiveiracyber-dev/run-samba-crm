@@ -4,18 +4,24 @@
    PARTICIPANTES + PAGAMENTO + COMUNICAÇÃO + F9
 
    STATUS VISUAL AO LADO DO NOME:
+
    🟢 PAGO
    🔴 CANCELADO
    🔵 MENSAGEM ENVIADA
    🟡 PENDENTE
    ⚪ NOVO
 
+   F9:
+   - MENSAGEM ENVIADA
+   - CLIENTE RESPONDEU
+   - NÃO RESPONDIDO
+   - NOVO
+
    CLIENTE RESPONDEU / NÃO RESPONDIDO:
-   ficam disponíveis somente no F9.
+   NÃO aparecem na bolinha do participante.
    ========================================================= */
 
 "use strict";
-
 
 /* =========================================================
    ESTADO
@@ -25,14 +31,12 @@ let db = null;
 let allRows = [];
 let selectedId = null;
 
-
 /* =========================================================
    INICIALIZAÇÃO
    ========================================================= */
 
 async function init() {
     try {
-
         /* =====================================================
            SUPABASE
            ===================================================== */
@@ -45,7 +49,6 @@ async function init() {
             );
             return;
         }
-
 
         /* =====================================================
            AUTENTICAÇÃO
@@ -67,13 +70,11 @@ async function init() {
             return;
         }
 
-
         /* =====================================================
            CARREGAR DADOS
            ===================================================== */
 
         await loadRows();
-
 
         /* =====================================================
            EVENTOS
@@ -82,7 +83,6 @@ async function init() {
         bindEvents();
 
     } catch (error) {
-
         console.error(
             "Erro na inicialização do CRM:",
             error
@@ -98,13 +98,11 @@ async function init() {
     }
 }
 
-
 /* =========================================================
    CARREGAR INSCRIÇÕES
    ========================================================= */
 
 async function loadRows() {
-
     setLoading("Carregando inscrições...");
 
     const {
@@ -113,16 +111,11 @@ async function loadRows() {
     } = await db
         .from("inscricoes")
         .select("*")
-        .order(
-            "created_at",
-            {
-                ascending: false
-            }
-        );
-
+        .order("created_at", {
+            ascending: false
+        });
 
     if (error) {
-
         console.error(
             "Erro Supabase:",
             error
@@ -137,7 +130,6 @@ async function loadRows() {
             document.getElementById("tableBody");
 
         if (body) {
-
             body.innerHTML = `
                 <tr>
                     <td
@@ -157,22 +149,18 @@ async function loadRows() {
         }
 
         setLoading("");
-
         return;
     }
-
 
     allRows =
         Array.isArray(data)
             ? data
             : [];
 
-
     render();
 
     setLoading("");
 }
-
 
 /* =========================================================
    EVENTOS
@@ -209,7 +197,6 @@ function bindEvents() {
         );
     });
 
-
     /* =====================================================
        EXPORTAR
        ===================================================== */
@@ -218,13 +205,11 @@ function bindEvents() {
         document.getElementById("exportBtn");
 
     if (exportBtn) {
-
         exportBtn.addEventListener(
             "click",
             exportCSV
         );
     }
-
 
     /* =====================================================
        FECHAR MODAL
@@ -234,13 +219,11 @@ function bindEvents() {
         document.getElementById("closeModal");
 
     if (closeBtn) {
-
         closeBtn.addEventListener(
             "click",
             closeModal
         );
     }
-
 
     /* =====================================================
        OVERLAY
@@ -250,7 +233,6 @@ function bindEvents() {
         document.getElementById("editModal");
 
     if (modal) {
-
         modal.addEventListener(
             "click",
             event => {
@@ -267,7 +249,6 @@ function bindEvents() {
         );
     }
 
-
     /* =====================================================
        SALVAR PAGAMENTO
        ===================================================== */
@@ -276,13 +257,11 @@ function bindEvents() {
         document.getElementById("savePayment");
 
     if (saveBtn) {
-
         saveBtn.addEventListener(
             "click",
             savePayment
         );
     }
-
 
     /* =====================================================
        SALVAR F9
@@ -294,13 +273,11 @@ function bindEvents() {
         );
 
     if (saveContactBtn) {
-
         saveContactBtn.addEventListener(
             "click",
             saveContactFollowup
         );
     }
-
 
     /* =====================================================
        ESC
@@ -328,7 +305,6 @@ function bindEvents() {
         }
     );
 
-
     /* =====================================================
        LOGOUT
        ===================================================== */
@@ -350,7 +326,6 @@ function bindEvents() {
                 logoutBtn.textContent = "SAINDO...";
 
                 try {
-
                     await window.crmAuth.logout();
 
                 } catch (error) {
@@ -367,7 +342,6 @@ function bindEvents() {
         );
     }
 }
-
 
 /* =========================================================
    FILTRAR
@@ -387,14 +361,12 @@ function filtered() {
     const shirtElement =
         document.getElementById("shirtFilter");
 
-
     const q =
         String(
             searchElement?.value || ""
         )
             .toLowerCase()
             .trim();
-
 
     const payment =
         String(
@@ -403,7 +375,6 @@ function filtered() {
             .trim()
             .toUpperCase();
 
-
     const route =
         String(
             routeElement?.value || ""
@@ -411,14 +382,12 @@ function filtered() {
             .trim()
             .toUpperCase();
 
-
     const shirt =
         String(
             shirtElement?.value || ""
         )
             .trim()
             .toUpperCase();
-
 
     return allRows.filter(row => {
 
@@ -438,7 +407,6 @@ function filtered() {
             .join(" ")
             .toLowerCase();
 
-
         /* =================================================
            PAGAMENTO
            ================================================= */
@@ -447,7 +415,6 @@ function filtered() {
             normalizarPagamento(
                 row.status_pagamento
             );
-
 
         /* =================================================
            PERCURSO
@@ -460,7 +427,6 @@ function filtered() {
                 .trim()
                 .toUpperCase();
 
-
         /* =================================================
            CAMISETA
            ================================================= */
@@ -472,22 +438,17 @@ function filtered() {
                 .trim()
                 .toUpperCase();
 
-
         return (
             (!q || text.includes(q)) &&
-
             (!payment ||
                 statusPagamento === payment) &&
-
             (!route ||
                 percurso === route) &&
-
             (!shirt ||
                 camiseta === shirt)
         );
     });
 }
-
 
 /* =========================================================
    NORMALIZAR PAGAMENTO
@@ -498,22 +459,20 @@ function normalizarPagamento(value) {
     const status =
         String(value ?? "")
             .trim()
-            .toUpperCase();
-
+            .toUpperCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "");
 
     if (status === "PAGO") {
         return "PAGO";
     }
 
-
     if (status === "CANCELADO") {
         return "CANCELADO";
     }
 
-
     return "PENDENTE";
 }
-
 
 /* =========================================================
    NORMALIZAR STATUS DO CONTATO
@@ -529,13 +488,12 @@ function normalizarStatusContato(value) {
             .replace(/[\u0300-\u036f]/g, "")
             .replace(/\s+/g, "_");
 
-
     if (
-        status === "MENSAGEM_ENVIADA"
+        status === "MENSAGEM_ENVIADA" ||
+        status === "ENVIADA"
     ) {
         return "MENSAGEM_ENVIADA";
     }
-
 
     if (
         status === "RESPONDEU" ||
@@ -544,24 +502,19 @@ function normalizarStatusContato(value) {
         return "RESPONDEU";
     }
 
-
     if (
-        status === "NAO_RESPONDIDO"
+        status === "NAO_RESPONDIDO" ||
+        status === "NAO_RESPONDEU"
     ) {
         return "NAO_RESPONDIDO";
     }
 
-
-    if (
-        status === "NOVO"
-    ) {
+    if (status === "NOVO") {
         return "NOVO";
     }
 
-
     return "NOVO";
 }
-
 
 /* =========================================================
    TEXTO DO STATUS DO CONTATO
@@ -590,7 +543,6 @@ function textoStatusContato(status) {
     }
 }
 
-
 /* =========================================================
    CLASSE DO STATUS DO CONTATO
    ========================================================= */
@@ -602,27 +554,27 @@ function contactClass(status) {
     ) {
 
         case "MENSAGEM_ENVIADA":
-            return "message";
+            return "contact-message";
 
         case "RESPONDEU":
-            return "replied";
+            return "contact-replied";
 
         case "NAO_RESPONDIDO":
-            return "not-replied";
+            return "contact-not-replied";
 
         case "NOVO":
-            return "new";
+            return "contact-new";
 
         default:
-            return "new";
+            return "contact-new";
     }
 }
-
 
 /* =========================================================
    STATUS VISUAL AO LADO DO NOME
 
    REGRA:
+
    1. PAGO       = VERDE
    2. CANCELADO  = VERMELHO
    3. MENSAGEM   = AZUL
@@ -630,8 +582,10 @@ function contactClass(status) {
    5. NOVO       = CINZA
 
    IMPORTANTE:
+
    - Apenas UMA bolinha aparece.
    - PAGO não mostra mensagem enviada.
+   - CANCELADO não mostra mensagem enviada.
    - MENSAGEM ENVIADA não mostra pendente.
    - CLIENTE RESPONDEU não aparece na bolinha.
    - NÃO RESPONDIDO não aparece na bolinha.
@@ -644,15 +598,13 @@ function obterStatusVisualParticipante(row) {
             row.status_pagamento
         );
 
-
     const contato =
         normalizarStatusContato(
             row.status_contato
         );
 
-
     /* =====================================================
-       PAGO
+       PRIORIDADE 1 — PAGO
        ===================================================== */
 
     if (pagamento === "PAGO") {
@@ -664,9 +616,8 @@ function obterStatusVisualParticipante(row) {
         };
     }
 
-
     /* =====================================================
-       CANCELADO
+       PRIORIDADE 2 — CANCELADO
        ===================================================== */
 
     if (pagamento === "CANCELADO") {
@@ -678,28 +629,21 @@ function obterStatusVisualParticipante(row) {
         };
     }
 
-
     /* =====================================================
-       MENSAGEM ENVIADA
-
-       Se está pendente + mensagem enviada,
-       fica SOMENTE azul.
+       PRIORIDADE 3 — MENSAGEM ENVIADA
        ===================================================== */
 
-    if (
-        contato === "MENSAGEM_ENVIADA"
-    ) {
+    if (contato === "MENSAGEM_ENVIADA") {
 
         return {
             status: "MENSAGEM ENVIADA",
-            classe: "message",
+            classe: "contact-message",
             titulo: "Mensagem enviada"
         };
     }
 
-
     /* =====================================================
-       PENDENTE
+       PRIORIDADE 4 — PENDENTE
        ===================================================== */
 
     if (pagamento === "PENDENTE") {
@@ -707,10 +651,9 @@ function obterStatusVisualParticipante(row) {
         return {
             status: "PENDENTE",
             classe: "pending",
-            titulo: "Pagamento em processamento ou pendente"
+            titulo: "Pagamento pendente"
         };
     }
-
 
     /* =====================================================
        NOVO
@@ -718,11 +661,10 @@ function obterStatusVisualParticipante(row) {
 
     return {
         status: "NOVO",
-        classe: "new",
+        classe: "contact-new",
         titulo: "Inscrição recente"
     };
 }
-
 
 /* =========================================================
    CRIAR STATUS DO PARTICIPANTE
@@ -735,7 +677,6 @@ function criarStatusParticipante(row) {
     const visual =
         obterStatusVisualParticipante(row);
 
-
     return `
         <div class="participant-name-line">
 
@@ -744,7 +685,7 @@ function criarStatusParticipante(row) {
             </strong>
 
             <span
-                class="participant-status-dot ${visual.classe}"
+                class="participant-status-dot ${esc(visual.classe)}"
                 title="${esc(visual.titulo)}"
                 aria-label="${esc(visual.status)}"
                 role="status"
@@ -764,7 +705,6 @@ function criarStatusParticipante(row) {
     `;
 }
 
-
 /* =========================================================
    RENDERIZAR TABELA
    ========================================================= */
@@ -773,7 +713,6 @@ function render() {
 
     const rows =
         filtered();
-
 
     /* =====================================================
        CONTADOR
@@ -792,7 +731,6 @@ function render() {
             }`;
     }
 
-
     /* =====================================================
        TABELA
        ===================================================== */
@@ -803,7 +741,6 @@ function render() {
     if (!body) {
         return;
     }
-
 
     /* =====================================================
        NENHUM RESULTADO
@@ -825,7 +762,6 @@ function render() {
         return;
     }
 
-
     /* =====================================================
        LINHAS
        ===================================================== */
@@ -839,51 +775,49 @@ function render() {
                         row.status_pagamento
                     );
 
-
                 return `
                     <tr>
 
                         <!-- PARTICIPANTE -->
+
                         <td class="participant-cell">
                             ${criarStatusParticipante(row)}
                         </td>
 
-
                         <!-- CPF -->
+
                         <td>
                             ${esc(
                                 formatCPF(row.cpf)
                             )}
                         </td>
 
-
                         <!-- TELEFONE -->
+
                         <td>
                             ${esc(
-                                formatPhone(
-                                    row.telefone
-                                )
+                                formatPhone(row.telefone)
                             )}
                         </td>
 
-
                         <!-- PERCURSO -->
+
                         <td>
                             ${esc(
                                 row.percurso || "—"
                             )}
                         </td>
 
-
                         <!-- CAMISETA -->
+
                         <td>
                             ${esc(
                                 row.camiseta || "—"
                             )}
                         </td>
 
-
                         <!-- PAGAMENTO -->
+
                         <td>
                             <span
                                 class="status-badge ${paymentClass(
@@ -894,8 +828,8 @@ function render() {
                             </span>
                         </td>
 
-
                         <!-- AÇÕES -->
+
                         <td>
                             <button
                                 type="button"
@@ -910,7 +844,6 @@ function render() {
                 `;
             })
             .join("");
-
 
     /* =====================================================
        BOTÕES VER
@@ -932,7 +865,6 @@ function render() {
         });
 }
 
-
 /* =========================================================
    ABRIR MODAL
    ========================================================= */
@@ -946,15 +878,12 @@ function openModal(id) {
                 String(id)
         );
 
-
     if (!participant) {
         return;
     }
 
-
     selectedId =
         participant.id;
-
 
     const modal =
         document.getElementById(
@@ -976,11 +905,9 @@ function openModal(id) {
             "modalData"
         );
 
-
     if (!modal) {
         return;
     }
-
 
     /* =====================================================
        NOME
@@ -993,7 +920,6 @@ function openModal(id) {
             "Participante";
     }
 
-
     /* =====================================================
        PAGAMENTO
        ===================================================== */
@@ -1003,13 +929,11 @@ function openModal(id) {
             participant.status_pagamento
         );
 
-
     if (modalPayment) {
 
         modalPayment.value =
             pagamento;
     }
-
 
     /* =====================================================
        DADOS
@@ -1020,21 +944,16 @@ function openModal(id) {
             participant.status_contato
         );
 
-
     const fields = [
 
         [
             "CPF",
-            formatCPF(
-                participant.cpf
-            )
+            formatCPF(participant.cpf)
         ],
 
         [
             "Nascimento",
-            formatDate(
-                participant.nascimento
-            )
+            formatDate(participant.nascimento)
         ],
 
         [
@@ -1044,9 +963,7 @@ function openModal(id) {
 
         [
             "Telefone",
-            formatPhone(
-                participant.telefone
-            )
+            formatPhone(participant.telefone)
         ],
 
         [
@@ -1066,9 +983,7 @@ function openModal(id) {
 
         [
             "Valor",
-            formatMoney(
-                participant.valor
-            )
+            formatMoney(participant.valor)
         ],
 
         [
@@ -1083,12 +998,10 @@ function openModal(id) {
 
         [
             "Contato",
-            textoStatusContato(
-                contato
-            )
+            textoStatusContato(contato)
         ]
-    ];
 
+    ];
 
     if (modalData) {
 
@@ -1096,7 +1009,6 @@ function openModal(id) {
             fields
                 .map(
                     ([label, value]) => `
-
                         <div class="detail-item">
 
                             <span>
@@ -1115,7 +1027,6 @@ function openModal(id) {
                 .join("");
     }
 
-
     /* =====================================================
        COMUNICAÇÃO DE PAGAMENTO
        ===================================================== */
@@ -1123,7 +1034,6 @@ function openModal(id) {
     configurarComunicacao(
         participant
     );
-
 
     /* =====================================================
        F9
@@ -1133,19 +1043,15 @@ function openModal(id) {
         participant
     );
 
-
     /* =====================================================
        ABRIR MODAL
        ===================================================== */
 
-    modal.classList.remove(
-        "hidden"
-    );
+    modal.classList.remove("hidden");
 
     document.body.classList.add(
         "modal-open"
     );
-
 
     /* =====================================================
        FOCO
@@ -1162,7 +1068,6 @@ function openModal(id) {
         100
     );
 }
-
 
 /* =========================================================
    CONFIGURAR COMUNICAÇÃO
@@ -1187,7 +1092,6 @@ function configurarComunicacao(
             "emailBtn"
         );
 
-
     if (
         !communicationBox ||
         !whatsappBtn ||
@@ -1196,20 +1100,16 @@ function configurarComunicacao(
         return;
     }
 
-
     const pagamento =
         normalizarPagamento(
             participante.status_pagamento
         );
 
-
     /* =====================================================
-       SÓ PENDENTE
+       SÓ MOSTRAR PARA PAGAMENTO PENDENTE
        ===================================================== */
 
-    if (
-        pagamento !== "PENDENTE"
-    ) {
+    if (pagamento !== "PENDENTE") {
 
         communicationBox.classList.add(
             "hidden"
@@ -1235,7 +1135,6 @@ function configurarComunicacao(
         return;
     }
 
-
     /* =====================================================
        MOSTRAR
        ===================================================== */
@@ -1244,27 +1143,22 @@ function configurarComunicacao(
         "hidden"
     );
 
-
     const nome =
         participante.nome ||
         "participante";
-
 
     const telefone =
         participante.telefone ||
         "";
 
-
     const email =
         participante.email ||
         "";
-
 
     const mensagem =
         criarMensagemPagamento(
             nome
         );
-
 
     /* =====================================================
        WHATSAPP
@@ -1274,7 +1168,6 @@ function configurarComunicacao(
         normalizarTelefone(
             telefone
         );
-
 
     whatsappBtn.onclick = null;
 
@@ -1287,7 +1180,6 @@ function configurarComunicacao(
 
     whatsappBtn.rel =
         "noopener noreferrer";
-
 
     if (numero) {
 
@@ -1318,7 +1210,6 @@ function configurarComunicacao(
             };
     }
 
-
     /* =====================================================
        E-MAIL
        ===================================================== */
@@ -1335,12 +1226,10 @@ function configurarComunicacao(
     emailBtn.rel =
         "noopener noreferrer";
 
-
     if (email) {
 
         const assunto =
             criarAssuntoEmail();
-
 
         const gmailUrl =
             "https://mail.google.com/mail/?view=cm" +
@@ -1357,7 +1246,6 @@ function configurarComunicacao(
             encodeURIComponent(
                 mensagem
             );
-
 
         emailBtn.href =
             gmailUrl;
@@ -1382,7 +1270,6 @@ function configurarComunicacao(
     }
 }
 
-
 /* =========================================================
    NORMALIZAR TELEFONE
    ========================================================= */
@@ -1395,11 +1282,9 @@ function normalizarTelefone(
         return "";
     }
 
-
     let numero =
         String(telefone)
             .replace(/\D/g, "");
-
 
     if (
         numero.startsWith("55")
@@ -1407,21 +1292,17 @@ function normalizarTelefone(
         return numero;
     }
 
-
     if (
         numero.length === 10 ||
         numero.length === 11
     ) {
-
         numero =
             "55" +
             numero;
     }
 
-
     return numero;
 }
-
 
 /* =========================================================
    MENSAGEM PAGAMENTO
@@ -1438,7 +1319,6 @@ function criarMensagemPagamento(
         )
             .trim()
             .split(/\s+/)[0];
-
 
     return `Olá, ${primeiroNome}! 🏃‍♀️🔥
 
@@ -1471,7 +1351,6 @@ RUN & SAMBA
 Corra. Sinta. Viva.`;
 }
 
-
 /* =========================================================
    ASSUNTO E-MAIL
    ========================================================= */
@@ -1482,7 +1361,6 @@ function criarAssuntoEmail() {
         "🚨 Última chance: 2º lote da Run & Samba está chegando!"
     );
 }
-
 
 /* =========================================================
    FECHAR MODAL
@@ -1495,7 +1373,6 @@ function closeModal() {
             "editModal"
         );
 
-
     if (modal) {
 
         modal.classList.add(
@@ -1503,16 +1380,13 @@ function closeModal() {
         );
     }
 
-
     document.body.classList.remove(
         "modal-open"
     );
 
-
     selectedId =
         null;
 }
-
 
 /* =========================================================
    SALVAR PAGAMENTO
@@ -1529,7 +1403,6 @@ async function savePayment() {
         return;
     }
 
-
     if (!db) {
 
         showMessage(
@@ -1539,35 +1412,29 @@ async function savePayment() {
         return;
     }
 
-
     const select =
         document.getElementById(
             "modalPayment"
         );
-
 
     const btn =
         document.getElementById(
             "savePayment"
         );
 
-
     if (!select || !btn) {
         return;
     }
-
 
     const value =
         normalizarPagamento(
             select.value
         );
 
-
     btn.disabled = true;
 
     btn.textContent =
         "SALVANDO...";
-
 
     try {
 
@@ -1576,7 +1443,6 @@ async function savePayment() {
         } = await db
             .from("inscricoes")
             .update({
-
                 status_pagamento:
                     value,
 
@@ -1588,11 +1454,9 @@ async function savePayment() {
                 selectedId
             );
 
-
         if (error) {
             throw error;
         }
-
 
         /* =================================================
            ATUALIZAR MEMÓRIA
@@ -1605,13 +1469,14 @@ async function savePayment() {
                     String(selectedId)
             );
 
-
         if (item) {
 
             item.status_pagamento =
                 value;
-        }
 
+            item.updated_at =
+                new Date().toISOString();
+        }
 
         /* =================================================
            ATUALIZAR TABELA
@@ -1619,18 +1484,17 @@ async function savePayment() {
 
         render();
 
-
         /* =================================================
-           FECHAR
+           ATUALIZAR COMUNICAÇÃO
            ================================================= */
 
-        closeModal();
-
+        if (item) {
+            configurarComunicacao(item);
+        }
 
         showMessage(
             "Pagamento atualizado com sucesso."
         );
-
 
     } catch (error) {
 
@@ -1639,7 +1503,6 @@ async function savePayment() {
             error
         );
 
-
         showMessage(
             "Erro ao atualizar pagamento: " +
             (
@@ -1647,7 +1510,6 @@ async function savePayment() {
                 "Erro desconhecido."
             )
         );
-
 
     } finally {
 
@@ -1658,7 +1520,6 @@ async function savePayment() {
             "SALVAR PAGAMENTO";
     }
 }
-
 
 /* =========================================================
    F9 — CONFIGURAR ACOMPANHAMENTO
@@ -1673,18 +1534,15 @@ function configurarAcompanhamentoContato(
             "contactStatus"
         );
 
-
     const responseField =
         document.getElementById(
             "clientResponse"
         );
 
-
     const responseGroup =
         document.getElementById(
             "clientResponseGroup"
         );
-
 
     if (
         !statusSelect ||
@@ -1692,7 +1550,6 @@ function configurarAcompanhamentoContato(
     ) {
         return;
     }
-
 
     /* =====================================================
        STATUS
@@ -1703,10 +1560,8 @@ function configurarAcompanhamentoContato(
             participante.status_contato
         );
 
-
     statusSelect.value =
         status;
-
 
     /* =====================================================
        RESPOSTA
@@ -1716,7 +1571,6 @@ function configurarAcompanhamentoContato(
         participante.resposta_cliente ||
         "";
 
-
     /* =====================================================
        MOSTRAR / OCULTAR
        ===================================================== */
@@ -1725,7 +1579,6 @@ function configurarAcompanhamentoContato(
         status,
         responseGroup
     );
-
 
     /* =====================================================
        ALTERAÇÃO
@@ -1739,14 +1592,12 @@ function configurarAcompanhamentoContato(
                     this.value
                 );
 
-
             atualizarCampoRespostaContato(
                 novoStatus,
                 responseGroup
             );
         };
 }
-
 
 /* =========================================================
    F9 — CAMPO DE RESPOSTA
@@ -1761,11 +1612,9 @@ function atualizarCampoRespostaContato(
         return;
     }
 
-
     if (
-        normalizarStatusContato(
-            status
-        ) === "RESPONDEU"
+        normalizarStatusContato(status) ===
+        "RESPONDEU"
     ) {
 
         responseGroup.style.display =
@@ -1777,7 +1626,6 @@ function atualizarCampoRespostaContato(
             "none";
     }
 }
-
 
 /* =========================================================
    F9 — SALVAR ACOMPANHAMENTO
@@ -1794,7 +1642,6 @@ async function saveContactFollowup() {
         return;
     }
 
-
     if (!db) {
 
         showMessage(
@@ -1804,24 +1651,20 @@ async function saveContactFollowup() {
         return;
     }
 
-
     const statusSelect =
         document.getElementById(
             "contactStatus"
         );
-
 
     const responseField =
         document.getElementById(
             "clientResponse"
         );
 
-
     const button =
         document.getElementById(
             "saveContactFollowup"
         );
-
 
     if (
         !statusSelect ||
@@ -1836,7 +1679,6 @@ async function saveContactFollowup() {
         return;
     }
 
-
     /* =====================================================
        STATUS
        ===================================================== */
@@ -1846,14 +1688,12 @@ async function saveContactFollowup() {
             statusSelect.value
         );
 
-
     /* =====================================================
        RESPOSTA
        ===================================================== */
 
     const resposta =
         responseField.value.trim();
-
 
     /* =====================================================
        VALIDAÇÃO
@@ -1873,19 +1713,15 @@ async function saveContactFollowup() {
         return;
     }
 
-
-    button.disabled =
-        true;
+    button.disabled = true;
 
     button.textContent =
         "SALVANDO...";
-
 
     try {
 
         const agora =
             new Date().toISOString();
-
 
         /* =================================================
            ATUALIZAR SUPABASE
@@ -1914,11 +1750,9 @@ async function saveContactFollowup() {
                 selectedId
             );
 
-
         if (error) {
             throw error;
         }
-
 
         /* =================================================
            MEMÓRIA LOCAL
@@ -1930,7 +1764,6 @@ async function saveContactFollowup() {
                     String(row.id) ===
                     String(selectedId)
             );
-
 
         if (participant) {
 
@@ -1946,31 +1779,29 @@ async function saveContactFollowup() {
                 agora;
         }
 
-
         /* =================================================
            ATUALIZAR TABELA
            ================================================= */
 
         render();
 
-
         /* =================================================
-           ATUALIZAR MODAL
+           ATUALIZAR F9
            ================================================= */
 
         configurarAcompanhamentoContato(
             participant || {
-                status_contato: status,
+                status_contato:
+                    status,
+
                 resposta_cliente:
                     resposta
             }
         );
 
-
         showMessage(
             "Acompanhamento salvo com sucesso."
         );
-
 
     } catch (error) {
 
@@ -1979,7 +1810,6 @@ async function saveContactFollowup() {
             error
         );
 
-
         showMessage(
             "Erro ao salvar acompanhamento: " +
             (
@@ -1987,7 +1817,6 @@ async function saveContactFollowup() {
                 "Erro desconhecido."
             )
         );
-
 
     } finally {
 
@@ -1999,7 +1828,6 @@ async function saveContactFollowup() {
     }
 }
 
-
 /* =========================================================
    EXPORTAR CSV
    ========================================================= */
@@ -2009,7 +1837,6 @@ function exportCSV() {
     const rows =
         filtered();
 
-
     if (!rows.length) {
 
         showMessage(
@@ -2018,7 +1845,6 @@ function exportCSV() {
 
         return;
     }
-
 
     const columns = [
 
@@ -2038,8 +1864,8 @@ function exportCSV() {
         "resposta_cliente",
         "contato_atualizado_em",
         "created_at"
-    ];
 
+    ];
 
     const csv = [
 
@@ -2059,7 +1885,6 @@ function exportCSV() {
 
     ].join("\n");
 
-
     const blob =
         new Blob(
             [
@@ -2072,18 +1897,15 @@ function exportCSV() {
             }
         );
 
-
     const url =
         URL.createObjectURL(
             blob
         );
 
-
     const link =
         document.createElement(
             "a"
         );
-
 
     link.href =
         url;
@@ -2091,17 +1913,13 @@ function exportCSV() {
     link.download =
         "run-samba-inscricoes.csv";
 
-
     document.body.appendChild(
         link
     );
 
-
     link.click();
 
-
     link.remove();
-
 
     setTimeout(
         () => {
@@ -2114,7 +1932,6 @@ function exportCSV() {
         1000
     );
 
-
     showMessage(
         `${rows.length} ${
             rows.length === 1
@@ -2123,7 +1940,6 @@ function exportCSV() {
         }.`
     );
 }
-
 
 /* =========================================================
    CSV CELL
@@ -2139,7 +1955,6 @@ function csvCell(value) {
     )}"`;
 }
 
-
 /* =========================================================
    CPF
    ========================================================= */
@@ -2153,7 +1968,6 @@ function formatCPF(cpf) {
                 ""
             );
 
-
     if (
         value.length !== 11
     ) {
@@ -2161,13 +1975,11 @@ function formatCPF(cpf) {
         return cpf || "—";
     }
 
-
     return value.replace(
         /(\d{3})(\d{3})(\d{3})(\d{2})/,
         "$1.$2.$3-$4"
     );
 }
-
 
 /* =========================================================
    TELEFONE
@@ -2182,7 +1994,6 @@ function formatPhone(phone) {
                 ""
             );
 
-
     /* =====================================================
        DDI 55
        ===================================================== */
@@ -2195,7 +2006,6 @@ function formatPhone(phone) {
         const local =
             value.substring(2);
 
-
         if (
             local.length === 11
         ) {
@@ -2205,7 +2015,6 @@ function formatPhone(phone) {
                 "($1) $2-$3"
             );
         }
-
 
         if (
             local.length === 10
@@ -2217,7 +2026,6 @@ function formatPhone(phone) {
             );
         }
     }
-
 
     /* =====================================================
        BRASIL — 11 DÍGITOS
@@ -2233,7 +2041,6 @@ function formatPhone(phone) {
         );
     }
 
-
     /* =====================================================
        BRASIL — 10 DÍGITOS
        ===================================================== */
@@ -2248,10 +2055,8 @@ function formatPhone(phone) {
         );
     }
 
-
     return phone || "—";
 }
-
 
 /* =========================================================
    DATA
@@ -2263,10 +2068,8 @@ function formatDate(date) {
         return "—";
     }
 
-
     const value =
         String(date);
-
 
     /* =====================================================
        YYYY-MM-DD
@@ -2285,10 +2088,8 @@ function formatDate(date) {
         ] =
             value.split("-");
 
-
         return `${day}/${month}/${year}`;
     }
-
 
     /* =====================================================
        DATA ISO
@@ -2300,7 +2101,6 @@ function formatDate(date) {
 
         const parsed =
             new Date(value);
-
 
         if (
             !Number.isNaN(
@@ -2314,10 +2114,8 @@ function formatDate(date) {
         }
     }
 
-
     return value;
 }
-
 
 /* =========================================================
    DINHEIRO
@@ -2334,9 +2132,7 @@ function formatMoney(value) {
         return "—";
     }
 
-
     let number;
-
 
     if (
         typeof value === "number"
@@ -2358,7 +2154,6 @@ function formatMoney(value) {
                     /\s/g,
                     ""
                 );
-
 
         if (
             normalized.includes(",")
@@ -2386,7 +2181,6 @@ function formatMoney(value) {
         }
     }
 
-
     if (
         !Number.isFinite(
             number
@@ -2396,7 +2190,6 @@ function formatMoney(value) {
         return String(value);
     }
 
-
     return number.toLocaleString(
         "pt-BR",
         {
@@ -2405,7 +2198,6 @@ function formatMoney(value) {
         }
     );
 }
-
 
 /* =========================================================
    CLASSE PAGAMENTO
@@ -2418,14 +2210,12 @@ function paymentClass(value) {
             value
         );
 
-
     if (
         status === "PAGO"
     ) {
 
         return "paid";
     }
-
 
     if (
         status === "CANCELADO"
@@ -2434,10 +2224,8 @@ function paymentClass(value) {
         return "cancelled";
     }
 
-
     return "pending";
 }
-
 
 /* =========================================================
    ESCAPAR HTML
@@ -2470,14 +2258,12 @@ function esc(value) {
                         "&#039;"
                 };
 
-
                 return entities[
                     character
                 ];
             }
         );
 }
-
 
 /* =========================================================
    MENSAGEM
@@ -2490,25 +2276,20 @@ function showMessage(text) {
             "message"
         );
 
-
     if (!el) {
         return;
     }
 
-
     el.textContent =
         text;
-
 
     el.classList.add(
         "show"
     );
 
-
     clearTimeout(
         showMessage.timer
     );
-
 
     showMessage.timer =
         setTimeout(
@@ -2526,7 +2307,6 @@ function showMessage(text) {
         );
 }
 
-
 /* =========================================================
    LOADING
    ========================================================= */
@@ -2538,14 +2318,12 @@ function setLoading(text) {
             "loading"
         );
 
-
     if (el) {
 
         el.textContent =
             text;
     }
 }
-
 
 /* =========================================================
    INICIAR
@@ -2565,3 +2343,4 @@ if (
 
     init();
 }
+
