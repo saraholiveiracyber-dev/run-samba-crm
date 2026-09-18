@@ -24,8 +24,8 @@
     --gold-dark: #947536;
 
     --white: #ffffff;
-
     --cream: #f4f1e9;
+
     --surface: #ffffff;
     --surface-soft: #faf9f5;
     --surface-dark: #111111;
@@ -55,6 +55,11 @@
     --gray-bg: #eeeeec;
     --gray-line: #d7d5d0;
 
+    /* Azul exclusivo para MENSAGEM ENVIADA */
+    --blue: #3d6f9f;
+    --blue-bg: #eaf2fa;
+    --blue-line: #c5d8ea;
+
     --sidebar-width: 250px;
     --topbar-height: 76px;
 
@@ -62,13 +67,23 @@
     --radius: 14px;
     --radius-small: 9px;
 
-    --shadow-xs: 0 2px 8px rgba(0, 0, 0, .035);
-    --shadow-sm: 0 8px 24px rgba(0, 0, 0, .055);
-    --shadow-md: 0 14px 35px rgba(0, 0, 0, .09);
-    --shadow-lg: 0 30px 90px rgba(0, 0, 0, .30);
-    --gold-shadow: 0 10px 28px rgba(201, 168, 93, .20);
+    --shadow-xs:
+        0 2px 8px rgba(0, 0, 0, 0.035);
 
-    --transition: .22s cubic-bezier(.2, .7, .2, 1);
+    --shadow-sm:
+        0 8px 24px rgba(0, 0, 0, 0.055);
+
+    --shadow-md:
+        0 14px 35px rgba(0, 0, 0, 0.09);
+
+    --shadow-lg:
+        0 30px 90px rgba(0, 0, 0, 0.30);
+
+    --gold-shadow:
+        0 10px 28px rgba(201, 168, 93, 0.20);
+
+    --transition:
+        0.22s cubic-bezier(.2, .7, .2, 1);
 }
 
 
@@ -90,7 +105,7 @@ body {
     background:
         radial-gradient(
             circle at top right,
-            rgba(201, 168, 93, .08),
+            rgba(201, 168, 93, 0.08),
             transparent 30%
         ),
         linear-gradient(
@@ -144,7 +159,6 @@ a {
 
 /* =========================================================
    SIDEBAR
-   PADRÃO MARKETING
    ========================================================= */
 
 .sidebar {
@@ -159,7 +173,7 @@ a {
     background:
         radial-gradient(
             circle at 20% 0%,
-            rgba(201, 168, 93, .09),
+            rgba(201, 168, 93, 0.09),
             transparent 30%
         ),
         linear-gradient(
@@ -171,12 +185,10 @@ a {
     color: var(--white);
 
     border-right:
-        1px solid
-        rgba(255, 255, 255, .07);
+        1px solid rgba(255, 255, 255, 0.07);
 
     box-shadow:
-        12px 0 40px
-        rgba(0, 0, 0, .10);
+        12px 0 40px rgba(0, 0, 0, 0.10);
 
     z-index: 100;
 }
@@ -196,19 +208,18 @@ a {
     padding: 20px 24px;
 
     border-bottom:
-        1px solid
-        rgba(255, 255, 255, .07);
+        1px solid rgba(255, 255, 255, 0.07);
 }
 
 .logo {
     position: relative;
-
     width: fit-content;
 
     color: #ffffff;
 
     font-size: 20px;
     font-weight: 900;
+
     letter-spacing: 1.8px;
 }
 
@@ -216,7 +227,6 @@ a {
     content: "";
 
     position: absolute;
-
     left: 0;
     bottom: -7px;
 
@@ -242,8 +252,8 @@ a {
 
     font-size: 8px;
     font-weight: 800;
-    letter-spacing: 2.2px;
 
+    letter-spacing: 2.2px;
     text-transform: uppercase;
 }
 
@@ -256,18 +266,18 @@ a {
     padding: 28px 14px 10px;
 }
 
-.sidebar-section > span,
 .sidebar-heading {
     display: block;
 
-    padding: 0 12px 9px;
+    padding:
+        0 12px 9px;
 
     color: #666666;
 
     font-size: 8px;
     font-weight: 900;
-    letter-spacing: 1.8px;
 
+    letter-spacing: 1.8px;
     text-transform: uppercase;
 }
 
@@ -292,8 +302,7 @@ a {
     color: #909090;
 
     border:
-        1px solid
-        transparent;
+        1px solid transparent;
 
     border-radius: 10px;
 
@@ -313,10 +322,10 @@ a {
     color: #ffffff;
 
     background:
-        rgba(255, 255, 255, .045);
+        rgba(255, 255, 255, 0.045);
 
     border-color:
-        rgba(255, 255, 255, .05);
+        rgba(255, 255, 255, 0.05);
 
     transform:
         translateX(2px);
@@ -328,12 +337,12 @@ a {
     background:
         linear-gradient(
             90deg,
-            rgba(201, 168, 93, .17),
-            rgba(201, 168, 93, .035)
+            rgba(201, 168, 93, 0.17),
+            rgba(201, 168, 93, 0.035)
         );
 
     border-color:
-        rgba(201, 168, 93, .12);
+        rgba(201, 168, 93, 0.12);
 }
 
 .sidebar nav a.active::before {
@@ -358,8 +367,7 @@ a {
         0 4px 4px 0;
 
     box-shadow:
-        0 0 10px
-        rgba(201, 168, 93, .35);
+        0 0 10px rgba(201, 168, 93, 0.35);
 }
 
 .nav-icon {
@@ -395,8 +403,7 @@ a {
         );
 
     border:
-        1px solid
-        rgba(201, 168, 93, .17);
+        1px solid rgba(201, 168, 93, 0.17);
 
     border-radius: 13px;
 
@@ -430,8 +437,8 @@ a {
 
     font-size: 7px;
     font-weight: 900;
-    letter-spacing: 1.5px;
 
+    letter-spacing: 1.5px;
     text-transform: uppercase;
 }
 
@@ -442,7 +449,8 @@ a {
 
     font-size: 12px;
     font-weight: 900;
-    letter-spacing: .8px;
+
+    letter-spacing: 0.8px;
 }
 
 .event-mini small {
@@ -454,6 +462,7 @@ a {
 
     font-size: 8px;
     font-weight: 800;
+
     letter-spacing: 1px;
 }
 
@@ -474,8 +483,7 @@ a {
     background: transparent;
 
     border:
-        1px solid
-        rgba(255, 255, 255, .08);
+        1px solid rgba(255, 255, 255, 0.08);
 
     border-radius: 9px;
 
@@ -483,8 +491,8 @@ a {
 
     font-size: 9px;
     font-weight: 900;
-    letter-spacing: .5px;
 
+    letter-spacing: 0.5px;
     text-transform: uppercase;
 
     transition:
@@ -497,10 +505,10 @@ a {
     color: #ffffff;
 
     border-color:
-        rgba(201, 168, 93, .35);
+        rgba(201, 168, 93, 0.35);
 
     background:
-        rgba(201, 168, 93, .06);
+        rgba(201, 168, 93, 0.06);
 }
 
 
@@ -540,8 +548,7 @@ a {
         25px 0 22px;
 
     border-bottom:
-        1px solid
-        var(--line);
+        1px solid var(--line);
 }
 
 .eyebrow {
@@ -551,8 +558,8 @@ a {
 
     font-size: 9px;
     font-weight: 900;
-    letter-spacing: 2.3px;
 
+    letter-spacing: 2.3px;
     text-transform: uppercase;
 }
 
@@ -607,8 +614,7 @@ a {
         var(--surface);
 
     border:
-        1px solid
-        var(--line);
+        1px solid var(--line);
 
     border-radius: 9px;
 
@@ -616,7 +622,8 @@ a {
 
     font-size: 9px;
     font-weight: 900;
-    letter-spacing: .5px;
+
+    letter-spacing: 0.5px;
 
     text-decoration: none;
 
@@ -633,7 +640,7 @@ a {
         translateY(-1px);
 
     border-color:
-        rgba(201, 168, 93, .45);
+        rgba(201, 168, 93, 0.45);
 
     background:
         #fffdf8;
@@ -644,7 +651,6 @@ a {
 
 .button-arrow {
     color: var(--gold-dark);
-
     font-size: 14px;
 }
 
@@ -658,7 +664,7 @@ a {
 
     grid-template-columns:
         minmax(260px, 1.7fr)
-        repeat(3, minmax(150px, .7fr));
+        repeat(3, minmax(150px, 0.7fr));
 
     gap: 10px;
 
@@ -668,11 +674,10 @@ a {
         24px 0 18px;
 
     background:
-        rgba(255, 255, 255, .78);
+        rgba(255, 255, 255, 0.78);
 
     border:
-        1px solid
-        var(--line);
+        1px solid var(--line);
 
     border-radius: 16px;
 
@@ -700,8 +705,7 @@ a {
         0 15px 0 40px;
 
     border:
-        1px solid
-        #d8d2c7;
+        1px solid #d8d2c7;
 
     border-radius: 11px;
 
@@ -716,8 +720,7 @@ a {
     font-size: 11px;
 
     box-shadow:
-        inset 0 1px 0
-        rgba(255, 255, 255, .75);
+        inset 0 1px 0 rgba(255, 255, 255, 0.75);
 
     transition:
         border-color var(--transition),
@@ -734,7 +737,7 @@ a {
 
     box-shadow:
         0 0 0 3px
-        rgba(201, 168, 93, .13);
+        rgba(201, 168, 93, 0.13);
 }
 
 .search-icon {
@@ -755,7 +758,8 @@ a {
    ========================================================= */
 
 .toolbar select,
-.payment-editor select {
+.payment-editor select,
+.contact-followup select {
     width: 100%;
     height: 46px;
 
@@ -763,8 +767,7 @@ a {
         0 36px 0 13px;
 
     border:
-        1px solid
-        #d8d2c7;
+        1px solid #d8d2c7;
 
     border-radius: 11px;
 
@@ -803,7 +806,8 @@ a {
         5px 5px,
         5px 5px;
 
-    background-repeat: no-repeat;
+    background-repeat:
+        no-repeat;
 
     transition:
         border-color var(--transition),
@@ -811,13 +815,113 @@ a {
 }
 
 .toolbar select:focus,
-.payment-editor select:focus {
+.payment-editor select:focus,
+.contact-followup select:focus {
     border-color:
         var(--gold);
 
     box-shadow:
         0 0 0 3px
-        rgba(201, 168, 93, .13);
+        rgba(201, 168, 93, 0.13);
+}
+
+
+/* =========================================================
+   STATUS LEGEND
+   ========================================================= */
+
+.status-legend {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    margin-bottom: 18px;
+
+    padding:
+        15px 18px;
+
+    background:
+        rgba(255, 255, 255, 0.72);
+
+    border:
+        1px solid var(--line);
+
+    border-radius: 13px;
+
+    box-shadow:
+        var(--shadow-xs);
+}
+
+.status-legend-header {
+    min-width: 180px;
+}
+
+.status-legend-header strong {
+    display: block;
+
+    margin-top: 5px;
+
+    color: var(--text);
+
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.status-legend-items {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    flex-wrap: wrap;
+
+    gap: 12px 18px;
+}
+
+.status-legend-item {
+    display: inline-flex;
+    align-items: center;
+
+    gap: 6px;
+
+    color: #696969;
+
+    font-size: 7px;
+    font-weight: 900;
+
+    letter-spacing: 0.6px;
+
+    white-space: nowrap;
+}
+
+.legend-dot {
+    width: 7px;
+    height: 7px;
+
+    display: inline-block;
+
+    border-radius: 50%;
+}
+
+.legend-paid {
+    background: var(--green);
+}
+
+.legend-pending {
+    background: var(--orange);
+}
+
+.legend-message {
+    background: var(--blue);
+}
+
+.legend-cancelled {
+    background: var(--red);
+}
+
+.legend-new {
+    background: var(--gray);
 }
 
 
@@ -834,8 +938,7 @@ a {
         );
 
     border:
-        1px solid
-        var(--line);
+        1px solid var(--line);
 
     border-radius:
         var(--radius);
@@ -873,7 +976,7 @@ a {
     font-size: 20px;
     font-weight: 900;
 
-    letter-spacing: -.5px;
+    letter-spacing: -0.5px;
 }
 
 .loading {
@@ -894,8 +997,7 @@ a {
     overflow-x: auto;
 
     border:
-        1px solid
-        var(--line);
+        1px solid var(--line);
 
     border-radius: 13px;
 
@@ -927,6 +1029,7 @@ thead th {
 
     font-size: 8px;
     font-weight: 900;
+
     letter-spacing: 1.4px;
 
     white-space: nowrap;
@@ -939,8 +1042,7 @@ thead th:first-child {
 
 tbody tr {
     border-bottom:
-        1px solid
-        var(--line-light);
+        1px solid var(--line-light);
 
     transition:
         background var(--transition);
@@ -980,12 +1082,131 @@ tbody td {
 
 
 /* =========================================================
-   STATUS
+   PARTICIPANTE
+   UMA ÚNICA BOLINHA DE STATUS
+   ========================================================= */
+
+.participant-cell {
+    min-width: 190px;
+}
+
+.participant-name-line {
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+
+    min-height: 22px;
+}
+
+.participant-name {
+    color: var(--text);
+
+    font-size: 10px;
+    font-weight: 900;
+
+    line-height: 1.3;
+}
+
+.participant-email {
+    display: block;
+
+    margin-top: 4px;
+
+    color: #999;
+
+    font-size: 8px;
+
+    line-height: 1.4;
+
+    word-break: break-word;
+}
+
+
+/* =========================================================
+   BOLINHA DE STATUS
+   ========================================================= */
+
+.participant-status-dot {
+    width: 9px;
+    height: 9px;
+
+    flex: 0 0 9px;
+
+    display: inline-block;
+
+    border-radius: 50%;
+
+    border: 1px solid rgba(0, 0, 0, 0.08);
+
+    box-shadow:
+        0 0 0 2px rgba(255, 255, 255, 0.85);
+
+    transition:
+        transform var(--transition),
+        box-shadow var(--transition);
+}
+
+.participant-status-dot:hover {
+    transform: scale(1.2);
+}
+
+
+/* PAGO — VERDE */
+.participant-status-dot.paid {
+    background: var(--green);
+
+    box-shadow:
+        0 0 0 2px #ffffff,
+        0 0 8px rgba(36, 120, 78, 0.35);
+}
+
+
+/* PENDENTE — AMARELO */
+.participant-status-dot.pending {
+    background: var(--orange);
+
+    box-shadow:
+        0 0 0 2px #ffffff,
+        0 0 8px rgba(169, 105, 25, 0.28);
+}
+
+
+/* MENSAGEM ENVIADA — AZUL */
+.participant-status-dot.message {
+    background: var(--blue);
+
+    box-shadow:
+        0 0 0 2px #ffffff,
+        0 0 8px rgba(61, 111, 159, 0.32);
+}
+
+
+/* CANCELADO — VERMELHO */
+.participant-status-dot.cancelled {
+    background: var(--red);
+
+    box-shadow:
+        0 0 0 2px #ffffff,
+        0 0 8px rgba(163, 60, 60, 0.30);
+}
+
+
+/* NOVO — CINZA */
+.participant-status-dot.new {
+    background: var(--gray);
+
+    box-shadow:
+        0 0 0 2px #ffffff;
+}
+
+
+/* =========================================================
+   STATUS BADGE
    ========================================================= */
 
 .status-badge {
     display: inline-flex;
-
     align-items: center;
     justify-content: center;
 
@@ -999,16 +1220,17 @@ tbody td {
         999px;
 
     font-size: 7px;
+
     line-height: 1;
+
     font-weight: 900;
 
-    letter-spacing: .45px;
+    letter-spacing: 0.45px;
 
     text-transform: uppercase;
 
     border:
-        1px solid
-        transparent;
+        1px solid transparent;
 
     white-space:
         nowrap;
@@ -1064,6 +1286,44 @@ tbody td {
 
 
 /* =========================================================
+   STATUS DE CONTATO
+   ========================================================= */
+
+.status-badge.new {
+    background:
+        var(--gray-bg);
+
+    color:
+        var(--gray);
+
+    border-color:
+        var(--gray-line);
+}
+
+.status-badge.message {
+    background:
+        var(--blue-bg);
+
+    color:
+        var(--blue);
+
+    border-color:
+        var(--blue-line);
+}
+
+.status-badge.replied {
+    background:
+        #edf0f5;
+
+    color:
+        #536782;
+
+    border-color:
+        #ccd5e1;
+}
+
+
+/* =========================================================
    BOTÕES DE AÇÃO
    ========================================================= */
 
@@ -1074,8 +1334,7 @@ tbody td {
         0 10px;
 
     border:
-        1px solid
-        var(--line);
+        1px solid var(--line);
 
     background:
         #ffffff;
@@ -1101,7 +1360,7 @@ tbody td {
         translateY(-1px);
 
     border-color:
-        rgba(201, 168, 93, .45);
+        rgba(201, 168, 93, 0.45);
 
     background:
         #fffaf0;
@@ -1161,7 +1420,7 @@ tbody td {
     inset: 0;
 
     background:
-        rgba(0, 0, 0, .72);
+        rgba(0, 0, 0, 0.72);
 
     backdrop-filter:
         blur(7px);
@@ -1192,8 +1451,7 @@ tbody td {
         );
 
     border:
-        1px solid
-        rgba(255, 255, 255, .55);
+        1px solid rgba(255, 255, 255, 0.55);
 
     border-radius:
         18px;
@@ -1220,8 +1478,7 @@ tbody td {
     place-items: center;
 
     border:
-        1px solid
-        var(--line);
+        1px solid var(--line);
 
     background:
         #ffffff;
@@ -1314,8 +1571,7 @@ tbody td {
         #ffffff;
 
     border:
-        1px solid
-        var(--line);
+        1px solid var(--line);
 
     border-radius:
         11px;
@@ -1354,6 +1610,9 @@ tbody td {
 
     font-weight:
         800;
+
+    word-break:
+        break-word;
 }
 
 
@@ -1366,8 +1625,7 @@ tbody td {
         17px;
 
     border:
-        1px solid
-        var(--line);
+        1px solid var(--line);
 
     border-radius:
         13px;
@@ -1450,7 +1708,7 @@ tbody td {
         900;
 
     letter-spacing:
-        .6px;
+        0.6px;
 
     text-transform:
         uppercase;
@@ -1470,10 +1728,322 @@ tbody td {
 
     box-shadow:
         0 15px 32px
-        rgba(201, 168, 93, .28);
+        rgba(201, 168, 93, 0.28);
 
     filter:
         brightness(1.03);
+}
+
+.primary-btn:active {
+    transform:
+        translateY(0);
+}
+
+
+/* =========================================================
+   F9 — ACOMPANHAMENTO DO CONTATO
+   ========================================================= */
+
+.contact-followup {
+    margin-top:
+        22px;
+
+    padding:
+        22px;
+
+    background:
+        linear-gradient(
+            145deg,
+            #ffffff 0%,
+            #faf8f1 100%
+        );
+
+    border:
+        1px solid var(--line);
+
+    border-radius:
+        15px;
+
+    box-shadow:
+        0 6px 20px rgba(0, 0, 0, 0.035);
+}
+
+
+/* =========================================================
+   F9 — CABEÇALHO
+   ========================================================= */
+
+.contact-followup-header {
+    margin-bottom:
+        20px;
+
+    padding-bottom:
+        16px;
+
+    border-bottom:
+        1px solid var(--line-light);
+}
+
+.contact-followup-title span {
+    display:
+        inline-flex;
+
+    align-items:
+        center;
+
+    padding:
+        5px 9px;
+
+    margin-bottom:
+        9px;
+
+    background:
+        rgba(201, 168, 93, 0.10);
+
+    border:
+        1px solid rgba(201, 168, 93, 0.20);
+
+    border-radius:
+        6px;
+
+    color:
+        var(--gold-dark);
+
+    font-size:
+        7px;
+
+    font-weight:
+        900;
+
+    letter-spacing:
+        1.4px;
+
+    text-transform:
+        uppercase;
+}
+
+.contact-followup-title h3 {
+    margin:
+        0;
+
+    color:
+        var(--text);
+
+    font-size:
+        18px;
+
+    font-weight:
+        900;
+
+    letter-spacing:
+        -0.4px;
+}
+
+.contact-followup-title p {
+    margin:
+        6px 0 0;
+
+    color:
+        var(--text-soft);
+
+    font-size:
+        9px;
+
+    line-height:
+        1.5;
+}
+
+
+/* =========================================================
+   F9 — STATUS
+   ========================================================= */
+
+.contact-status-box {
+    padding:
+        15px;
+
+    background:
+        #fbfaf7;
+
+    border:
+        1px solid var(--line);
+
+    border-radius:
+        11px;
+}
+
+.contact-status-box label {
+    display: block;
+
+    margin-bottom:
+        8px;
+
+    color:
+        #777;
+
+    font-size:
+        8px;
+
+    font-weight:
+        900;
+
+    letter-spacing:
+        1.2px;
+
+    text-transform:
+        uppercase;
+}
+
+.contact-status-box select {
+    height:
+        44px;
+
+    background:
+        #ffffff;
+}
+
+
+/* =========================================================
+   F9 — RESPOSTA DO PARTICIPANTE
+   ========================================================= */
+
+.contact-response-group {
+    margin-top:
+        12px;
+
+    padding:
+        15px;
+
+    background:
+        #fbfaf7;
+
+    border:
+        1px solid var(--line);
+
+    border-radius:
+        11px;
+}
+
+.contact-response-group label {
+    display: block;
+
+    margin-bottom:
+        8px;
+
+    color:
+        #777;
+
+    font-size:
+        8px;
+
+    font-weight:
+        900;
+
+    letter-spacing:
+        1.2px;
+
+    text-transform:
+        uppercase;
+}
+
+.contact-followup textarea {
+    width:
+        100%;
+
+    min-height:
+        105px;
+
+    padding:
+        12px 13px;
+
+    resize:
+        vertical;
+
+    background:
+        #ffffff;
+
+    border:
+        1px solid #d8d2c7;
+
+    border-radius:
+        9px;
+
+    color:
+        var(--text);
+
+    outline:
+        none;
+
+    font-size:
+        10px;
+
+    line-height:
+        1.6;
+
+    transition:
+        border-color var(--transition),
+        box-shadow var(--transition);
+}
+
+.contact-followup textarea::placeholder {
+    color:
+        #aaa;
+}
+
+.contact-followup textarea:focus {
+    border-color:
+        var(--gold);
+
+    box-shadow:
+        0 0 0 3px
+        rgba(201, 168, 93, 0.12);
+}
+
+
+/* =========================================================
+   F9 — RODAPÉ
+   ========================================================= */
+
+.contact-followup-footer {
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        space-between;
+
+    gap:
+        15px;
+
+    margin-top:
+        15px;
+}
+
+.contact-followup-hint {
+    color:
+        #999;
+
+    font-size:
+        8px;
+
+    line-height:
+        1.4;
+}
+
+.contact-save-btn {
+    min-width:
+        190px;
+
+    min-height:
+        40px;
+
+    padding:
+        0 16px;
+
+    font-size:
+        8px;
 }
 
 
@@ -1489,8 +2059,7 @@ tbody td {
         20px;
 
     border:
-        1px solid
-        var(--orange-line);
+        1px solid var(--orange-line);
 
     border-radius:
         15px;
@@ -1504,8 +2073,14 @@ tbody td {
 }
 
 .pending-communication.hidden {
-    display: none;
+    display:
+        none;
 }
+
+
+/* =========================================================
+   COMUNICAÇÃO — CABEÇALHO
+   ========================================================= */
 
 .communication-header h3 {
     margin:
@@ -1521,7 +2096,7 @@ tbody td {
         900;
 
     letter-spacing:
-        -.5px;
+        -0.5px;
 }
 
 .communication-header p {
@@ -1544,30 +2119,34 @@ tbody td {
    ========================================================= */
 
 .communication-actions {
-    display: grid;
+    display:
+        grid;
 
     grid-template-columns:
         repeat(2, 1fr);
 
-    gap: 10px;
+    gap:
+        10px;
 
     margin-top:
         17px;
 }
 
 .communication-btn {
-    display: flex;
+    display:
+        flex;
 
-    align-items: center;
+    align-items:
+        center;
 
-    gap: 11px;
+    gap:
+        11px;
 
     padding:
         13px;
 
     border:
-        1px solid
-        var(--line);
+        1px solid var(--line);
 
     border-radius:
         11px;
@@ -1592,17 +2171,24 @@ tbody td {
         var(--shadow-sm);
 
     border-color:
-        rgba(201, 168, 93, .40);
+        rgba(201, 168, 93, 0.40);
 }
 
 .communication-icon {
-    width: 35px;
-    height: 35px;
+    width:
+        35px;
 
-    flex-shrink: 0;
+    height:
+        35px;
 
-    display: grid;
-    place-items: center;
+    flex-shrink:
+        0;
+
+    display:
+        grid;
+
+    place-items:
+        center;
 
     border-radius:
         9px;
@@ -1618,12 +2204,16 @@ tbody td {
 }
 
 .communication-text {
-    min-width: 0;
-    flex: 1;
+    min-width:
+        0;
+
+    flex:
+        1;
 }
 
 .communication-text strong {
-    display: block;
+    display:
+        block;
 
     color:
         var(--text);
@@ -1636,7 +2226,8 @@ tbody td {
 }
 
 .communication-text small {
-    display: block;
+    display:
+        block;
 
     margin-top:
         4px;
@@ -1672,8 +2263,11 @@ body.modal-open {
    ========================================================= */
 
 ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width:
+        8px;
+
+    height:
+        8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -1704,6 +2298,19 @@ body.modal-open {
     .toolbar {
         grid-template-columns:
             1fr 1fr;
+    }
+
+    .status-legend {
+        align-items:
+            flex-start;
+
+        flex-direction:
+            column;
+    }
+
+    .status-legend-items {
+        justify-content:
+            flex-start;
     }
 }
 
@@ -1905,6 +2512,16 @@ body.modal-open {
             18px;
     }
 
+    .status-legend {
+        padding:
+            14px;
+    }
+
+    .status-legend-items {
+        gap:
+            10px 14px;
+    }
+
     .panel {
         padding:
             18px;
@@ -1942,6 +2559,24 @@ body.modal-open {
     .communication-actions {
         grid-template-columns:
             1fr;
+    }
+
+    .contact-followup-footer {
+        align-items:
+            stretch;
+
+        flex-direction:
+            column;
+    }
+
+    .contact-followup-hint {
+        text-align:
+            center;
+    }
+
+    .contact-save-btn {
+        width:
+            100%;
     }
 }
 
@@ -1986,6 +2621,34 @@ body.modal-open {
         width:
             100%;
     }
+
+    .contact-followup {
+        padding:
+            16px;
+    }
+
+    .contact-followup-title h3 {
+        font-size:
+            17px;
+    }
+
+    .contact-followup-footer {
+        align-items:
+            stretch;
+
+        flex-direction:
+            column;
+    }
+
+    .contact-followup-hint {
+        text-align:
+            center;
+    }
+
+    .contact-save-btn {
+        width:
+            100%;
+    }
 }
 
 
@@ -2023,6 +2686,21 @@ body.modal-open {
             9px;
     }
 
+    .status-legend {
+        padding:
+            12px;
+    }
+
+    .status-legend-header strong {
+        font-size:
+            11px;
+    }
+
+    .status-legend-items {
+        gap:
+            9px 12px;
+    }
+
     .modal-box {
         padding:
             20px;
@@ -2047,10 +2725,48 @@ body.modal-open {
             6.5px;
     }
 
+    .participant-status-dot {
+        width:
+            8px;
+
+        height:
+            8px;
+
+        flex-basis:
+            8px;
+    }
+
     .communication-btn {
         padding:
             11px;
     }
+
+    .contact-followup {
+        padding:
+            14px;
+    }
+
+    .contact-followup-title h3 {
+        font-size:
+            16px;
+    }
+}
+
+
+/* =========================================================
+   ACESSIBILIDADE
+   ========================================================= */
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline:
+        2px solid var(--gold);
+
+    outline-offset:
+        2px;
 }
 
 
@@ -2069,10 +2785,10 @@ body.modal-open {
     *::before,
     *::after {
         transition-duration:
-            .01ms !important;
+            0.01ms !important;
 
         animation-duration:
-            .01ms !important;
+            0.01ms !important;
 
         animation-iteration-count:
             1 !important;

@@ -24,7 +24,7 @@
 
 
     <!-- =====================================================
-         CSS DA PÁGINA
+         CSS
     ====================================================== -->
 
     <link
@@ -86,7 +86,7 @@
         <div class="brand">
 
             <div class="logo">
-                RUN <span>&</span> SAMBA
+                RUN <span>&amp;</span> SAMBA
             </div>
 
             <div class="side-label">
@@ -176,7 +176,7 @@
                 </span>
 
                 <strong>
-                    RUN & SAMBA
+                    RUN &amp; SAMBA
                 </strong>
 
                 <small>
@@ -191,9 +191,7 @@
                 class="logout"
                 type="button"
             >
-
                 SAIR
-
             </button>
 
 
@@ -270,9 +268,14 @@
         >
 
 
+            <!-- BUSCA -->
+
             <div class="filter-search">
 
-                <span class="search-icon">
+                <span
+                    class="search-icon"
+                    aria-hidden="true"
+                >
                     ⌕
                 </span>
 
@@ -286,6 +289,8 @@
 
             </div>
 
+
+            <!-- PAGAMENTO -->
 
             <select
                 id="paymentFilter"
@@ -311,6 +316,8 @@
             </select>
 
 
+            <!-- PERCURSO -->
+
             <select
                 id="routeFilter"
                 aria-label="Filtrar por percurso"
@@ -330,6 +337,8 @@
 
             </select>
 
+
+            <!-- CAMISETA -->
 
             <select
                 id="shirtFilter"
@@ -358,6 +367,114 @@
 
             </select>
 
+
+        </section>
+
+
+        <!-- =================================================
+             LEGENDA DE STATUS
+        ================================================== -->
+
+        <section
+            class="status-legend"
+            aria-label="Legenda de status"
+        >
+
+            <div class="status-legend-header">
+
+                <span class="eyebrow">
+                    ACOMPANHAMENTO RÁPIDO
+                </span>
+
+                <strong>
+                    Status dos participantes
+                </strong>
+
+            </div>
+
+
+            <div class="status-legend-items">
+
+
+                <!-- PAGO -->
+
+                <div class="status-legend-item">
+
+                    <span class="legend-dot legend-paid"></span>
+
+                    <span>
+                        PAGO
+                    </span>
+
+                </div>
+
+
+                <!-- PENDENTE -->
+
+                <div class="status-legend-item">
+
+                    <span class="legend-dot legend-pending"></span>
+
+                    <span>
+                        PENDENTE
+                    </span>
+
+                </div>
+
+
+                <!-- MENSAGEM ENVIADA -->
+
+                <div class="status-legend-item">
+
+                    <span class="legend-dot legend-message"></span>
+
+                    <span>
+                        MENSAGEM ENVIADA
+                    </span>
+
+                </div>
+
+
+                <!-- CANCELADO -->
+
+                <div class="status-legend-item">
+
+                    <span class="legend-dot legend-cancelled"></span>
+
+                    <span>
+                        CANCELADO
+                    </span>
+
+                </div>
+
+
+                <!-- NOVO -->
+
+                <div class="status-legend-item">
+
+                    <span class="legend-dot legend-new"></span>
+
+                    <span>
+                        NOVO
+                    </span>
+
+                </div>
+
+
+                <!-- CLIENTE RESPONDEU -->
+
+                <div class="status-legend-item">
+
+                    <span class="legend-dot legend-replied"></span>
+
+                    <span>
+                        CLIENTE RESPONDEU
+                    </span>
+
+                </div>
+
+
+            </div>
 
         </section>
 
@@ -444,10 +561,11 @@
 
                         <tr>
 
-                            <td colspan="7" class="empty-cell">
-
+                            <td
+                                colspan="7"
+                                class="empty-cell"
+                            >
                                 Carregando participantes...
-
                             </td>
 
                         </tr>
@@ -494,13 +612,19 @@
 >
 
 
+    <!-- OVERLAY -->
+
     <div class="modal-overlay"></div>
 
+
+    <!-- CAIXA -->
 
     <div class="modal-box">
 
 
-        <!-- FECHAR -->
+        <!-- =================================================
+             FECHAR
+        ================================================== -->
 
         <button
             id="closeModal"
@@ -508,13 +632,13 @@
             type="button"
             aria-label="Fechar"
         >
-
             ×
-
         </button>
 
 
-        <!-- CABEÇALHO -->
+        <!-- =================================================
+             CABEÇALHO
+        ================================================== -->
 
         <div class="modal-header">
 
@@ -529,7 +653,9 @@
         </div>
 
 
-        <!-- DADOS -->
+        <!-- =================================================
+             DADOS DO PARTICIPANTE
+        ================================================== -->
 
         <div
             id="modalData"
@@ -537,7 +663,9 @@
         ></div>
 
 
-        <!-- STATUS -->
+        <!-- =================================================
+             PAGAMENTO
+        ================================================== -->
 
         <div class="payment-editor">
 
@@ -564,7 +692,9 @@
         </div>
 
 
-        <!-- AÇÃO -->
+        <!-- =================================================
+             SALVAR PAGAMENTO
+        ================================================== -->
 
         <div class="modal-actions">
 
@@ -573,16 +703,112 @@
                 class="primary-btn"
                 type="button"
             >
-
                 SALVAR PAGAMENTO
-
             </button>
 
         </div>
 
 
+        <!-- =====================================================
+             F9 — ACOMPANHAMENTO DO CONTATO
+        ===================================================== -->
+
+        <section class="contact-followup">
+
+
+            <div class="contact-followup-header">
+
+                <div class="contact-followup-title">
+
+                    <span>
+                        F9 • ACOMPANHAMENTO
+                    </span>
+
+                    <h3>
+                        Acompanhamento do contato
+                    </h3>
+
+                    <p>
+                        Registre o andamento da comunicação com o participante.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- STATUS DO CONTATO -->
+
+            <div class="contact-status-box">
+
+                <label for="contactStatus">
+                    Status do contato
+                </label>
+
+                <select id="contactStatus">
+
+                    <option value="NOVO">
+                        NOVO
+                    </option>
+
+                    <option value="MENSAGEM_ENVIADA">
+                        MENSAGEM ENVIADA
+                    </option>
+
+                    <option value="RESPONDEU">
+                        CLIENTE RESPONDEU
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- RESPOSTA DO PARTICIPANTE -->
+
+            <div
+                class="contact-response-group"
+                id="clientResponseGroup"
+                style="display: none;"
+            >
+
+                <label for="clientResponse">
+                    Resposta do participante
+                </label>
+
+                <textarea
+                    id="clientResponse"
+                    rows="4"
+                    placeholder="Digite aqui o que o participante respondeu..."
+                ></textarea>
+
+            </div>
+
+
+            <!-- RODAPÉ -->
+
+            <div class="contact-followup-footer">
+
+                <span class="contact-followup-hint">
+                    O acompanhamento ficará salvo neste participante.
+                </span>
+
+                <button
+                    type="button"
+                    class="primary-btn contact-save-btn"
+                    id="saveContactFollowup"
+                >
+                    SALVAR ACOMPANHAMENTO
+                </button>
+
+            </div>
+
+
+        </section>
+
+
         <!-- =================================================
-             COMUNICAÇÃO
+             COMUNICAÇÃO — PAGAMENTO PENDENTE
         ================================================== -->
 
         <section
@@ -591,6 +817,8 @@
             aria-label="Comunicação com participante"
         >
 
+
+            <!-- CABEÇALHO -->
 
             <div class="communication-header">
 
@@ -615,10 +843,14 @@
             </div>
 
 
+            <!-- BOTÕES -->
+
             <div class="communication-actions">
 
 
-                <!-- WHATSAPP -->
+                <!-- =================================================
+                     WHATSAPP
+                ================================================== -->
 
                 <a
                     id="whatsappBtn"
@@ -636,6 +868,7 @@
                         ☎
                     </span>
 
+
                     <span class="communication-text">
 
                         <strong>
@@ -648,6 +881,7 @@
 
                     </span>
 
+
                     <span
                         class="communication-arrow"
                         aria-hidden="true"
@@ -658,12 +892,16 @@
                 </a>
 
 
-                <!-- E-MAIL -->
+                <!-- =================================================
+                     E-MAIL
+                ================================================== -->
 
                 <a
                     id="emailBtn"
                     class="communication-btn email-btn"
                     href="#"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     aria-label="Enviar e-mail"
                 >
 
@@ -673,6 +911,7 @@
                     >
                         ✉
                     </span>
+
 
                     <span class="communication-text">
 
@@ -685,6 +924,7 @@
                         </small>
 
                     </span>
+
 
                     <span
                         class="communication-arrow"
