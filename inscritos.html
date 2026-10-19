@@ -3,873 +3,582 @@
 
 <head>
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <meta
         name="description"
-        content="Gestão de participantes da Run & Samba 2026."
+        content="Painel administrativo Run & Samba CRM. Gerencie inscrições, pagamentos, participantes e comunicação."
     >
 
-    <meta
-        name="theme-color"
-        content="#050505"
-    >
+    <meta name="theme-color" content="#050505">
+    <meta name="robots" content="noindex, nofollow">
 
     <title>Inscritos | Run & Samba CRM</title>
 
-    <!-- =====================================================
-         CSS
-    ====================================================== -->
-    <link
-        rel="stylesheet"
-        href="css/inscritos.css"
-    >
+    <link rel="stylesheet" href="css/inscritos.css">
 
-    <!-- =====================================================
-         SUPABASE
-    ====================================================== -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-    <!-- =====================================================
-         CONFIGURAÇÃO
-    ====================================================== -->
     <script src="js/config.js"></script>
-
-    <!-- =====================================================
-         AUTENTICAÇÃO
-    ====================================================== -->
     <script src="js/auth.js"></script>
-
-    <!-- =====================================================
-         SCRIPT DA PÁGINA
-    ====================================================== -->
-    <script
-        src="js/inscritos.js"
-        defer
-    ></script>
+    <script src="js/inscritos.js" defer></script>
 </head>
-
 
 <body>
 
-<div class="app">
+    <!-- CONTROLE DE ACESSO -->
+    <section
+        id="adminGuard"
+        class="admin-guard"
+        aria-labelledby="guardTitle"
+    >
+        <div class="admin-guard-card">
 
-    <!-- =====================================================
-         SIDEBAR
-    ====================================================== -->
-    <aside class="sidebar">
+            <div class="admin-guard-icon" aria-hidden="true">🔒</div>
 
-        <div class="brand">
+            <span class="eyebrow">RUN &amp; SAMBA CRM</span>
 
-            <div class="logo">
-                RUN <span>&amp;</span> SAMBA
-            </div>
+            <h1 id="guardTitle">Área restrita</h1>
 
-            <div class="side-label">
-                CRM 2026
-            </div>
+            <p id="guardMessage">
+                Verificando autorização de acesso...
+            </p>
 
-        </div>
+            <span
+                id="guardStatus"
+                role="status"
+                aria-live="polite"
+            >Aguarde...</span>
 
+            <p id="guardError" role="alert" hidden></p>
 
-        <!-- =================================================
-             NAVEGAÇÃO
-        ================================================== -->
-        <div class="sidebar-section">
-
-            <span class="sidebar-heading">
-                GESTÃO
-            </span>
-
-            <nav>
-
-                <!-- DASHBOARD -->
-                <a href="dashboard.html">
-
-                    <span
-                        class="nav-icon"
-                        aria-hidden="true"
-                    >
-                        ◈
-                    </span>
-
-                    <span>
-                        Dashboard
-                    </span>
-
-                </a>
-
-
-                <!-- INSCRITOS -->
-                <a
-                    href="inscritos.html"
-                    class="active"
-                    aria-current="page"
-                >
-
-                    <span
-                        class="nav-icon"
-                        aria-hidden="true"
-                    >
-                        ◉
-                    </span>
-
-                    <span>
-                        Inscritos
-                    </span>
-
-                </a>
-
-
-                <!-- MARKETING -->
-                <a href="marketing.html">
-
-                    <span
-                        class="nav-icon"
-                        aria-hidden="true"
-                    >
-                        ✦
-                    </span>
-
-                    <span>
-                        Marketing
-                    </span>
-
-                </a>
-
-            </nav>
-
-        </div>
-
-
-        <!-- =================================================
-             RODAPÉ DA SIDEBAR
-        ================================================== -->
-        <div class="sidebar-bottom">
-
-            <div class="event-mini">
-
-                <span>
-                    EVENTO
-                </span>
-
-                <strong>
-                    RUN &amp; SAMBA
-                </strong>
-
-                <small>
-                    2ª EDIÇÃO • 2026
-                </small>
-
-            </div>
-
-
-            <button
-                id="logoutBtn"
-                class="logout"
-                type="button"
-            >
-                SAIR
+            <button id="guardLogout" type="button" hidden>
+                Encerrar sessão
             </button>
 
         </div>
+    </section>
 
-    </aside>
+    <!-- APLICAÇÃO -->
+    <div class="app" id="adminApp" hidden>
 
+        <main class="content">
 
-    <!-- =====================================================
-         CONTEÚDO PRINCIPAL
-    ====================================================== -->
-    <main class="content">
+            <!-- CABEÇALHO -->
+            <header class="topbar">
 
-        <!-- =================================================
-             HEADER
-        ================================================== -->
-        <header class="topbar">
-
-            <div class="page-heading">
-
-                <span class="eyebrow">
-                    GESTÃO • PARTICIPANTES
-                </span>
-
-                <h1>
-                    Inscritos
-                </h1>
-
-                <p class="subtitle">
-                    Consulte, filtre e gerencie os participantes da corrida.
-                </p>
-
-            </div>
-
-
-            <!-- EXPORTAR -->
-            <div class="top-actions">
-
-                <button
-                    id="exportBtn"
-                    class="outline-btn"
-                    type="button"
-                >
-
-                    <span>
-                        EXPORTAR CSV
-                    </span>
-
-                    <span
-                        class="button-arrow"
-                        aria-hidden="true"
-                    >
-                        ↓
-                    </span>
-
-                </button>
-
-            </div>
-
-        </header>
-
-
-        <!-- =================================================
-             FILTROS
-        ================================================== -->
-        <section
-            class="toolbar"
-            aria-label="Filtros de participantes"
-        >
-
-            <!-- BUSCA -->
-            <div class="filter-search">
-
-                <span
-                    class="search-icon"
-                    aria-hidden="true"
-                >
-                    ⌕
-                </span>
-
-                <input
-                    id="search"
-                    type="search"
-                    autocomplete="off"
-                    placeholder="Buscar nome, CPF, e-mail ou telefone..."
-                    aria-label="Buscar participante"
-                >
-
-            </div>
-
-
-            <!-- PAGAMENTO -->
-            <select
-                id="paymentFilter"
-                aria-label="Filtrar por pagamento"
-            >
-
-                <option value="">
-                    Todos os pagamentos
-                </option>
-
-                <option value="PAGO">
-                    Pagos
-                </option>
-
-                <option value="PENDENTE">
-                    Pendentes
-                </option>
-
-                <option value="CANCELADO">
-                    Cancelados
-                </option>
-
-            </select>
-
-
-            <!-- PERCURSO -->
-            <select
-                id="routeFilter"
-                aria-label="Filtrar por percurso"
-            >
-
-                <option value="">
-                    Todos os percursos
-                </option>
-
-                <option value="5 KM">
-                    5 KM
-                </option>
-
-                <option value="10 KM">
-                    10 KM
-                </option>
-
-            </select>
-
-
-            <!-- CAMISETA -->
-            <select
-                id="shirtFilter"
-                aria-label="Filtrar por camiseta"
-            >
-
-                <option value="">
-                    Todas as camisetas
-                </option>
-
-                <option value="P">
-                    P
-                </option>
-
-                <option value="M">
-                    M
-                </option>
-
-                <option value="G">
-                    G
-                </option>
-
-                <option value="GG">
-                    GG
-                </option>
-
-            </select>
-
-        </section>
-
-
-        <!-- =================================================
-             LEGENDA DE STATUS
-        ================================================== -->
-        <section
-            class="status-legend"
-            aria-label="Legenda de status"
-        >
-
-            <div class="status-legend-header">
-
-                <span class="eyebrow">
-                    ACOMPANHAMENTO RÁPIDO
-                </span>
-
-                <strong>
-                    Status dos participantes
-                </strong>
-
-            </div>
-
-
-            <div class="status-legend-items">
-
-                <!-- PAGO -->
-                <div class="status-legend-item">
-
-                    <span class="legend-dot legend-paid"></span>
-
-                    <span>
-                        PAGO
-                    </span>
-
-                </div>
-
-
-                <!-- PENDENTE -->
-                <div class="status-legend-item">
-
-                    <span class="legend-dot legend-pending"></span>
-
-                    <span>
-                        PENDENTE
-                    </span>
-
-                </div>
-
-
-                <!-- MENSAGEM ENVIADA -->
-                <div class="status-legend-item">
-
-                    <span class="legend-dot legend-message"></span>
-
-                    <span>
-                        MENSAGEM ENVIADA
-                    </span>
-
-                </div>
-
-
-                <!-- CANCELADO -->
-                <div class="status-legend-item">
-
-                    <span class="legend-dot legend-cancelled"></span>
-
-                    <span>
-                        CANCELADO
-                    </span>
-
-                </div>
-
-
-                <!-- NOVO -->
-                <div class="status-legend-item">
-
-                    <span class="legend-dot legend-new"></span>
-
-                    <span>
-                        NOVO
-                    </span>
-
-                </div>
-
-
-                <!-- CLIENTE RESPONDEU -->
-                <div class="status-legend-item">
-
-                    <span class="legend-dot legend-replied"></span>
-
-                    <span>
-                        CLIENTE RESPONDEU
-                    </span>
-
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- =================================================
-             PAINEL DA TABELA
-        ================================================== -->
-        <section class="panel">
-
-            <div class="table-meta">
-
-                <div class="table-title">
+                <div class="page-heading">
 
                     <span class="eyebrow">
-                        BASE DE PARTICIPANTES
+                        GESTÃO COMERCIAL · RUN &amp; SAMBA 2026
                     </span>
 
-                    <strong id="count">
-                        0 inscrições
-                    </strong>
-
-                </div>
-
-
-                <span
-                    id="loading"
-                    class="loading"
-                    aria-live="polite"
-                ></span>
-
-            </div>
-
-
-            <!-- =================================================
-                 TABELA
-            ================================================== -->
-            <div class="table-wrap">
-
-                <table>
-
-                    <thead>
-
-                        <tr>
-
-                            <th>
-                                PARTICIPANTE
-                            </th>
-
-                            <th>
-                                CPF
-                            </th>
-
-                            <th>
-                                TELEFONE
-                            </th>
-
-                            <th>
-                                PERCURSO
-                            </th>
-
-                            <th>
-                                CAMISETA
-                            </th>
-
-                            <th>
-                                PAGAMENTO
-                            </th>
-
-                            <th>
-                                AÇÕES
-                            </th>
-
-                        </tr>
-
-                    </thead>
-
-
-                    <tbody id="tableBody">
-
-                        <tr>
-
-                            <td
-                                colspan="7"
-                                class="empty-cell"
-                            >
-                                Carregando participantes...
-                            </td>
-
-                        </tr>
-
-                    </tbody>
-
-                </table>
-
-            </div>
-
-        </section>
-
-
-        <!-- =================================================
-             MENSAGEM
-        ================================================== -->
-        <div
-            id="message"
-            class="message"
-            role="status"
-            aria-live="polite"
-        ></div>
-
-    </main>
-
-</div>
-
-
-<!-- =========================================================
-     MODAL DO PARTICIPANTE
-========================================================== -->
-<div
-    id="editModal"
-    class="modal hidden"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="modalName"
->
-
-    <!-- OVERLAY -->
-    <div class="modal-overlay"></div>
-
-
-    <!-- CAIXA -->
-    <div class="modal-box">
-
-        <!-- =================================================
-             FECHAR
-        ================================================== -->
-        <button
-            id="closeModal"
-            class="modal-close"
-            type="button"
-            aria-label="Fechar"
-        >
-            ×
-        </button>
-
-
-        <!-- =================================================
-             CABEÇALHO
-        ================================================== -->
-        <div class="modal-header">
-
-            <span class="eyebrow">
-                PARTICIPANTE
-            </span>
-
-            <h2 id="modalName">
-                Inscrição
-            </h2>
-
-        </div>
-
-
-        <!-- =================================================
-             DADOS
-        ================================================== -->
-        <div
-            id="modalData"
-            class="detail-grid"
-        ></div>
-
-
-        <!-- =================================================
-             PAGAMENTO
-        ================================================== -->
-        <div class="payment-editor">
-
-            <label for="modalPayment">
-                STATUS DO PAGAMENTO
-            </label>
-
-            <select id="modalPayment">
-
-                <option value="PENDENTE">
-                    PENDENTE
-                </option>
-
-                <option value="PAGO">
-                    PAGO
-                </option>
-
-                <option value="CANCELADO">
-                    CANCELADO
-                </option>
-
-            </select>
-
-        </div>
-
-
-        <!-- =================================================
-             SALVAR PAGAMENTO
-        ================================================== -->
-        <div class="modal-actions">
-
-            <button
-                id="savePayment"
-                class="primary-btn"
-                type="button"
-            >
-                SALVAR PAGAMENTO
-            </button>
-
-        </div>
-
-
-        <!-- =================================================
-             F9 — ACOMPANHAMENTO
-        ================================================== -->
-        <section class="contact-followup">
-
-            <div class="contact-followup-header">
-
-                <div class="contact-followup-title">
-
-                    <span>
-                        F9 • ACOMPANHAMENTO
-                    </span>
-
-                    <h3>
-                        Acompanhamento do contato
-                    </h3>
-
-                    <p>
-                        Registre o andamento da comunicação com o participante.
+                    <h1>Inscritos</h1>
+
+                    <p class="subtitle">
+                        Gerencie participantes, acompanhe pagamentos
+                        e organize a comunicação do evento.
                     </p>
 
                 </div>
 
-            </div>
+                <div class="top-actions">
 
+                    <button
+                        id="exportBtn"
+                        class="outline-btn"
+                        type="button"
+                        aria-label="Exportar participantes para CSV"
+                    >
+                        <span>EXPORTAR CSV</span>
+                        <span class="button-arrow" aria-hidden="true">↓</span>
+                    </button>
 
-            <!-- STATUS DO CONTATO -->
-            <div class="contact-status-box">
+                </div>
 
-                <label for="contactStatus">
-                    Status do contato
-                </label>
+            </header>
 
-                <select id="contactStatus">
-
-                    <option value="NOVO">
-                        NOVO
-                    </option>
-
-                    <option value="MENSAGEM_ENVIADA">
-                        MENSAGEM ENVIADA
-                    </option>
-
-                    <option value="RESPONDEU">
-                        CLIENTE RESPONDEU
-                    </option>
-
-                    <option value="NAO_RESPONDIDO">
-                        NÃO RESPONDIDO
-                    </option>
-
-                </select>
-
-            </div>
-
-
-            <!-- RESPOSTA DO PARTICIPANTE -->
-            <div
-                class="contact-response-group"
-                id="clientResponseGroup"
-                style="display: none;"
+            <!-- PESQUISA E FILTROS -->
+            <section
+                class="toolbar"
+                aria-label="Pesquisa e filtros de participantes"
             >
 
-                <label for="clientResponse">
-                    Resposta do participante
+                <div class="filter-search">
+
+                    <span class="search-icon" aria-hidden="true">⌕</span>
+
+                    <input
+                        id="search"
+                        type="search"
+                        autocomplete="off"
+                        placeholder="Buscar por nome, CPF, e-mail ou telefone..."
+                        aria-label="Pesquisar participantes"
+                    >
+
+                </div>
+
+                <select
+                    id="paymentFilter"
+                    aria-label="Filtrar por situação do pagamento"
+                >
+                    <option value="">Todos os pagamentos</option>
+                    <option value="PAGO">Pagamentos confirmados</option>
+                    <option value="PENDENTE">Pagamentos pendentes</option>
+                    <option value="CANCELADO">Inscrições canceladas</option>
+                    <option value="CORTESIA">Inscrições cortesia</option>
+                </select>
+
+                <select
+                    id="routeFilter"
+                    aria-label="Filtrar por percurso"
+                >
+                    <option value="">Todos os percursos</option>
+                    <option value="5 KM">5 KM</option>
+                    <option value="10 KM">10 KM</option>
+                </select>
+
+                <select
+                    id="shirtFilter"
+                    aria-label="Filtrar por tamanho da camiseta"
+                >
+                    <option value="">Todos os tamanhos</option>
+                    <option value="P">Camiseta P</option>
+                    <option value="M">Camiseta M</option>
+                    <option value="G">Camiseta G</option>
+                    <option value="GG">Camiseta GG</option>
+                </select>
+
+            </section>
+
+            <!-- RESUMO IZYPASS -->
+            <section
+                class="sales-summary"
+                aria-labelledby="salesSummaryTitle"
+            >
+
+                <div class="sales-inline-title">
+
+                    <span class="sales-source">IZYPASS</span>
+
+                    <strong id="salesSummaryTitle">
+                        Resumo de inscrições pagas
+                    </strong>
+
+                </div>
+
+                <div class="sales-inline-item sales-input-group">
+
+                    <label for="izyPaidCount">
+                        Quantidade de pagamentos confirmados
+                    </label>
+
+                    <input
+                        type="number"
+                        id="izyPaidCount"
+                        min="0"
+                        step="1"
+                        value="0"
+                        inputmode="numeric"
+                        placeholder="0"
+                    >
+
+                </div>
+
+                <div class="sales-inline-item">
+
+                    <span>Valor por inscrição</span>
+
+                    <strong>R$ 89,90</strong>
+
+                </div>
+
+                <div class="sales-inline-item sales-total">
+
+                    <span>Total recebido informado</span>
+
+                    <strong id="izyTotalReceived">R$ 0,00</strong>
+
+                </div>
+
+                <div class="sales-actions">
+
+                    <button type="button" id="saveIzyPaidCount">
+                        <span aria-hidden="true">✓</span>
+                        Salvar quantidade
+                    </button>
+
+                    <span
+                        id="izySalesMessage"
+                        role="status"
+                        aria-live="polite"
+                    >
+                        Valores não alterados
+                    </span>
+
+                </div>
+
+            </section>
+
+            <!-- LEGENDA DE STATUS -->
+            <section
+                class="status-legend"
+                aria-labelledby="statusLegendTitle"
+            >
+
+                <div class="status-legend-header">
+
+                    <span class="eyebrow">VISÃO OPERACIONAL</span>
+
+                    <strong id="statusLegendTitle">
+                        Status dos participantes
+                    </strong>
+
+                </div>
+
+                <div class="status-legend-items">
+
+                    <div class="status-legend-item">
+                        <span class="legend-dot legend-paid" aria-hidden="true"></span>
+                        <span>PAGO</span>
+                    </div>
+
+                    <div class="status-legend-item">
+                        <span class="legend-dot legend-pending" aria-hidden="true"></span>
+                        <span>PENDENTE</span>
+                    </div>
+
+                    <div class="status-legend-item">
+                        <span class="legend-dot legend-courtesy" aria-hidden="true"></span>
+                        <span>CORTESIA</span>
+                    </div>
+
+                    <div class="status-legend-item">
+                        <span class="legend-dot legend-message" aria-hidden="true"></span>
+                        <span>MENSAGEM ENVIADA</span>
+                    </div>
+
+                    <div class="status-legend-item">
+                        <span class="legend-dot legend-cancelled" aria-hidden="true"></span>
+                        <span>CANCELADO</span>
+                    </div>
+
+                    <div class="status-legend-item">
+                        <span class="legend-dot legend-new" aria-hidden="true"></span>
+                        <span>NOVO</span>
+                    </div>
+
+                    <div class="status-legend-item">
+                        <span class="legend-dot legend-replied" aria-hidden="true"></span>
+                        <span>CLIENTE RESPONDEU</span>
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- TABELA DE PARTICIPANTES -->
+            <section
+                class="panel"
+                aria-labelledby="participantsTitle"
+            >
+
+                <div class="table-meta">
+
+                    <div class="table-title">
+
+                        <span class="eyebrow">CADASTROS E INSCRIÇÕES</span>
+
+                        <strong id="count" aria-live="polite">
+                            0 inscrições
+                        </strong>
+
+                    </div>
+
+                    <span
+                        id="loading"
+                        class="loading"
+                        role="status"
+                        aria-live="polite"
+                    ></span>
+
+                </div>
+
+                <div class="table-wrap">
+
+                    <table>
+
+                        <caption id="participantsTitle" hidden>
+                            Lista de participantes da Run &amp; Samba 2026,
+                            com dados cadastrais, percurso, camiseta,
+                            pagamento e ações administrativas.
+                        </caption>
+
+                        <thead>
+                            <tr>
+                                <th scope="col">PARTICIPANTE</th>
+                                <th scope="col">CPF</th>
+                                <th scope="col">TELEFONE</th>
+                                <th scope="col">PERCURSO</th>
+                                <th scope="col">CAMISETA</th>
+                                <th scope="col">PAGAMENTO</th>
+                                <th scope="col">AÇÕES</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="tableBody">
+                            <tr>
+                                <td colspan="7" class="empty-cell">
+                                    Carregando participantes...
+                                </td>
+                            </tr>
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+            <div
+                id="message"
+                class="message"
+                role="status"
+                aria-live="polite"
+            ></div>
+
+        </main>
+
+    </div>
+
+    <!-- MODAL DE PARTICIPANTE -->
+    <div
+        id="editModal"
+        class="modal hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modalName"
+    >
+
+        <div class="modal-overlay"></div>
+
+        <div class="modal-box">
+
+            <button
+                id="closeModal"
+                class="modal-close"
+                type="button"
+                aria-label="Fechar detalhes do participante"
+            >×</button>
+
+            <header class="modal-header">
+
+                <span class="eyebrow">GESTÃO DE INSCRIÇÃO</span>
+
+                <h2 id="modalName">Detalhes do participante</h2>
+
+            </header>
+
+            <!-- DADOS CADASTRAIS -->
+            <section aria-label="Dados do participante">
+
+                <div id="modalData" class="detail-grid"></div>
+
+            </section>
+
+            <!-- ADMINISTRAÇÃO DO PAGAMENTO -->
+            <section
+                class="payment-editor"
+                aria-label="Administração do pagamento"
+            >
+
+                <label for="modalPayment">
+                    SITUAÇÃO DO PAGAMENTO
                 </label>
 
-                <textarea
-                    id="clientResponse"
-                    rows="4"
-                    placeholder="Digite aqui o que o participante respondeu..."
-                ></textarea>
+                <select id="modalPayment">
+                    <option value="PENDENTE">PENDENTE</option>
+                    <option value="PAGO">PAGO</option>
+                    <option value="CANCELADO">CANCELADO</option>
+                    <option value="CORTESIA">CORTESIA</option>
+                </select>
 
-            </div>
+            </section>
 
-
-            <!-- RODAPÉ -->
-            <div class="contact-followup-footer">
-
-                <span class="contact-followup-hint">
-                    O acompanhamento ficará salvo neste participante.
-                </span>
+            <div class="modal-actions">
 
                 <button
+                    id="savePayment"
+                    class="primary-btn"
                     type="button"
-                    class="primary-btn contact-save-btn"
-                    id="saveContactFollowup"
                 >
-                    SALVAR ACOMPANHAMENTO
+                    SALVAR PAGAMENTO
                 </button>
 
             </div>
 
-        </section>
+            <!-- F9: ACOMPANHAMENTO DE CONTATO -->
+            <section
+                class="contact-followup"
+                aria-labelledby="followupTitle"
+            >
 
+                <header class="contact-followup-header">
 
-        <!-- =================================================
-             COMUNICAÇÃO — PAGAMENTO PENDENTE
-        ================================================== -->
-        <section
-            id="pendingCommunication"
-            class="pending-communication hidden"
-            aria-label="Comunicação com participante"
-        >
+                    <div class="contact-followup-title">
 
-            <!-- CABEÇALHO -->
-            <div class="communication-header">
+                        <span>F9 · RELACIONAMENTO</span>
 
-                <span class="eyebrow">
-                    INSCRIÇÃO PENDENTE
-                </span>
+                        <h3 id="followupTitle">
+                            Acompanhamento do contato
+                        </h3>
 
-                <h3>
-                    Entrar em contato
-                </h3>
+                        <p>
+                            Registre as interações e acompanhe o retorno
+                            de cada participante.
+                        </p>
 
-                <p>
-                    O participante realizou a inscrição,
-                    mas o pagamento ainda está pendente.
-                </p>
+                    </div>
 
-                <p>
-                    Envie uma mensagem informando que
-                    o segundo lote estará disponível em breve.
-                </p>
+                </header>
 
-            </div>
+                <div class="contact-status-box">
 
+                    <label for="contactStatus">
+                        STATUS DA COMUNICAÇÃO
+                    </label>
 
-            <!-- BOTÕES -->
-            <div class="communication-actions">
+                    <select id="contactStatus">
 
-                <!-- =================================================
-                     WHATSAPP
-                ================================================== -->
-                <a
-                    id="whatsappBtn"
-                    class="communication-btn whatsapp-btn"
-                    href="#"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Enviar mensagem pelo WhatsApp"
+                        <option value="NOVO">NOVO</option>
+
+                        <option value="MENSAGEM_ENVIADA">
+                            MENSAGEM ENVIADA
+                        </option>
+
+                        <option value="RESPONDEU">
+                            CLIENTE RESPONDEU
+                        </option>
+
+                        <option value="NAO_RESPONDIDO">
+                            NÃO RESPONDIDO
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <div
+                    class="contact-response-group"
+                    id="clientResponseGroup"
+                    style="display: none;"
                 >
 
-                    <span
-                        class="communication-icon"
-                        aria-hidden="true"
+                    <label for="clientResponse">
+                        REGISTRO DA RESPOSTA
+                    </label>
+
+                    <textarea
+                        id="clientResponse"
+                        rows="4"
+                        placeholder="Registre aqui a resposta ou as informações relevantes do participante..."
+                    ></textarea>
+
+                </div>
+
+                <footer class="contact-followup-footer">
+
+                    <span class="contact-followup-hint">
+                        Registre o andamento da comunicação neste cadastro.
+                    </span>
+
+                    <button
+                        type="button"
+                        class="primary-btn contact-save-btn"
+                        id="saveContactFollowup"
                     >
-                        ☎
-                    </span>
+                        SALVAR ACOMPANHAMENTO
+                    </button>
 
-                    <span class="communication-text">
+                </footer>
 
-                        <strong>
-                            WhatsApp
-                        </strong>
+            </section>
 
-                        <small>
-                            Enviar mensagem
-                        </small>
+            <!-- COMUNICAÇÃO DE PAGAMENTO PENDENTE -->
+            <section
+                id="pendingCommunication"
+                class="pending-communication hidden"
+                aria-labelledby="communicationTitle"
+            >
 
-                    </span>
+                <header class="communication-header">
 
-                    <span
-                        class="communication-arrow"
-                        aria-hidden="true"
+                    <span class="eyebrow">AÇÃO COMERCIAL</span>
+
+                    <h3 id="communicationTitle">
+                        Regularizar inscrição pendente
+                    </h3>
+
+                    <p>
+                        Entre em contato com o participante para esclarecer
+                        a situação da inscrição e orientar sobre o pagamento.
+                    </p>
+
+                    <p>
+                        Informe as condições do lote vigente e os próximos
+                        passos para confirmar a participação no evento.
+                    </p>
+
+                </header>
+
+                <div class="communication-actions">
+
+                    <a
+                        id="whatsappBtn"
+                        class="communication-btn whatsapp-btn"
+                        href="#"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="Abrir conversa no WhatsApp"
                     >
-                        ↗
-                    </span>
 
-                </a>
+                        <span class="communication-icon" aria-hidden="true">☎</span>
 
+                        <span class="communication-text">
+                            <strong>WhatsApp</strong>
+                            <small>Entrar em contato</small>
+                        </span>
 
-                <!-- =================================================
-                     E-MAIL
-                ================================================== -->
-                <a
-                    id="emailBtn"
-                    class="communication-btn email-btn"
-                    href="#"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Enviar e-mail"
-                >
+                        <span class="communication-arrow" aria-hidden="true">↗</span>
 
-                    <span
-                        class="communication-icon"
-                        aria-hidden="true"
+                    </a>
+
+                    <a
+                        id="emailBtn"
+                        class="communication-btn email-btn"
+                        href="#"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="Preparar e-mail para o participante"
                     >
-                        ✉
-                    </span>
 
-                    <span class="communication-text">
+                        <span class="communication-icon" aria-hidden="true">✉</span>
 
-                        <strong>
-                            E-mail
-                        </strong>
+                        <span class="communication-text">
+                            <strong>E-mail</strong>
+                            <small>Enviar comunicação</small>
+                        </span>
 
-                        <small>
-                            Enviar mensagem
-                        </small>
+                        <span class="communication-arrow" aria-hidden="true">↗</span>
 
-                    </span>
+                    </a>
 
-                    <span
-                        class="communication-arrow"
-                        aria-hidden="true"
-                    >
-                        ↗
-                    </span>
+                </div>
 
-                </a>
+            </section>
 
-            </div>
-
-        </section>
+        </div>
 
     </div>
-
-</div>
 
 </body>
 </html>

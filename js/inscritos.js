@@ -1,1705 +1,907 @@
 /* =========================================================
-   RUN & SAMBA 2026
-   CRM — INSCRITOS
-   PARTICIPANTES + PAGAMENTO + COMUNICAÇÃO + F9
+   RUN & SAMBA 2026 — CRM INSCRITOS
+   Administração • IzyPass • Pagamentos • Comunicação • F9
 
-   STATUS VISUAL AO LADO DO NOME:
+   STATUS VISUAIS:
    🟢 PAGO
    🔴 CANCELADO
    🔵 MENSAGEM ENVIADA
    🟡 PENDENTE
    ⚪ NOVO
+   🟢 NEON CORTESIA
 
-   F9:
-   - MENSAGEM ENVIADA
-   - CLIENTE RESPONDEU
-   - NÃO RESPONDIDO
-   - NOVO
+   RESPONDEU / NÃO RESPONDIDO:
+   Exclusivamente no acompanhamento F9.
 
-   CLIENTE RESPONDEU / NÃO RESPONDIDO:
-   NÃO aparecem na bolinha do participante.
-   ========================================================= */
+   IzyPass:
+   - Valor de referência: R$ 89,90
+   - Total = quantidade informada x R$ 89,90
+   - Persistência local, sem alterar o banco.
+========================================================= */
 
 "use strict";
 
-
 /* =========================================================
    ESTADO
-   ========================================================= */
+========================================================= */
 
 let db = null;
 let allRows = [];
 let selectedId = null;
+let loadingRows = false;
+let eventsBound = false;
 
+const IZY_PRICE = 89.90;
+const IZY_STORAGE_KEY = "run_samba_izy_paid_count_v1";
+
+const $ = id => document.getElementById(id);
 
 /* =========================================================
-   INICIALIZAÇÃO
-   ========================================================= */
+   INICIALIZAÇÃO E AUTORIZAÇÃO
+========================================================= */
 
 async function init() {
+    const guard = $("adminGuard");
+    const app = $("adminApp");
+
+    if (guard) guard.hidden = false;
+    if (app) app.hidden = true;
+
+    if ($("guardTitle")) {
+        $("guardTitle").textContent = "Área restrita";
+    }
+
+    if ($("guardMessage")) {
+        $("guardMessage").textContent =
+            "Verificando autorização de acesso...";
+    }
+
+    if ($("guardStatus")) {
+        $("guardStatus").textContent = "Aguarde...";
+    }
+
+    if ($("guardError")) {
+        $("guardError").hidden = true;
+        $("guardError").textContent = "";
+    }
 
     try {
-
-        /* =====================================================
-           SUPABASE
-        ===================================================== */
-
         db = window.supabaseClient;
 
         if (!db) {
-
-            showMessage(
-                "Supabase não foi inicializado. Verifique o config.js."
+            accessError(
+                "Supabase não foi inicializado. Verifique js/config.js."
             );
-
             return;
         }
-
-
-        /* =====================================================
-           AUTENTICAÇÃO
-        ===================================================== */
 
         if (
             !window.crmAuth ||
             typeof window.crmAuth.requireAuth !== "function"
         ) {
+            accessError("Sistema de autenticação não encontrado.");
+            return;
+        }
 
-            showMessage(
-                "Sistema de autenticação não encontrado."
+        const session = await window.crmAuth.requireAuth();
+
+        if (!session) return;
+
+        const { data: userData, error: userError } =
+            await db.auth.getUser();
+
+        if (userError || !userData?.user) {
+            accessError(
+                "Não foi possível confirmar sua sessão. Entre novamente."
+            );
+            return;
+        }
+
+        const { data: admin, error: adminError } = await db
+            .from("admin_users")
+            .select("user_id")
+            .eq("user_id", userData.user.id)
+            .maybeSingle();
+
+        if (adminError) {
+            console.error(
+                "Erro ao verificar administrador:",
+                adminError
             );
 
+            accessError(
+                "Não foi possível validar sua autorização administrativa. " +
+                "Verifique as permissões da tabela admin_users."
+            );
             return;
         }
 
-
-        const session =
-            await window.crmAuth.requireAuth();
-
-        if (!session) {
+        if (!admin) {
+            accessError(
+                "Seu usuário não possui autorização para acessar os inscritos."
+            );
             return;
         }
 
-
-        /* =====================================================
-           EVENTOS
-        ===================================================== */
+        if (guard) guard.hidden = true;
+        if (app) app.hidden = false;
 
         bindEvents();
-
-
-        /* =====================================================
-           CARREGAR DADOS
-        ===================================================== */
+        initIzySummary();
 
         await loadRows();
 
-
     } catch (error) {
+        console.error("Erro ao iniciar CRM:", error);
 
-        console.error(
-            "Erro na inicialização do CRM:",
-            error
+        accessError(
+            "Não foi possível iniciar o sistema. " +
+            (error?.message || "Erro desconhecido.")
         );
-
-        showMessage(
-            "Erro ao iniciar o CRM: " +
-            (
-                error?.message ||
-                "Erro desconhecido."
-            )
-        );
-
     }
-
 }
 
+/* =========================================================
+   CONTROLE DE ACESSO
+========================================================= */
+
+function accessError(message) {
+    if ($("adminApp")) $("adminApp").hidden = true;
+    if ($("adminGuard")) $("adminGuard").hidden = false;
+
+    if ($("guardTitle")) {
+        $("guardTitle").textContent = "Acesso restrito";
+    }
+
+    if ($("guardMessage")) {
+        $("guardMessage").textContent = message;
+    }
+
+    if ($("guardStatus")) {
+        $("guardStatus").textContent = "ACESSO NÃO AUTORIZADO";
+    }
+
+    if ($("guardError")) {
+        $("guardError").textContent = message;
+        $("guardError").hidden = false;
+    }
+
+    const logout = $("guardLogout");
+
+    if (logout) {
+        logout.hidden = false;
+        logout.onclick = async () => {
+            logout.disabled = true;
+            logout.textContent = "SAINDO...";
+
+            try {
+                if (window.crmAuth?.logout) {
+                    await window.crmAuth.logout();
+                } else if (db) {
+                    await db.auth.signOut();
+                }
+            } catch (error) {
+                console.error("Erro ao encerrar sessão:", error);
+            } finally {
+                window.location.replace("index.html");
+            }
+        };
+    }
+}
 
 /* =========================================================
-   CARREGAR INSCRIÇÕES
-   ========================================================= */
+   IZYPASS — RESUMO DE PAGAMENTOS INFORMADOS
+========================================================= */
 
-async function loadRows() {
+function initIzySummary() {
+    const input = $("izyPaidCount");
+    const total = $("izyTotalReceived");
+    const saveButton = $("saveIzyPaidCount");
+    const message = $("izySalesMessage");
 
-    setLoading("Carregando inscrições...");
+    if (!input || !total) return;
 
+    input.min = "0";
+    input.step = "1";
+    input.inputMode = "numeric";
+
+    let savedCount = 0;
 
     try {
+        const stored = localStorage.getItem(IZY_STORAGE_KEY);
 
-        const {
-            data,
-            error
-        } = await db
-            .from("inscricoes")
-            .select("*")
-            .order(
-                "created_at",
-                {
-                    ascending: false
-                }
-            );
+        if (stored !== null) {
+            const parsed = Number(stored);
 
-
-        if (error) {
-            throw error;
+            if (Number.isSafeInteger(parsed) && parsed >= 0) {
+                savedCount = parsed;
+            }
         }
-
-
-        allRows =
-            Array.isArray(data)
-                ? data
-                : [];
-
-
-        render();
-
-
     } catch (error) {
-
-        console.error(
-            "Erro Supabase:",
+        console.warn(
+            "Não foi possível ler o resumo IzyPass:",
             error
         );
-
-
-        const body =
-            document.getElementById(
-                "tableBody"
-            );
-
-
-        if (body) {
-
-            body.innerHTML = `
-                <tr>
-                    <td
-                        colspan="7"
-                        class="empty-cell"
-                    >
-                        <strong>
-                            Erro ao carregar inscrições.
-                        </strong>
-
-                        <br>
-
-                        <small>
-                            ${esc(error?.message || "Erro desconhecido.")}
-                        </small>
-                    </td>
-                </tr>
-            `;
-
-        }
-
-
-        showMessage(
-            "Erro ao carregar inscrições: " +
-            (
-                error?.message ||
-                "Erro desconhecido."
-            )
-        );
-
-    } finally {
-
-        setLoading("");
-
     }
 
-}
+    input.value = String(savedCount);
+    updateIzyTotal();
 
+    if (message) {
+        message.textContent = "Valores carregados";
+    }
 
-/* =========================================================
-   EVENTOS
-   ========================================================= */
+    input.addEventListener("input", () => {
+        updateIzyTotal();
 
-function bindEvents() {
+        if (message) {
+            message.textContent = "Alterações não salvas";
+        }
+    });
 
+    input.addEventListener("change", () => {
+        const value = Number(input.value);
 
-    /* =====================================================
-       FILTROS
-    ===================================================== */
-
-    [
-        "search",
-        "paymentFilter",
-        "routeFilter",
-        "shirtFilter"
-    ].forEach(id => {
-
-        const element =
-            document.getElementById(id);
-
-        if (!element) {
+        if (
+            input.value.trim() === "" ||
+            !Number.isSafeInteger(value) ||
+            value < 0
+        ) {
+            if (message) {
+                message.textContent =
+                    "Informe uma quantidade inteira igual ou maior que zero.";
+            }
             return;
         }
 
-
-        element.addEventListener(
-            "input",
-            render
-        );
-
-
-        element.addEventListener(
-            "change",
-            render
-        );
-
+        updateIzyTotal();
     });
 
-
-    /* =====================================================
-       EXPORTAR
-    ===================================================== */
-
-    const exportBtn =
-        document.getElementById(
-            "exportBtn"
-        );
-
-
-    if (exportBtn) {
-
-        exportBtn.addEventListener(
-            "click",
-            exportCSV
-        );
-
-    }
-
-
-    /* =====================================================
-       FECHAR MODAL
-    ===================================================== */
-
-    const closeBtn =
-        document.getElementById(
-            "closeModal"
-        );
-
-
-    if (closeBtn) {
-
-        closeBtn.addEventListener(
-            "click",
-            closeModal
-        );
-
-    }
-
-
-    /* =====================================================
-       OVERLAY
-    ===================================================== */
-
-    const modal =
-        document.getElementById(
-            "editModal"
-        );
-
-
-    if (modal) {
-
-        modal.addEventListener(
-            "click",
-            event => {
-
-                if (
-                    event.target === modal ||
-                    event.target.classList.contains(
-                        "modal-overlay"
-                    )
-                ) {
-
-                    closeModal();
-
-                }
-
-            }
-        );
-
-    }
-
-
-    /* =====================================================
-       SALVAR PAGAMENTO
-    ===================================================== */
-
-    const savePaymentBtn =
-        document.getElementById(
-            "savePayment"
-        );
-
-
-    if (savePaymentBtn) {
-
-        savePaymentBtn.addEventListener(
-            "click",
-            savePayment
-        );
-
-    }
-
-
-    /* =====================================================
-       SALVAR F9
-    ===================================================== */
-
-    const saveContactBtn =
-        document.getElementById(
-            "saveContactFollowup"
-        );
-
-
-    if (saveContactBtn) {
-
-        saveContactBtn.addEventListener(
-            "click",
-            saveContactFollowup
-        );
-
-    }
-
-
-    /* =====================================================
-       ESC
-    ===================================================== */
-
-    document.addEventListener(
-        "keydown",
-        event => {
-
-            if (event.key !== "Escape") {
-                return;
-            }
-
-
-            const modal =
-                document.getElementById(
-                    "editModal"
-                );
-
-
-            if (
-                modal &&
-                !modal.classList.contains(
-                    "hidden"
-                )
-            ) {
-
-                closeModal();
-
-            }
-
-        }
-    );
-
-
-    /* =====================================================
-       LOGOUT
-    ===================================================== */
-
-    const logoutBtn =
-        document.getElementById(
-            "logoutBtn"
-        );
-
-
-    if (
-        logoutBtn &&
-        window.crmAuth &&
-        typeof window.crmAuth.logout === "function"
-    ) {
-
-        logoutBtn.addEventListener(
-            "click",
-            async () => {
-
-                logoutBtn.disabled = true;
-                logoutBtn.textContent = "SAINDO...";
-
-
-                try {
-
-                    await window.crmAuth.logout();
-
-                } catch (error) {
-
-                    console.error(
-                        "Erro ao sair:",
-                        error
-                    );
-
-
-                    logoutBtn.disabled = false;
-                    logoutBtn.textContent = "SAIR";
-
-                }
-
-            }
-        );
-
-    }
-
+    saveButton?.addEventListener("click", saveIzyPaidCount);
 }
 
+function updateIzyTotal() {
+    const input = $("izyPaidCount");
+    const total = $("izyTotalReceived");
+
+    if (!input || !total) return;
+
+    const raw = input.value.trim();
+    const count = Number(raw);
+
+    if (
+        raw === "" ||
+        !Number.isSafeInteger(count) ||
+        count < 0
+    ) {
+        total.textContent = "—";
+        return;
+    }
+
+    total.textContent = formatMoney(count * IZY_PRICE);
+}
+
+function saveIzyPaidCount() {
+    const input = $("izyPaidCount");
+    const button = $("saveIzyPaidCount");
+    const message = $("izySalesMessage");
+
+    if (!input || !button) return;
+
+    const raw = input.value.trim();
+    const count = Number(raw);
+
+    if (
+        raw === "" ||
+        !Number.isSafeInteger(count) ||
+        count < 0
+    ) {
+        if (message) {
+            message.textContent =
+                "Informe uma quantidade inteira válida.";
+        }
+
+        input.focus();
+        return;
+    }
+
+    button.disabled = true;
+    button.textContent = "SALVANDO...";
+
+    try {
+        localStorage.setItem(IZY_STORAGE_KEY, String(count));
+
+        updateIzyTotal();
+
+        if (message) {
+            message.textContent =
+                `Quantidade salva: ${count} pagamento(s) · ` +
+                formatMoney(count * IZY_PRICE);
+        }
+
+        showMessage("Resumo IzyPass salvo neste navegador.");
+
+    } catch (error) {
+        console.error("Erro ao salvar resumo IzyPass:", error);
+
+        if (message) {
+            message.textContent =
+                "Não foi possível salvar neste navegador.";
+        }
+
+        showMessage(
+            "Falha ao salvar o resumo. Verifique as configurações do navegador."
+        );
+
+    } finally {
+        button.disabled = false;
+        button.textContent = "✓ Salvar quantidade";
+    }
+}
 
 /* =========================================================
-   FILTRAR
-   ========================================================= */
+   CARREGAR INSCRIÇÕES
+========================================================= */
+
+async function loadRows() {
+    if (!db || loadingRows) return;
+
+    loadingRows = true;
+    setLoading("Carregando inscrições...");
+
+    try {
+        const { data, error } = await db
+            .from("inscricoes")
+            .select("*")
+            .order("created_at", { ascending: false });
+
+        if (error) throw error;
+
+        allRows = Array.isArray(data) ? data : [];
+
+        render();
+
+    } catch (error) {
+        console.error("Erro ao carregar inscrições:", error);
+
+        if ($("tableBody")) {
+            $("tableBody").innerHTML = `
+                <tr>
+                    <td colspan="7" class="empty-cell">
+                        <strong>Erro ao carregar inscrições.</strong>
+                        <br>
+                        <small>${esc(
+                            error?.message || "Erro desconhecido."
+                        )}</small>
+                    </td>
+                </tr>
+            `;
+        }
+
+        showMessage(
+            "Erro ao carregar inscrições: " +
+            (error?.message || "Erro desconhecido.")
+        );
+
+    } finally {
+        loadingRows = false;
+        setLoading("");
+    }
+}
+
+/* =========================================================
+   EVENTOS GERAIS
+========================================================= */
+
+function bindEvents() {
+    if (eventsBound) return;
+    eventsBound = true;
+
+    ["search", "paymentFilter", "routeFilter", "shirtFilter"]
+        .forEach(id => {
+            const element = $(id);
+            if (!element) return;
+
+            element.addEventListener("input", render);
+            element.addEventListener("change", render);
+        });
+
+    $("exportBtn")?.addEventListener("click", exportCSV);
+    $("closeModal")?.addEventListener("click", closeModal);
+    $("savePayment")?.addEventListener("click", savePayment);
+
+    $("saveContactFollowup")?.addEventListener(
+        "click",
+        saveContactFollowup
+    );
+
+    $("editModal")?.addEventListener("click", event => {
+        if (
+            event.target === $("editModal") ||
+            event.target.classList.contains("modal-overlay")
+        ) {
+            closeModal();
+        }
+    });
+
+    $("logoutBtn")?.addEventListener("click", async () => {
+        const button = $("logoutBtn");
+
+        button.disabled = true;
+        button.textContent = "SAINDO...";
+
+        try {
+            if (window.crmAuth?.logout) {
+                await window.crmAuth.logout();
+            } else if (db) {
+                await db.auth.signOut();
+                window.location.replace("index.html");
+            }
+        } catch (error) {
+            console.error("Erro ao sair:", error);
+
+            button.disabled = false;
+            button.textContent = "SAIR";
+
+            showMessage("Não foi possível sair. Tente novamente.");
+        }
+    });
+
+    document.addEventListener("keydown", event => {
+        if (event.key === "Escape") {
+            const modal = $("editModal");
+
+            if (modal && !modal.classList.contains("hidden")) {
+                closeModal();
+            }
+        }
+
+        if (event.key === "F9") {
+            const modal = $("editModal");
+
+            if (modal && !modal.classList.contains("hidden")) {
+                event.preventDefault();
+                $("contactStatus")?.focus();
+            }
+        }
+    });
+}
+
+/* =========================================================
+   NORMALIZAÇÃO
+========================================================= */
+
+function normalizarTexto(value) {
+    return String(value ?? "")
+        .trim()
+        .toUpperCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+}
+
+function normalizarPagamento(value) {
+    const status = normalizarTexto(value);
+
+    if (status === "PAGO") return "PAGO";
+    if (status === "CANCELADO") return "CANCELADO";
+    if (status === "CORTESIA") return "CORTESIA";
+
+    return "PENDENTE";
+}
+
+function pagamentoEstaVazio(value) {
+    return value === null ||
+        value === undefined ||
+        String(value).trim() === "";
+}
+
+function normalizarStatusContato(value) {
+    const status = normalizarTexto(value)
+        .replace(/[\s-]+/g, "_");
+
+    if ([
+        "MENSAGEM_ENVIADA",
+        "ENVIADA",
+        "MENSAGEM"
+    ].includes(status)) {
+        return "MENSAGEM_ENVIADA";
+    }
+
+    if ([
+        "RESPONDEU",
+        "CLIENTE_RESPONDEU"
+    ].includes(status)) {
+        return "RESPONDEU";
+    }
+
+    if ([
+        "NAO_RESPONDIDO",
+        "NAO_RESPONDEU"
+    ].includes(status)) {
+        return "NAO_RESPONDIDO";
+    }
+
+    return "NOVO";
+}
+
+function textoStatusContato(status) {
+    const labels = {
+        MENSAGEM_ENVIADA: "MENSAGEM ENVIADA",
+        RESPONDEU: "CLIENTE RESPONDEU",
+        NAO_RESPONDIDO: "NÃO RESPONDIDO",
+        NOVO: "NOVO"
+    };
+
+    return labels[normalizarStatusContato(status)];
+}
+
+function contactClass(status) {
+    const classes = {
+        MENSAGEM_ENVIADA: "contact-message",
+        RESPONDEU: "contact-replied",
+        NAO_RESPONDIDO: "contact-not-replied",
+        NOVO: "contact-new"
+    };
+
+    return classes[normalizarStatusContato(status)];
+}
+
+/* =========================================================
+   STATUS VISUAL DOS PARTICIPANTES
+========================================================= */
+
+function obterStatusVisualParticipante(row) {
+    const pagamentoBruto = row.status_pagamento;
+    const pagamento = normalizarTexto(pagamentoBruto);
+    const contato = normalizarStatusContato(row.status_contato);
+
+    // Cortesia tem prioridade sobre os estados de contato.
+    if (pagamento === "CORTESIA") {
+        return {
+            status: "CORTESIA",
+            classe: "courtesy",
+            titulo: "Inscrição cortesia"
+        };
+    }
+
+    if (pagamento === "PAGO") {
+        return {
+            status: "PAGO",
+            classe: "paid",
+            titulo: "Pagamento confirmado"
+        };
+    }
+
+    if (pagamento === "CANCELADO") {
+        return {
+            status: "CANCELADO",
+            classe: "cancelled",
+            titulo: "Inscrição cancelada"
+        };
+    }
+
+    if (contato === "MENSAGEM_ENVIADA") {
+        return {
+            status: "MENSAGEM ENVIADA",
+            classe: "contact-message",
+            titulo: "Mensagem enviada"
+        };
+    }
+
+    if (pagamentoEstaVazio(pagamentoBruto)) {
+        return {
+            status: "NOVO",
+            classe: "contact-new",
+            titulo: "Inscrição recente"
+        };
+    }
+
+    return {
+        status: "PENDENTE",
+        classe: "pending",
+        titulo: "Pagamento pendente"
+    };
+}
+
+/* =========================================================
+   FILTROS
+========================================================= */
 
 function filtered() {
+    const q = normalizarTexto($("search")?.value || "");
 
-    const searchElement =
-        document.getElementById(
-            "search"
-        );
+    const payment = normalizarTexto(
+        $("paymentFilter")?.value || ""
+    );
 
+    const route = normalizarTexto(
+        $("routeFilter")?.value || ""
+    );
 
-    const paymentElement =
-        document.getElementById(
-            "paymentFilter"
-        );
-
-
-    const routeElement =
-        document.getElementById(
-            "routeFilter"
-        );
-
-
-    const shirtElement =
-        document.getElementById(
-            "shirtFilter"
-        );
-
-
-    const q =
-        String(
-            searchElement?.value || ""
-        )
-            .toLowerCase()
-            .trim();
-
-
-    const payment =
-        String(
-            paymentElement?.value || ""
-        )
-            .trim()
-            .toUpperCase();
-
-
-    const route =
-        String(
-            routeElement?.value || ""
-        )
-            .trim()
-            .toUpperCase();
-
-
-    const shirt =
-        String(
-            shirtElement?.value || ""
-        )
-            .trim()
-            .toUpperCase();
-
+    const shirt = normalizarTexto(
+        $("shirtFilter")?.value || ""
+    );
 
     return allRows.filter(row => {
-
-
-        /* =================================================
-           BUSCA
-        ================================================= */
-
-        const text = [
-
+        const searchable = normalizarTexto([
             row.nome,
             row.cpf,
             row.email,
             row.telefone
-
-        ]
-            .map(
-                value =>
-                    String(value ?? "")
-            )
-            .join(" ")
-            .toLowerCase();
-
-
-        /* =================================================
-           PAGAMENTO
-        ================================================= */
+        ].join(" "));
 
         const statusPagamento =
-            normalizarPagamento(
-                row.status_pagamento
-            );
+            normalizarPagamento(row.status_pagamento);
 
-
-        /* =================================================
-           PERCURSO
-        ================================================= */
-
-        const percurso =
-            String(
-                row.percurso ?? ""
-            )
-                .trim()
-                .toUpperCase();
-
-
-        /* =================================================
-           CAMISETA
-        ================================================= */
-
-        const camiseta =
-            String(
-                row.camiseta ?? ""
-            )
-                .trim()
-                .toUpperCase();
-
+        const percurso = normalizarTexto(row.percurso);
+        const camiseta = normalizarTexto(row.camiseta);
 
         return (
-
-            (!q || text.includes(q)) &&
-
-            (!payment ||
-                statusPagamento === payment) &&
-
-            (!route ||
-                percurso === route) &&
-
-            (!shirt ||
-                camiseta === shirt)
-
+            (!q || searchable.includes(q)) &&
+            (!payment || statusPagamento === payment) &&
+            (!route || percurso === route) &&
+            (!shirt || camiseta === shirt)
         );
-
     });
-
 }
-
-
-/* =========================================================
-   NORMALIZAR PAGAMENTO
-   ========================================================= */
-
-function normalizarPagamento(value) {
-
-    const status =
-        String(value ?? "")
-            .trim()
-            .toUpperCase()
-            .normalize("NFD")
-            .replace(
-                /[\u0300-\u036f]/g,
-                ""
-            );
-
-
-    if (status === "PAGO") {
-        return "PAGO";
-    }
-
-
-    if (status === "CANCELADO") {
-        return "CANCELADO";
-    }
-
-
-    return "PENDENTE";
-
-}
-
-
-/* =========================================================
-   VERIFICAR PAGAMENTO VAZIO
-   ========================================================= */
-
-function pagamentoEstaVazio(value) {
-
-    return (
-        value === null ||
-        value === undefined ||
-        String(value).trim() === ""
-    );
-
-}
-
-
-/* =========================================================
-   NORMALIZAR STATUS DO CONTATO
-   ========================================================= */
-
-function normalizarStatusContato(value) {
-
-    const status =
-        String(value ?? "")
-            .trim()
-            .toUpperCase()
-            .normalize("NFD")
-            .replace(
-                /[\u0300-\u036f]/g,
-                ""
-            )
-            .replace(
-                /[\s-]+/g,
-                "_"
-            );
-
-
-    if (
-        status === "MENSAGEM_ENVIADA" ||
-        status === "ENVIADA" ||
-        status === "MENSAGEM"
-    ) {
-
-        return "MENSAGEM_ENVIADA";
-
-    }
-
-
-    if (
-        status === "RESPONDEU" ||
-        status === "CLIENTE_RESPONDEU"
-    ) {
-
-        return "RESPONDEU";
-
-    }
-
-
-    if (
-        status === "NAO_RESPONDIDO" ||
-        status === "NAO_RESPONDEU"
-    ) {
-
-        return "NAO_RESPONDIDO";
-
-    }
-
-
-    if (status === "NOVO") {
-        return "NOVO";
-    }
-
-
-    return "NOVO";
-
-}
-
-
-/* =========================================================
-   TEXTO DO STATUS DO CONTATO
-   ========================================================= */
-
-function textoStatusContato(status) {
-
-    switch (
-        normalizarStatusContato(status)
-    ) {
-
-        case "MENSAGEM_ENVIADA":
-            return "MENSAGEM ENVIADA";
-
-
-        case "RESPONDEU":
-            return "CLIENTE RESPONDEU";
-
-
-        case "NAO_RESPONDIDO":
-            return "NÃO RESPONDIDO";
-
-
-        case "NOVO":
-            return "NOVO";
-
-
-        default:
-            return "NOVO";
-
-    }
-
-}
-
-
-/* =========================================================
-   CLASSE DO STATUS DO CONTATO
-   ========================================================= */
-
-function contactClass(status) {
-
-    switch (
-        normalizarStatusContato(status)
-    ) {
-
-        case "MENSAGEM_ENVIADA":
-            return "contact-message";
-
-
-        case "RESPONDEU":
-            return "contact-replied";
-
-
-        case "NAO_RESPONDIDO":
-            return "contact-not-replied";
-
-
-        case "NOVO":
-            return "contact-new";
-
-
-        default:
-            return "contact-new";
-
-    }
-
-}
-
-
-/* =========================================================
-   STATUS VISUAL DO PARTICIPANTE
-   ========================================================= */
-
-function obterStatusVisualParticipante(row) {
-
-    const pagamentoBruto =
-        row.status_pagamento;
-
-
-    const pagamento =
-        normalizarPagamento(
-            pagamentoBruto
-        );
-
-
-    const contato =
-        normalizarStatusContato(
-            row.status_contato
-        );
-
-
-    /* =====================================================
-       1 — PAGO
-    ===================================================== */
-
-    if (pagamento === "PAGO") {
-
-        return {
-
-            status: "PAGO",
-
-            classe: "paid",
-
-            titulo: "Pagamento confirmado"
-
-        };
-
-    }
-
-
-    /* =====================================================
-       2 — CANCELADO
-    ===================================================== */
-
-    if (pagamento === "CANCELADO") {
-
-        return {
-
-            status: "CANCELADO",
-
-            classe: "cancelled",
-
-            titulo: "Inscrição cancelada"
-
-        };
-
-    }
-
-
-    /* =====================================================
-       3 — MENSAGEM ENVIADA
-    ===================================================== */
-
-    if (
-        contato === "MENSAGEM_ENVIADA"
-    ) {
-
-        return {
-
-            status: "MENSAGEM ENVIADA",
-
-            classe: "contact-message",
-
-            titulo: "Mensagem enviada"
-
-        };
-
-    }
-
-
-    /* =====================================================
-       4 — NOVO
-    ===================================================== */
-
-    if (
-        pagamentoEstaVazio(
-            pagamentoBruto
-        ) &&
-        contato === "NOVO"
-    ) {
-
-        return {
-
-            status: "NOVO",
-
-            classe: "contact-new",
-
-            titulo: "Inscrição recente"
-
-        };
-
-    }
-
-
-    /* =====================================================
-       5 — PENDENTE
-    ===================================================== */
-
-    if (pagamento === "PENDENTE") {
-
-        return {
-
-            status: "PENDENTE",
-
-            classe: "pending",
-
-            titulo: "Pagamento pendente"
-
-        };
-
-    }
-
-
-    /* =====================================================
-       FALLBACK
-    ===================================================== */
-
-    return {
-
-        status: "NOVO",
-
-        classe: "contact-new",
-
-        titulo: "Inscrição recente"
-
-    };
-
-}
-
-
-/* =========================================================
-   CRIAR STATUS DO PARTICIPANTE
-
-   IMPORTANTE:
-   O NOME AGORA É CLICÁVEL.
-   Clicar no nome abre o mesmo modal do botão VER.
-   ========================================================= */
-
-function criarStatusParticipante(row) {
-
-    const visual =
-        obterStatusVisualParticipante(row);
-
-
-    return `
-
-        <div class="participant-name-line">
-
-            <button
-                type="button"
-                class="participant-name participant-name-button"
-                data-id="${esc(row.id)}"
-                title="Ver participante"
-            >
-                ${esc(row.nome || "—")}
-            </button>
-
-
-            <span
-                class="participant-status-dot ${esc(visual.classe)}"
-                title="${esc(visual.titulo)}"
-                aria-label="${esc(visual.status)}"
-                role="status"
-            ></span>
-
-        </div>
-
-
-        ${
-            row.email
-                ? `
-                    <small class="participant-email">
-                        ${esc(row.email)}
-                    </small>
-                `
-                : ""
-        }
-
-    `;
-
-}
-
 
 /* =========================================================
    RENDERIZAR TABELA
-   ========================================================= */
+========================================================= */
 
 function render() {
-
-    const rows =
-        filtered();
-
-
-    /* =====================================================
-       CONTADOR
-    ===================================================== */
-
-    const count =
-        document.getElementById(
-            "count"
-        );
-
+    const rows = filtered();
+    const count = $("count");
+    const body = $("tableBody");
 
     if (count) {
-
         count.textContent =
             `${rows.length} ${
-                rows.length === 1
-                    ? "inscrição"
-                    : "inscrições"
+                rows.length === 1 ? "inscrição" : "inscrições"
             }`;
-
     }
 
-
-    /* =====================================================
-       TABELA
-    ===================================================== */
-
-    const body =
-        document.getElementById(
-            "tableBody"
-        );
-
-
-    if (!body) {
-        return;
-    }
-
-
-    /* =====================================================
-       NENHUM RESULTADO
-    ===================================================== */
+    if (!body) return;
 
     if (!rows.length) {
-
         body.innerHTML = `
-
             <tr>
-
-                <td
-                    colspan="7"
-                    class="empty-cell"
-                >
+                <td colspan="7" class="empty-cell">
                     Nenhum participante encontrado.
                 </td>
-
             </tr>
-
         `;
-
         return;
     }
 
+    body.innerHTML = rows.map(row => {
+        const pagamento = normalizarPagamento(row.status_pagamento);
+        const visual = obterStatusVisualParticipante(row);
 
-    /* =====================================================
-       LINHAS
-    ===================================================== */
+        return `
+            <tr>
+                <td class="participant-cell">
+                    <div class="participant-name-line">
 
-    body.innerHTML =
-        rows
-            .map(row => {
+                        <button
+                            type="button"
+                            class="participant-name participant-name-button"
+                            data-id="${esc(row.id)}"
+                            title="Ver participante"
+                        >${esc(row.nome || "—")}</button>
 
-                const pagamento =
-                    normalizarPagamento(
-                        row.status_pagamento
-                    );
+                        <span
+                            class="participant-status-dot ${esc(visual.classe)}"
+                            title="${esc(visual.titulo)}"
+                            aria-label="${esc(visual.status)}"
+                            role="status"
+                        ></span>
 
+                    </div>
 
-                return `
+                    ${row.email ? `
+                        <small class="participant-email">
+                            ${esc(row.email)}
+                        </small>
+                    ` : ""}
+                </td>
 
-                    <tr>
+                <td>${esc(formatCPF(row.cpf))}</td>
+                <td>${esc(formatPhone(row.telefone))}</td>
+                <td>${esc(row.percurso || "—")}</td>
+                <td>${esc(row.camiseta || "—")}</td>
 
-                        <!-- PARTICIPANTE -->
+                <td>
+                    <span class="status-badge ${paymentClass(pagamento)}">
+                        ${esc(pagamento)}
+                    </span>
+                </td>
 
-                        <td class="participant-cell">
+                <td>
+                    <button
+                        type="button"
+                        class="action-btn"
+                        data-id="${esc(row.id)}"
+                    >VER</button>
+                </td>
+            </tr>
+        `;
+    }).join("");
 
-                            ${criarStatusParticipante(row)}
-
-                        </td>
-
-
-                        <!-- CPF -->
-
-                        <td>
-
-                            ${esc(
-                                formatCPF(row.cpf)
-                            )}
-
-                        </td>
-
-
-                        <!-- TELEFONE -->
-
-                        <td>
-
-                            ${esc(
-                                formatPhone(row.telefone)
-                            )}
-
-                        </td>
-
-
-                        <!-- PERCURSO -->
-
-                        <td>
-
-                            ${esc(
-                                row.percurso || "—"
-                            )}
-
-                        </td>
-
-
-                        <!-- CAMISETA -->
-
-                        <td>
-
-                            ${esc(
-                                row.camiseta || "—"
-                            )}
-
-                        </td>
-
-
-                        <!-- PAGAMENTO -->
-
-                        <td>
-
-                            <span
-                                class="status-badge ${paymentClass(
-                                    pagamento
-                                )}"
-                            >
-                                ${esc(pagamento)}
-                            </span>
-
-                        </td>
-
-
-                        <!-- AÇÕES -->
-
-                        <td>
-
-                            <button
-                                type="button"
-                                class="action-btn"
-                                data-id="${esc(row.id)}"
-                            >
-                                VER
-                            </button>
-
-                        </td>
-
-                    </tr>
-
-                `;
-
-            })
-            .join("");
-
-
-    /* =====================================================
-       BOTÕES VER
-    ===================================================== */
-
-    body
-        .querySelectorAll(".action-btn")
-        .forEach(button => {
-
-            button.addEventListener(
-                "click",
-                () => {
-
-                    openModal(
-                        button.dataset.id
-                    );
-
-                }
-            );
-
+    body.querySelectorAll(
+        ".action-btn, .participant-name-button"
+    ).forEach(button => {
+        button.addEventListener("click", () => {
+            openModal(button.dataset.id);
         });
-
-
-    /* =====================================================
-       NOME CLICÁVEL
-    ===================================================== */
-
-    body
-        .querySelectorAll(".participant-name-button")
-        .forEach(button => {
-
-            button.addEventListener(
-                "click",
-                () => {
-
-                    openModal(
-                        button.dataset.id
-                    );
-
-                }
-            );
-
-        });
-
+    });
 }
-
 
 /* =========================================================
    ABRIR MODAL
-   ========================================================= */
+========================================================= */
 
 function openModal(id) {
-
-    const participant =
-        allRows.find(
-            row =>
-                String(row.id) ===
-                String(id)
-        );
-
+    const participant = allRows.find(
+        row => String(row.id) === String(id)
+    );
 
     if (!participant) {
-
-        showMessage(
-            "Participante não encontrado."
-        );
-
+        showMessage("Participante não encontrado.");
         return;
     }
 
+    selectedId = participant.id;
 
-    selectedId =
-        participant.id;
-
-
-    const modal =
-        document.getElementById(
-            "editModal"
-        );
-
-
-    const modalName =
-        document.getElementById(
-            "modalName"
-        );
-
-
-    const modalPayment =
-        document.getElementById(
-            "modalPayment"
-        );
-
-
-    const modalData =
-        document.getElementById(
-            "modalData"
-        );
-
-
-    if (!modal) {
-        return;
+    if ($("modalName")) {
+        $("modalName").textContent =
+            participant.nome || "Participante";
     }
 
-
-    /* =====================================================
-       NOME
-    ===================================================== */
-
-    if (modalName) {
-
-        modalName.textContent =
-            participant.nome ||
-            "Participante";
-
+    if ($("modalPayment")) {
+        $("modalPayment").value =
+            normalizarPagamento(participant.status_pagamento);
     }
 
+    renderParticipantDetails(participant);
+    configurarComunicacao(participant);
+    configurarAcompanhamentoContato(participant);
 
-    /* =====================================================
-       PAGAMENTO
-    ===================================================== */
+    $("editModal")?.classList.remove("hidden");
+    document.body.classList.add("modal-open");
 
-    const pagamento =
-        normalizarPagamento(
-            participant.status_pagamento
-        );
+    setTimeout(() => $("modalPayment")?.focus(), 100);
+}
 
-
-    if (modalPayment) {
-
-        modalPayment.value =
-            pagamento;
-
-    }
-
-
-    /* =====================================================
-       CONTATO
-    ===================================================== */
-
-    const contato =
-        normalizarStatusContato(
-            participant.status_contato
-        );
-
-
-    /* =====================================================
-       DADOS
-    ===================================================== */
-
+function renderParticipantDetails(participant) {
     const fields = [
-
-        [
-            "CPF",
-            formatCPF(participant.cpf)
-        ],
-
-        [
-            "Nascimento",
-            formatDate(participant.nascimento)
-        ],
-
-        [
-            "E-mail",
-            participant.email
-        ],
-
-        [
-            "Telefone",
-            formatPhone(participant.telefone)
-        ],
-
-        [
-            "Sexo",
-            participant.sexo
-        ],
-
-        [
-            "Camiseta",
-            participant.camiseta
-        ],
-
-        [
-            "Percurso",
-            participant.percurso
-        ],
-
-        [
-            "Valor",
-            formatMoney(participant.valor)
-        ],
-
-        [
-            "Status",
-            participant.status
-        ],
-
+        ["CPF", formatCPF(participant.cpf)],
+        ["Nascimento", formatDate(participant.nascimento)],
+        ["E-mail", participant.email],
+        ["Telefone", formatPhone(participant.telefone)],
+        ["Sexo", participant.sexo],
+        ["Camiseta", participant.camiseta],
+        ["Percurso", participant.percurso],
+        ["Valor", formatMoney(participant.valor)],
+        ["Status", participant.status],
         [
             "Pagamento",
-            pagamento
+            normalizarPagamento(participant.status_pagamento)
         ],
-
         [
             "Contato",
-            textoStatusContato(contato)
+            textoStatusContato(participant.status_contato)
         ]
-
     ];
 
-
-    if (modalData) {
-
-        modalData.innerHTML =
-            fields
-                .map(
-                    ([label, value]) => `
-
-                        <div class="detail-item">
-
-                            <span>
-                                ${esc(label)}
-                            </span>
-
-                            <strong>
-                                ${esc(
-                                    value ?? "—"
-                                )}
-                            </strong>
-
-                        </div>
-
-                    `
-                )
-                .join("");
-
+    if ($("modalData")) {
+        $("modalData").innerHTML = fields.map(([label, value]) => `
+            <div class="detail-item">
+                <span>${esc(label)}</span>
+                <strong>${esc(value ?? "—")}</strong>
+            </div>
+        `).join("");
     }
-
-
-    /* =====================================================
-       COMUNICAÇÃO
-    ===================================================== */
-
-    configurarComunicacao(
-        participant
-    );
-
-
-    /* =====================================================
-       F9
-    ===================================================== */
-
-    configurarAcompanhamentoContato(
-        participant
-    );
-
-
-    /* =====================================================
-       ABRIR MODAL
-    ===================================================== */
-
-    modal.classList.remove(
-        "hidden"
-    );
-
-
-    document.body.classList.add(
-        "modal-open"
-    );
-
-
-    /* =====================================================
-       FOCO
-    ===================================================== */
-
-    setTimeout(
-        () => {
-
-            if (modalPayment) {
-
-                modalPayment.focus();
-
-            }
-
-        },
-        100
-    );
-
 }
 
+/* =========================================================
+   FECHAR MODAL
+========================================================= */
+
+function closeModal() {
+    $("editModal")?.classList.add("hidden");
+    document.body.classList.remove("modal-open");
+    selectedId = null;
+}
 
 /* =========================================================
-   CONFIGURAR COMUNICAÇÃO
-   ========================================================= */
+   COMUNICAÇÃO — SOMENTE PAGAMENTO PENDENTE
+========================================================= */
 
-function configurarComunicacao(
-    participante
-) {
+function configurarComunicacao(participante) {
+    const box = $("pendingCommunication");
+    const whatsapp = $("whatsappBtn");
+    const emailBtn = $("emailBtn");
 
-    const communicationBox =
-        document.getElementById(
-            "pendingCommunication"
-        );
+    if (!box || !whatsapp || !emailBtn) return;
 
-
-    const whatsappBtn =
-        document.getElementById(
-            "whatsappBtn"
-        );
-
-
-    const emailBtn =
-        document.getElementById(
-            "emailBtn"
-        );
-
-
-    if (
-        !communicationBox ||
-        !whatsappBtn ||
-        !emailBtn
-    ) {
-
-        return;
-
-    }
-
-
-    const pagamento =
-        normalizarPagamento(
-            participante.status_pagamento
-        );
-
-
-    /* =====================================================
-       SÓ MOSTRAR PARA PAGAMENTO PENDENTE
-    ===================================================== */
-
-    if (pagamento !== "PENDENTE") {
-
-        communicationBox.classList.add(
-            "hidden"
-        );
-
-
-        whatsappBtn.removeAttribute(
-            "href"
-        );
-
-
-        emailBtn.removeAttribute(
-            "href"
-        );
-
-
-        whatsappBtn.onclick = null;
-        emailBtn.onclick = null;
-
-
-        return;
-
-    }
-
-
-    /* =====================================================
-       MOSTRAR
-    ===================================================== */
-
-    communicationBox.classList.remove(
-        "hidden"
-    );
-
-
-    const nome =
-        participante.nome ||
-        "participante";
-
-
-    const telefone =
-        participante.telefone ||
-        "";
-
-
-    const email =
-        participante.email ||
-        "";
-
-
-    const mensagem =
-        criarMensagemPagamento(
-            nome
-        );
-
-
-    /* =====================================================
-       WHATSAPP
-    ===================================================== */
-
-    const numero =
-        normalizarTelefone(
-            telefone
-        );
-
-
-    whatsappBtn.onclick = null;
-
-    whatsappBtn.removeAttribute(
-        "href"
-    );
-
-
-    whatsappBtn.target =
-        "_blank";
-
-
-    whatsappBtn.rel =
-        "noopener noreferrer";
-
-
-    if (numero) {
-
-        whatsappBtn.href =
-            "https://wa.me/" +
-            numero +
-            "?text=" +
-            encodeURIComponent(
-                mensagem
-            );
-
-    } else {
-
-        whatsappBtn.onclick =
-            function(event) {
-
-                event.preventDefault();
-
-                alert(
-                    "Este participante não possui telefone cadastrado."
-                );
-
-            };
-
-    }
-
-
-    /* =====================================================
-       E-MAIL
-    ===================================================== */
-
+    whatsapp.onclick = null;
     emailBtn.onclick = null;
 
-    emailBtn.removeAttribute(
-        "href"
+    whatsapp.removeAttribute("href");
+    emailBtn.removeAttribute("href");
+
+    const pagamento = normalizarPagamento(
+        participante.status_pagamento
     );
 
+    // Cortesia, pago e cancelado não exibem cobrança de pendência.
+    if (pagamento !== "PENDENTE") {
+        box.classList.add("hidden");
+        return;
+    }
 
-    emailBtn.target =
-        "_blank";
+    box.classList.remove("hidden");
 
+    const mensagem = criarMensagemPagamento(participante.nome);
+    const numero = normalizarTelefone(participante.telefone);
+    const email = String(participante.email || "").trim();
 
-    emailBtn.rel =
-        "noopener noreferrer";
+    whatsapp.target = "_blank";
+    whatsapp.rel = "noopener noreferrer";
 
+    if (numero) {
+        whatsapp.href =
+            "https://wa.me/" + numero +
+            "?text=" + encodeURIComponent(mensagem);
+    } else {
+        whatsapp.onclick = event => {
+            event.preventDefault();
+            showMessage(
+                "Este participante não possui telefone cadastrado."
+            );
+        };
+    }
+
+    emailBtn.target = "_blank";
+    emailBtn.rel = "noopener noreferrer";
 
     if (email) {
-
-        const assunto =
-            criarAssuntoEmail();
-
-
-        const gmailUrl =
-            "https://mail.google.com/mail/?view=cm" +
-            "&fs=1" +
-            "&to=" +
-            encodeURIComponent(
-                email
-            ) +
-            "&su=" +
-            encodeURIComponent(
-                assunto
-            ) +
-            "&body=" +
-            encodeURIComponent(
-                mensagem
-            );
-
-
         emailBtn.href =
-            gmailUrl;
-
+            "https://mail.google.com/mail/?view=cm&fs=1" +
+            "&to=" + encodeURIComponent(email) +
+            "&su=" + encodeURIComponent(criarAssuntoEmail()) +
+            "&body=" + encodeURIComponent(mensagem);
     } else {
-
-        emailBtn.onclick =
-            function(event) {
-
-                event.preventDefault();
-
-                alert(
-                    "Este participante não possui e-mail cadastrado."
-                );
-
-            };
-
+        emailBtn.onclick = event => {
+            event.preventDefault();
+            showMessage(
+                "Este participante não possui e-mail cadastrado."
+            );
+        };
     }
-
 }
 
+function normalizarTelefone(telefone) {
+    let numero = String(telefone || "").replace(/\D/g, "");
 
-/* =========================================================
-   NORMALIZAR TELEFONE
-   ========================================================= */
+    if (!numero) return "";
 
-function normalizarTelefone(
-    telefone
-) {
-
-    if (!telefone) {
-        return "";
-    }
-
-
-    let numero =
-        String(telefone)
-            .replace(
-                /\D/g,
-                ""
-            );
-
-
-    if (
-        numero.startsWith("55")
-    ) {
-
+    if (numero.startsWith("55")) {
         return numero;
-
     }
 
-
-    if (
-        numero.length === 10 ||
-        numero.length === 11
-    ) {
-
-        numero =
-            "55" +
-            numero;
-
+    if (numero.length === 10 || numero.length === 11) {
+        return "55" + numero;
     }
-
 
     return numero;
-
 }
 
-
-/* =========================================================
-   MENSAGEM WHATSAPP
-   ========================================================= */
-
 function criarMensagemPagamento(nome) {
-
-    const primeiroNome =
-        String(
-            nome || "participante"
-        )
-            .trim()
-            .split(/\s+/)[0];
-
+    const primeiroNome = String(nome || "participante")
+        .trim()
+        .split(/\s+/)[0];
 
     return `Olá, ${primeiroNome}!
 
@@ -1709,7 +911,7 @@ Identificamos que sua inscrição foi iniciada, porém o pagamento ainda não fo
 
 Estamos nos últimos dias do lote atual, e a mudança para o 2º lote está próxima. Após essa virada, os valores serão atualizados.
 
-Por isso, se você deseja participar da RUN & SAMBA, este é o momento de confirmar sua inscrição pelo valor atual.
+Se você deseja participar, este é o momento de conferir sua inscrição e as condições do lote vigente.
 
 RUN & SAMBA – 2ª EDIÇÃO
 
@@ -1717,605 +919,242 @@ RUN & SAMBA – 2ª EDIÇÃO
 Luziânia – GO
 Percursos de 5K e 10K
 
-Finalize seu pagamento pelo link oficial da inscrição:
+Acesse o link oficial para conferir sua inscrição:
+https://eventos.izypass.com.br/share/run-and-samba-2-edicao_luziania_20-11-2026
 
-https://izypass.com.br/evento/run-and-samba-2-edicao_luziania_20-11-2026
-
-Não deixe para depois. Após o encerramento do lote atual, não será possível garantir o valor vigente.
-
-Esperamos você na linha de largada para viver essa experiência com a gente.
+Não deixe para a última hora!
 
 RUN & SAMBA
 Corra. Sinta. Viva.
 
 Atenciosamente,
 Organização Run & Samba`;
-
 }
-
-
-/* =========================================================
-   ASSUNTO E-MAIL
-   ========================================================= */
 
 function criarAssuntoEmail() {
-
-    return (
-        "Última chance: 2º lote da Run & Samba está chegando!"
-    );
-
+    return "Última chance: 2º lote da Run & Samba está chegando!";
 }
-
-
-/* =========================================================
-   FECHAR MODAL
-   ========================================================= */
-
-function closeModal() {
-
-    const modal =
-        document.getElementById(
-            "editModal"
-        );
-
-
-    if (modal) {
-
-        modal.classList.add(
-            "hidden"
-        );
-
-    }
-
-
-    document.body.classList.remove(
-        "modal-open"
-    );
-
-
-    selectedId =
-        null;
-
-}
-
 
 /* =========================================================
    SALVAR PAGAMENTO
-   ========================================================= */
+========================================================= */
 
 async function savePayment() {
-
-    if (!selectedId) {
-
-        showMessage(
-            "Nenhum participante selecionado."
-        );
-
+    if (selectedId === null || selectedId === undefined) {
+        showMessage("Nenhum participante selecionado.");
         return;
     }
 
+    const select = $("modalPayment");
+    const button = $("savePayment");
 
-    if (!db) {
+    if (!select || !button || !db) return;
 
-        showMessage(
-            "Supabase não está disponível."
-        );
+    const value = normalizarPagamento(select.value);
+    const previousText = button.textContent;
 
-        return;
-    }
-
-
-    const select =
-        document.getElementById(
-            "modalPayment"
-        );
-
-
-    const btn =
-        document.getElementById(
-            "savePayment"
-        );
-
-
-    if (!select || !btn) {
-        return;
-    }
-
-
-    const value =
-        normalizarPagamento(
-            select.value
-        );
-
-
-    btn.disabled = true;
-
-    btn.textContent =
-        "SALVANDO...";
-
+    button.disabled = true;
+    button.textContent = "SALVANDO...";
 
     try {
+        const agora = new Date().toISOString();
 
-        const agora =
-            new Date().toISOString();
-
-
-        const {
-            error
-        } = await db
+        const { data, error } = await db
             .from("inscricoes")
             .update({
-
-                status_pagamento:
-                    value,
-
-                updated_at:
-                    agora
-
+                status_pagamento: value,
+                updated_at: agora
             })
-            .eq(
-                "id",
-                selectedId
+            .eq("id", selectedId)
+            .select("*");
+
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+            throw new Error(
+                "Nenhuma inscrição foi atualizada. " +
+                "Verifique as permissões RLS."
             );
-
-
-        if (error) {
-            throw error;
         }
 
-
-        /* =================================================
-           MEMÓRIA LOCAL
-        ================================================= */
-
-        const item =
-            allRows.find(
-                row =>
-                    String(row.id) ===
-                    String(selectedId)
-            );
-
+        const item = allRows.find(
+            row => String(row.id) === String(selectedId)
+        );
 
         if (item) {
-
-            item.status_pagamento =
-                value;
-
-            item.updated_at =
-                agora;
-
+            item.status_pagamento = value;
+            item.updated_at = agora;
         }
-
-
-        /* =================================================
-           ATUALIZAR TABELA
-        ================================================= */
 
         render();
 
-
-        /* =================================================
-           ATUALIZAR COMUNICAÇÃO
-        ================================================= */
-
         if (item) {
-
-            configurarComunicacao(
-                item
-            );
-
+            renderParticipantDetails(item);
+            configurarComunicacao(item);
         }
 
-
         showMessage(
-            "Pagamento atualizado com sucesso."
+            value === "CORTESIA"
+                ? "Inscrição atualizada para CORTESIA."
+                : "Pagamento atualizado com sucesso."
         );
-
 
     } catch (error) {
-
-        console.error(
-            "Erro ao atualizar pagamento:",
-            error
-        );
-
+        console.error("Erro ao atualizar pagamento:", error);
 
         showMessage(
             "Erro ao atualizar pagamento: " +
+            (error?.message || "Erro desconhecido.") +
             (
-                error?.message ||
-                "Erro desconhecido."
+                error?.code === "23514"
+                    ? " A coluna status_pagamento pode ter uma restrição CHECK que ainda não permite CORTESIA."
+                    : ""
             )
         );
 
-
     } finally {
-
-        btn.disabled = false;
-
-        btn.textContent =
-            "SALVAR PAGAMENTO";
-
+        button.disabled = false;
+        button.textContent = previousText || "SALVAR PAGAMENTO";
     }
-
 }
 
-
 /* =========================================================
-   F9 — CONFIGURAR ACOMPANHAMENTO
-   ========================================================= */
+   F9 — ACOMPANHAMENTO DE CONTATO
+========================================================= */
 
-function configurarAcompanhamentoContato(
-    participante
-) {
+function configurarAcompanhamentoContato(participante) {
+    const statusSelect = $("contactStatus");
+    const responseField = $("clientResponse");
+    const responseGroup = $("clientResponseGroup");
 
-    const statusSelect =
-        document.getElementById(
-            "contactStatus"
-        );
+    if (!statusSelect || !responseField) return;
 
-
-    const responseField =
-        document.getElementById(
-            "clientResponse"
-        );
-
-
-    const responseGroup =
-        document.getElementById(
-            "clientResponseGroup"
-        );
-
-
-    if (
-        !statusSelect ||
-        !responseField
-    ) {
-
-        return;
-
-    }
-
-
-    /* =====================================================
-       STATUS
-    ===================================================== */
-
-    const status =
-        normalizarStatusContato(
-            participante.status_contato
-        );
-
-
-    statusSelect.value =
-        status;
-
-
-    /* =====================================================
-       RESPOSTA
-    ===================================================== */
-
-    responseField.value =
-        participante.resposta_cliente ||
-        "";
-
-
-    /* =====================================================
-       MOSTRAR / OCULTAR
-    ===================================================== */
-
-    atualizarCampoRespostaContato(
-        status,
-        responseGroup
+    const status = normalizarStatusContato(
+        participante.status_contato
     );
 
+    statusSelect.value = status;
+    responseField.value = participante.resposta_cliente || "";
 
-    /* =====================================================
-       ALTERAÇÃO
-    ===================================================== */
+    atualizarCampoRespostaContato(status, responseGroup);
 
-    statusSelect.onchange =
-        function() {
-
-            const novoStatus =
-                normalizarStatusContato(
-                    this.value
-                );
-
-
-            atualizarCampoRespostaContato(
-                novoStatus,
-                responseGroup
-            );
-
-        };
-
+    statusSelect.onchange = function () {
+        atualizarCampoRespostaContato(
+            normalizarStatusContato(this.value),
+            responseGroup
+        );
+    };
 }
 
+function atualizarCampoRespostaContato(status, responseGroup) {
+    if (!responseGroup) return;
 
-/* =========================================================
-   F9 — CAMPO DE RESPOSTA
-   ========================================================= */
-
-function atualizarCampoRespostaContato(
-    status,
-    responseGroup
-) {
-
-    if (!responseGroup) {
-        return;
-    }
-
-
-    if (
-        normalizarStatusContato(status) ===
-        "RESPONDEU"
-    ) {
-
-        responseGroup.style.display =
-            "block";
-
-    } else {
-
-        responseGroup.style.display =
-            "none";
-
-    }
-
+    responseGroup.style.display =
+        normalizarStatusContato(status) === "RESPONDEU"
+            ? "block"
+            : "none";
 }
-
-
-/* =========================================================
-   F9 — SALVAR ACOMPANHAMENTO
-   ========================================================= */
 
 async function saveContactFollowup() {
-
-    if (!selectedId) {
-
-        showMessage(
-            "Nenhum participante selecionado."
-        );
-
+    if (selectedId === null || selectedId === undefined) {
+        showMessage("Nenhum participante selecionado.");
         return;
     }
 
+    const statusSelect = $("contactStatus");
+    const responseField = $("clientResponse");
+    const button = $("saveContactFollowup");
 
-    if (!db) {
-
-        showMessage(
-            "Supabase não está disponível."
-        );
-
+    if (!statusSelect || !responseField || !button || !db) {
+        showMessage("Campos do acompanhamento não encontrados.");
         return;
     }
 
+    const status = normalizarStatusContato(statusSelect.value);
+    const resposta = responseField.value.trim();
 
-    const statusSelect =
-        document.getElementById(
-            "contactStatus"
-        );
-
-
-    const responseField =
-        document.getElementById(
-            "clientResponse"
-        );
-
-
-    const button =
-        document.getElementById(
-            "saveContactFollowup"
-        );
-
-
-    if (
-        !statusSelect ||
-        !responseField ||
-        !button
-    ) {
-
-        showMessage(
-            "Campos do acompanhamento não encontrados."
-        );
-
-        return;
-
-    }
-
-
-    /* =====================================================
-       STATUS
-    ===================================================== */
-
-    const status =
-        normalizarStatusContato(
-            statusSelect.value
-        );
-
-
-    /* =====================================================
-       RESPOSTA
-    ===================================================== */
-
-    const resposta =
-        responseField.value.trim();
-
-
-    /* =====================================================
-       VALIDAÇÃO
-    ===================================================== */
-
-    if (
-        status === "RESPONDEU" &&
-        !resposta
-    ) {
-
-        showMessage(
-            "Digite a resposta do cliente."
-        );
-
-
+    if (status === "RESPONDEU" && !resposta) {
+        showMessage("Digite a resposta do cliente.");
         responseField.focus();
-
         return;
-
     }
 
+    const previousText = button.textContent;
 
     button.disabled = true;
-
-    button.textContent =
-        "SALVANDO...";
-
+    button.textContent = "SALVANDO...";
 
     try {
+        const agora = new Date().toISOString();
 
-        const agora =
-            new Date().toISOString();
-
-
-        /* =================================================
-           SUPABASE
-        ================================================= */
-
-        const {
-            error
-        } = await db
+        const { data, error } = await db
             .from("inscricoes")
             .update({
-
-                status_contato:
-                    status,
-
+                status_contato: status,
                 resposta_cliente:
-                    status === "RESPONDEU"
-                        ? resposta
-                        : null,
-
-                contato_atualizado_em:
-                    agora
-
+                    status === "RESPONDEU" ? resposta : null,
+                contato_atualizado_em: agora
             })
-            .eq(
-                "id",
-                selectedId
+            .eq("id", selectedId)
+            .select("*");
+
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+            throw new Error(
+                "Nenhum registro foi atualizado. " +
+                "Verifique as permissões RLS."
             );
-
-
-        if (error) {
-            throw error;
         }
 
-
-        /* =================================================
-           MEMÓRIA LOCAL
-        ================================================= */
-
-        const participant =
-            allRows.find(
-                row =>
-                    String(row.id) ===
-                    String(selectedId)
-            );
-
+        const participant = allRows.find(
+            row => String(row.id) === String(selectedId)
+        );
 
         if (participant) {
-
-            participant.status_contato =
-                status;
-
+            participant.status_contato = status;
             participant.resposta_cliente =
-                status === "RESPONDEU"
-                    ? resposta
-                    : null;
+                status === "RESPONDEU" ? resposta : null;
+            participant.contato_atualizado_em = agora;
 
-            participant.contato_atualizado_em =
-                agora;
-
+            renderParticipantDetails(participant);
         }
 
-
-        /* =================================================
-           ATUALIZAR TABELA
-        ================================================= */
-
+        // RESPONDEU / NÃO RESPONDIDO não alteram a bolinha.
+        // MENSAGEM ENVIADA continua representada em azul,
+        // exceto quando o pagamento é CORTESIA, PAGO ou CANCELADO.
         render();
 
-
-        /* =================================================
-           ATUALIZAR F9
-        ================================================= */
-
-        configurarAcompanhamentoContato(
-            participant || {
-
-                status_contato:
-                    status,
-
-                resposta_cliente:
-                    resposta
-
-            }
-        );
-
-
-        showMessage(
-            "Acompanhamento salvo com sucesso."
-        );
-
+        showMessage("Acompanhamento salvo com sucesso.");
 
     } catch (error) {
-
-        console.error(
-            "Erro ao salvar acompanhamento:",
-            error
-        );
-
+        console.error("Erro ao salvar acompanhamento:", error);
 
         showMessage(
             "Erro ao salvar acompanhamento: " +
-            (
-                error?.message ||
-                "Erro desconhecido."
-            )
+            (error?.message || "Erro desconhecido.")
         );
 
-
     } finally {
-
         button.disabled = false;
-
         button.textContent =
-            "SALVAR ACOMPANHAMENTO";
-
+            previousText || "SALVAR ACOMPANHAMENTO";
     }
-
 }
-
 
 /* =========================================================
    EXPORTAR CSV
-   ========================================================= */
+========================================================= */
 
 function exportCSV() {
-
-    const rows =
-        filtered();
-
+    const rows = filtered();
 
     if (!rows.length) {
-
-        showMessage(
-            "Não existem inscrições para exportar."
-        );
-
+        showMessage("Não existem inscrições para exportar.");
         return;
     }
 
-
     const columns = [
-
         "id",
         "nome",
         "cpf",
@@ -2332,89 +1171,30 @@ function exportCSV() {
         "resposta_cliente",
         "contato_atualizado_em",
         "created_at"
-
     ];
 
-
     const csv = [
-
         columns.join(";"),
-
-        ...rows.map(
-
-            row =>
-                columns
-                    .map(
-                        column =>
-                            csvCell(
-                                row[column]
-                            )
-                    )
-                    .join(";")
-
+        ...rows.map(row =>
+            columns.map(column => csvCell(row[column])).join(";")
         )
+    ].join("\r\n");
 
-    ].join("\n");
+    const blob = new Blob(["\ufeff" + csv], {
+        type: "text/csv;charset=utf-8;"
+    });
 
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
 
-    const blob =
-        new Blob(
+    link.href = url;
+    link.download = "run-samba-inscricoes.csv";
 
-            [
-                "\ufeff" +
-                csv
-            ],
-
-            {
-                type:
-                    "text/csv;charset=utf-8"
-            }
-
-        );
-
-
-    const url =
-        URL.createObjectURL(
-            blob
-        );
-
-
-    const link =
-        document.createElement(
-            "a"
-        );
-
-
-    link.href =
-        url;
-
-
-    link.download =
-        "run-samba-inscricoes.csv";
-
-
-    document.body.appendChild(
-        link
-    );
-
-
+    document.body.appendChild(link);
     link.click();
-
-
     link.remove();
 
-
-    setTimeout(
-        () => {
-
-            URL.revokeObjectURL(
-                url
-            );
-
-        },
-        1000
-    );
-
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
 
     showMessage(
         `${rows.length} ${
@@ -2423,467 +1203,178 @@ function exportCSV() {
                 : "inscrições exportadas"
         }.`
     );
-
 }
-
-
-/* =========================================================
-   CSV CELL
-   ========================================================= */
 
 function csvCell(value) {
-
-    return `"${String(
-        value ?? ""
-    ).replace(
-        /"/g,
-        '""'
-    )}"`;
-
+    return `"${String(value ?? "").replace(/"/g, '""')}"`;
 }
 
-
 /* =========================================================
-   CPF
-   ========================================================= */
+   FORMATAÇÃO DE DADOS
+========================================================= */
 
 function formatCPF(cpf) {
+    const value = String(cpf || "").replace(/\D/g, "");
 
-    const value =
-        String(cpf || "")
-            .replace(
-                /\D/g,
-                ""
-            );
-
-
-    if (
-        value.length !== 11
-    ) {
-
-        return cpf || "—";
-
-    }
-
+    if (value.length !== 11) return cpf || "—";
 
     return value.replace(
         /(\d{3})(\d{3})(\d{3})(\d{2})/,
         "$1.$2.$3-$4"
     );
-
 }
-
-
-/* =========================================================
-   TELEFONE
-   ========================================================= */
 
 function formatPhone(phone) {
+    const value = String(phone || "").replace(/\D/g, "");
 
-    const value =
-        String(phone || "")
-            .replace(
-                /\D/g,
-                ""
-            );
-
-
-    /* =====================================================
-       DDI 55 + CELULAR
-    ===================================================== */
-
-    if (
-        value.length === 13 &&
-        value.startsWith("55")
-    ) {
-
-        const local =
-            value.substring(2);
-
-
-        return local.replace(
+    if (value.length === 13 && value.startsWith("55")) {
+        return value.substring(2).replace(
             /(\d{2})(\d{5})(\d{4})/,
             "($1) $2-$3"
         );
-
     }
 
-
-    /* =====================================================
-       DDI 55 + FIXO
-    ===================================================== */
-
-    if (
-        value.length === 12 &&
-        value.startsWith("55")
-    ) {
-
-        const local =
-            value.substring(2);
-
-
-        return local.replace(
+    if (value.length === 12 && value.startsWith("55")) {
+        return value.substring(2).replace(
             /(\d{2})(\d{4})(\d{4})/,
             "($1) $2-$3"
         );
-
     }
 
-
-    /* =====================================================
-       BRASIL — 11 DÍGITOS
-    ===================================================== */
-
-    if (
-        value.length === 11
-    ) {
-
+    if (value.length === 11) {
         return value.replace(
             /(\d{2})(\d{5})(\d{4})/,
             "($1) $2-$3"
         );
-
     }
 
-
-    /* =====================================================
-       BRASIL — 10 DÍGITOS
-    ===================================================== */
-
-    if (
-        value.length === 10
-    ) {
-
+    if (value.length === 10) {
         return value.replace(
             /(\d{2})(\d{4})(\d{4})/,
             "($1) $2-$3"
         );
-
     }
-
 
     return phone || "—";
-
 }
-
-
-/* =========================================================
-   DATA
-   ========================================================= */
 
 function formatDate(date) {
+    if (!date) return "—";
 
-    if (!date) {
-        return "—";
-    }
+    const value = String(date);
 
-
-    const value =
-        String(date);
-
-
-    /* =====================================================
-       YYYY-MM-DD
-    ===================================================== */
-
-    if (
-        /^\d{4}-\d{2}-\d{2}$/.test(
-            value
-        )
-    ) {
-
-        const [
-            year,
-            month,
-            day
-        ] =
-            value.split("-");
-
-
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        const [year, month, day] = value.split("-");
         return `${day}/${month}/${year}`;
-
     }
 
+    const parsed = new Date(value);
 
-    /* =====================================================
-       DATA ISO
-    ===================================================== */
-
-    if (
-        value.includes("T")
-    ) {
-
-        const parsed =
-            new Date(value);
-
-
-        if (
-            !Number.isNaN(
-                parsed.getTime()
-            )
-        ) {
-
-            return parsed.toLocaleDateString(
-                "pt-BR"
-            );
-
-        }
-
+    if (!Number.isNaN(parsed.getTime())) {
+        return parsed.toLocaleDateString("pt-BR");
     }
-
 
     return value;
-
 }
 
-
-/* =========================================================
-   DINHEIRO
-   ========================================================= */
-
 function formatMoney(value) {
-
-    if (
-        value === null ||
-        value === undefined ||
-        value === ""
-    ) {
-
+    if (value === null || value === undefined || value === "") {
         return "—";
-
     }
-
 
     let number;
 
-
-    if (
-        typeof value === "number"
-    ) {
-
-        number =
-            value;
-
+    if (typeof value === "number") {
+        number = value;
     } else {
+        let normalized = String(value)
+            .trim()
+            .replace(/R\$\s?/gi, "")
+            .replace(/\s/g, "");
 
-        let normalized =
-            String(value)
-                .trim()
-                .replace(
-                    /R\$\s?/gi,
-                    ""
-                )
-                .replace(
-                    /\s/g,
-                    ""
-                );
-
-
-        if (
-            normalized.includes(",")
-        ) {
-
-            number =
-                Number(
-                    normalized
-                        .replace(
-                            /\./g,
-                            ""
-                        )
-                        .replace(
-                            ",",
-                            "."
-                        )
-                );
-
-        } else {
-
-            number =
-                Number(
-                    normalized
-                );
-
+        if (normalized.includes(",")) {
+            normalized = normalized
+                .replace(/\./g, "")
+                .replace(",", ".");
         }
 
+        number = Number(normalized);
     }
 
+    if (!Number.isFinite(number)) return String(value);
 
-    if (
-        !Number.isFinite(
-            number
-        )
-    ) {
-
-        return String(value);
-
-    }
-
-
-    return number.toLocaleString(
-        "pt-BR",
-        {
-            style: "currency",
-            currency: "BRL"
-        }
-    );
-
+    return number.toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL"
+    });
 }
-
-
-/* =========================================================
-   CLASSE PAGAMENTO
-   ========================================================= */
 
 function paymentClass(value) {
+    const status = normalizarPagamento(value);
 
-    const status =
-        normalizarPagamento(
-            value
-        );
-
-
-    if (
-        status === "PAGO"
-    ) {
-
-        return "paid";
-
-    }
-
-
-    if (
-        status === "CANCELADO"
-    ) {
-
-        return "cancelled";
-
-    }
-
+    if (status === "PAGO") return "paid";
+    if (status === "CANCELADO") return "cancelled";
+    if (status === "CORTESIA") return "courtesy";
 
     return "pending";
-
 }
 
-
 /* =========================================================
-   ESCAPAR HTML
-   ========================================================= */
+   ESCAPE HTML
+========================================================= */
 
 function esc(value) {
-
     const entities = {
-
         "&": "&amp;",
-
         "<": "&lt;",
-
         ">": "&gt;",
-
         '"': "&quot;",
-
         "'": "&#039;"
-
     };
 
-
-    return String(
-        value ?? ""
-    ).replace(
+    return String(value ?? "").replace(
         /[&<>"']/g,
-        character =>
-            entities[character]
+        character => entities[character]
     );
-
 }
 
-
 /* =========================================================
-   MENSAGEM / TOAST
-   ========================================================= */
+   MENSAGENS E CARREGAMENTO
+========================================================= */
 
 function showMessage(text) {
+    const element = $("message");
 
-    const el =
-        document.getElementById(
-            "message"
-        );
-
-
-    if (!el) {
+    if (!element) {
+        console.log(text);
         return;
     }
 
+    element.textContent = text;
+    element.classList.add("show");
 
-    el.textContent =
-        text;
+    clearTimeout(showMessage.timer);
 
-
-    el.classList.add(
-        "show"
-    );
-
-
-    clearTimeout(
-        showMessage.timer
-    );
-
-
-    showMessage.timer =
-        setTimeout(
-            () => {
-
-                el.textContent =
-                    "";
-
-                el.classList.remove(
-                    "show"
-                );
-
-            },
-            5000
-        );
-
+    showMessage.timer = setTimeout(() => {
+        element.textContent = "";
+        element.classList.remove("show");
+    }, 5000);
 }
-
-
-/* =========================================================
-   LOADING
-   ========================================================= */
 
 function setLoading(text) {
-
-    const el =
-        document.getElementById(
-            "loading"
-        );
-
-
-    if (el) {
-
-        el.textContent =
-            text;
-
+    if ($("loading")) {
+        $("loading").textContent = text;
     }
-
 }
 
-
 /* =========================================================
-   INICIAR
-   ========================================================= */
+   INICIAR APLICAÇÃO
+========================================================= */
 
-if (
-    document.readyState ===
-    "loading"
-) {
-
-    document.addEventListener(
-        "DOMContentLoaded",
-        init
-    );
-
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init, {
+        once: true
+    });
 } else {
-
     init();
-
 }

@@ -70,13 +70,7 @@
                     <span class="nav-icon">◈</span>
                     Dashboard
                 </a>
-
-
-                <a href="inscritos.html">
-                    <span class="nav-icon">◉</span>
-                    Inscritos
-                </a>
-
+               
 
                 <a href="marketing.html">
                     <span class="nav-icon">✦</span>
@@ -194,6 +188,31 @@
 
             </article>
 
+            <!-- CORTESIAS -->
+<article class="stat-card">
+
+    <div class="stat-head">
+        <span class="stat-label">
+            CORTESIAS
+        </span>
+
+        <span class="stat-icon">
+            ♡
+        </span>
+    </div>
+
+    <strong
+        id="courtesies"
+        class="stat-value"
+    >
+        0
+    </strong>
+
+    <span class="stat-description">
+        inscrições cortesia
+    </span>
+
+</article>
 
 
             <article class="stat-card financial received">
@@ -285,82 +304,94 @@
 
 
 
-        <!-- FINANCEIRO -->
 
-        <section class="financial-summary">
+<!-- FINANCEIRO -->
+<section class="financial-summary">
 
-            <div class="finance-main">
+    <div class="finance-main">
+        <div>
+            <span class="eyebrow">FINANCEIRO</span>
+            <h2>Visão financeira</h2>
+            
+        </div>
 
-                <div>
+        <div class="finance-total">
+            <span>VALOR TOTAL DAS INSCRIÇÕES</span>
+            <strong id="totalValue">R$ 9.709,20</strong>
+        </div>
+    </div>
 
-                    <span class="eyebrow">
-                        FINANCEIRO
-                    </span>
+    <!-- META DE ARRECADAÇÃO -->
+    <div class="goal-card">
 
-                    <h2>
-                        Visão financeira
-                    </h2>
-
-                </div>
-
-
-                <div class="finance-total">
-
-                    <span>
-                        VALOR TOTAL DAS INSCRIÇÕES
-                    </span>
-
-                    <strong id="totalValue">
-                        R$ 0,00
-                    </strong>
-
-                </div>
-
+        <div class="goal-header">
+            <div>
+                <span class="eyebrow">OBJETIVO FINANCEIRO</span>
+                <h3>Meta da planilha</h3>
             </div>
 
+            <span class="goal-badge">META 2026</span>
+        </div>
 
-            <div class="finance-progress">
-
-                <div class="progress-header">
-
-                    <span>
-                        RECEBIMENTO
-                    </span>
-
-                    <strong id="paidPercent">
-                        0%
-                    </strong>
-
-                </div>
-
-
-                <div class="progress">
-
-                    <div
-                        id="paidProgress"
-                        class="progress-bar"
-                    ></div>
-
-                </div>
-
-
-                <div class="progress-footer">
-
-                    <span>
-                        <b id="paidCount">0</b>
-                        pagos
-                    </span>
-
-                    <span>
-                        <b id="pendingCount">0</b>
-                        pendentes
-                    </span>
-
-                </div>
-
+        <div class="goal-values">
+            <div>
+                <span>Valores recebidos</span>
+                <strong id="goalReceived">R$ 0,00</strong>
             </div>
 
-        </section>
+            <div class="goal-target">
+                <span>Meta definida</span>
+                <strong id="goalTarget">R$ 50.000,00</strong>
+            </div>
+        </div>
+
+        <div class="goal-progress-track">
+            <div
+                id="goalProgressBar"
+                class="goal-progress-bar"
+                style="width: 0%"
+            ></div>
+        </div>
+
+        <div class="goal-progress-footer">
+            <strong id="goalPercent">0% alcançado</strong>
+            <span id="goalRemaining">Faltam R$ 50.000,00</span>
+        </div>
+
+       
+
+    </div>
+
+    <!-- RECEBIMENTOS -->
+    <div class="finance-progress">
+
+        <div class="progress-header">
+            <span>RECEBIMENTO DAS INSCRIÇÕES</span>
+            <strong id="paidPercent">15%</strong>
+        </div>
+
+        <div class="progress">
+            <div
+                id="paidProgress"
+                class="progress-bar"
+                style="width: 15%"
+            ></div>
+        </div>
+
+        <div class="progress-footer">
+            <span>
+                <b id="paidCount">16</b> pagos
+            </span>
+
+            <span>
+                <b id="pendingCount">0</b> pendentes
+            </span>
+        </div>
+
+    </div>
+
+</section>
+
 
 
 
@@ -708,47 +739,6 @@
             </article>
 
         </section>
-
-
-
-        <!-- CTA -->
-
-        <section class="dashboard-cta">
-
-            <div>
-
-                <span class="eyebrow">
-                    GESTÃO DE PARTICIPANTES
-                </span>
-
-                <h2>
-                    Tenha controle total das inscrições.
-                </h2>
-
-                <p>
-                    Consulte participantes, atualize pagamentos,
-                    filtre dados e exporte sua base.
-                </p>
-
-            </div>
-
-
-            <a
-                href="inscritos.html"
-                class="primary-btn"
-            >
-                ACESSAR INSCRITOS
-                <span>→</span>
-            </a>
-
-        </section>
-
-
-        <div
-            id="dashboardMessage"
-            class="message"
-        ></div>
-
 
     </main>
 

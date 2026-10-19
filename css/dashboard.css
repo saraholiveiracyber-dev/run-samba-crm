@@ -2495,3 +2495,171 @@ textarea:focus-visible {
             .01ms !important;
     }
 }
+
+
+/* =========================================
+   META FINANCEIRA — RUN & SAMBA
+========================================= */
+
+.finance-subtitle {
+    margin-top: 7px;
+    color: #9b9b9b;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.goal-card {
+    margin-top: 26px;
+    padding: 26px;
+    border: 1px solid rgba(232, 190, 85, 0.22);
+    border-radius: 18px;
+    background:
+        radial-gradient(
+            circle at 100% 0%,
+            rgba(201, 168, 93, 0.12),
+            transparent 42%
+        ),
+        linear-gradient(135deg, #151515, #0a0a0a);
+}
+
+.goal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.goal-header h3 {
+    margin: 8px 0 0;
+    color: #f5f5f5;
+    font-size: 21px;
+    font-weight: 700;
+}
+
+.goal-badge {
+    padding: 8px 12px;
+    border: 1px solid rgba(226, 196, 119, 0.3);
+    border-radius: 30px;
+    color: #e2c477;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
+.goal-values {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.goal-values > div {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+.goal-values span {
+    color: #a4a4a4;
+    font-size: 12px;
+}
+
+.goal-values strong {
+    color: #e2c477;
+    font-size: clamp(20px, 3vw, 30px);
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
+.goal-target {
+    text-align: right;
+}
+
+.goal-target strong {
+    color: #f5f5f5;
+}
+
+.goal-progress-track {
+    width: 100%;
+    height: 13px;
+    overflow: hidden;
+    border-radius: 30px;
+    background: #292929;
+}
+
+.goal-progress-bar {
+    height: 100%;
+    min-width: 0;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #b18a37, #f1d68b);
+    box-shadow: 0 0 16px rgba(226, 196, 119, 0.2);
+    transition: width 0.6s ease;
+}
+
+.goal-progress-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-top: 13px;
+    font-size: 12px;
+}
+
+.goal-progress-footer strong {
+    color: #e2c477;
+}
+
+.goal-progress-footer span {
+    color: #a4a4a4;
+    text-align: right;
+}
+
+.goal-message {
+    margin-top: 22px;
+    padding-top: 17px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    color: #c9c9c9;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+@media (max-width: 600px) {
+    .goal-card {
+        margin-top: 20px;
+        padding: 18px;
+        border-radius: 14px;
+    }
+
+    .goal-header {
+        margin-bottom: 22px;
+    }
+
+    .goal-header h3 {
+        font-size: 18px;
+    }
+
+    .goal-values {
+        gap: 12px;
+    }
+
+    .goal-values span {
+        font-size: 11px;
+    }
+
+    .goal-values strong {
+        font-size: 20px;
+    }
+
+    .goal-progress-footer {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 7px;
+    }
+
+    .goal-progress-footer span {
+        text-align: left;
+    }
+}
