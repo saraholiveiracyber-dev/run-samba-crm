@@ -904,31 +904,7 @@ function criarMensagemPagamento(nome) {
         .split(/\s+/)[0];
 
     return `Olá, ${primeiroNome}!
-
-Aqui é da organização da RUN & SAMBA – 2ª Edição.
-
-Identificamos que sua inscrição foi iniciada, porém o pagamento ainda não foi confirmado.
-
-Estamos nos últimos dias do lote atual, e a mudança para o 2º lote está próxima. Após essa virada, os valores serão atualizados.
-
-Se você deseja participar, este é o momento de conferir sua inscrição e as condições do lote vigente.
-
-RUN & SAMBA – 2ª EDIÇÃO
-
-20 de novembro de 2026
-Luziânia – GO
-Percursos de 5K e 10K
-
-Acesse o link oficial para conferir sua inscrição:
-https://eventos.izypass.com.br/share/run-and-samba-2-edicao_luziania_20-11-2026
-
-Não deixe para a última hora!
-
-RUN & SAMBA
-Corra. Sinta. Viva.
-
-Atenciosamente,
-Organização Run & Samba`;
+Tudo bem?`;
 }
 
 function criarAssuntoEmail() {
