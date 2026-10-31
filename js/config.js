@@ -13,3 +13,6 @@ window.supabaseClient =
         window.SUPABASE_URL,
         window.SUPABASE_ANON_KEY
     );
+
+    window.RUN_SAMBA_REGISTRATION_URL =
+    "http://127.0.0.1:5502/inscricoes.html";

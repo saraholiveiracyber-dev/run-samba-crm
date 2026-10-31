@@ -1,0 +1,725 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="description"
+        content="Gestão de embaixadores e indicações do Run & Samba 2026."
+    >
+
+    <meta name="theme-color" content="#050505">
+    <meta name="robots" content="noindex, nofollow">
+
+    <title>Embaixadores | Run & Samba CRM</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Montserrat:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet"
+    >
+
+    <!-- CSS OFICIAL -->
+    <link rel="stylesheet" href="css/embaixadores.css">
+
+    <!-- ESTILOS COMPLEMENTARES DA PÁGINA -->
+    <style>
+        .page-intro {
+            margin-bottom: 22px;
+        }
+
+        .page-intro p {
+            color: var(--text-soft);
+            font-size: 11px;
+            line-height: 1.7;
+        }
+
+        .ambassador-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1.4fr) minmax(280px, .8fr);
+            gap: 18px;
+            margin-bottom: 18px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 15px;
+        }
+
+        .form-group {
+            display: grid;
+            gap: 7px;
+        }
+
+        .form-group.full {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            color: var(--text-soft);
+            font-size: 9px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            min-height: 43px;
+            padding: 11px 13px;
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            outline: none;
+            background: #fff;
+            color: var(--text);
+            font-size: 11px;
+            transition: border-color var(--transition);
+        }
+
+        .form-group textarea {
+            min-height: 85px;
+            resize: vertical;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: var(--gold);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 18px;
+        }
+
+        .form-actions button {
+            border: 0;
+        }
+
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .ambassador-table {
+            width: 100%;
+            min-width: 680px;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .ambassador-table th {
+            padding: 13px 12px;
+            background: #f4f1e9;
+            color: #858585;
+            font-size: 8px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .ambassador-table td {
+            padding: 15px 12px;
+            border-bottom: 1px solid var(--line-light);
+            color: var(--text-2);
+            font-size: 10px;
+            vertical-align: middle;
+        }
+
+        .ambassador-table tbody tr:hover {
+            background: #fffdf8;
+        }
+
+        .ambassador-name {
+            color: var(--text);
+            font-weight: 900;
+        }
+
+        .ambassador-code {
+            display: inline-block;
+            padding: 6px 9px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: #f8f6f0;
+            color: var(--gold-dark);
+            font-size: 9px;
+            font-weight: 900;
+            letter-spacing: .5px;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 9px;
+            border-radius: 20px;
+            font-size: 8px;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .status-pill::before {
+            content: "";
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .status-active {
+            color: var(--green);
+            background: var(--green-bg);
+        }
+
+        .status-inactive {
+            color: var(--gray);
+            background: var(--gray-bg);
+        }
+
+        .table-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .table-actions button {
+            min-height: 29px;
+            padding: 0 9px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: #fff;
+            color: var(--text);
+            font-size: 8px;
+            font-weight: 900;
+        }
+
+        .table-actions button:hover {
+            border-color: var(--gold);
+            color: var(--gold-dark);
+        }
+
+        .ranking-list {
+            display: grid;
+            gap: 0;
+        }
+
+        .ranking-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .ranking-item:last-child {
+            border-bottom: 0;
+        }
+
+        .ranking-person {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+        }
+
+        .ranking-number {
+            width: 30px;
+            height: 30px;
+            display: grid;
+            place-items: center;
+            border-radius: 9px;
+            background: #171717;
+            color: var(--gold);
+            font-size: 10px;
+            font-weight: 900;
+        }
+
+        .ranking-person strong {
+            display: block;
+            color: var(--text);
+            font-size: 10px;
+        }
+
+        .ranking-person small {
+            display: block;
+            margin-top: 4px;
+            color: var(--muted);
+            font-size: 8px;
+        }
+
+        .ranking-total {
+            color: var(--green);
+            font-size: 14px;
+            font-weight: 900;
+        }
+
+        .link-box {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .link-box input {
+            min-width: 0;
+            flex: 1;
+            padding: 11px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: #f8f7f3;
+            color: var(--text-soft);
+            font-size: 9px;
+        }
+
+        .link-box button {
+            padding: 0 13px;
+            border: 0;
+            border-radius: 8px;
+            background: #171717;
+            color: var(--gold);
+            font-size: 9px;
+            font-weight: 900;
+        }
+
+        .empty-state {
+            padding: 30px 15px;
+            color: var(--muted);
+            text-align: center;
+            font-size: 10px;
+        }
+
+        .section-spacing {
+            margin-top: 18px;
+        }
+
+        @media (max-width: 950px) {
+            .ambassador-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 560px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-group.full {
+                grid-column: auto;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .form-actions .primary-btn,
+            .form-actions .outline-btn {
+                width: 100%;
+            }
+
+            .link-box {
+                flex-direction: column;
+            }
+
+            .link-box button {
+                min-height: 40px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <div class="brand">
+            <div class="logo">RUN <span>&</span> SAMBA</div>
+            <div class="side-label">CRM • GESTÃO 2026</div>
+        </div>
+
+        <div class="sidebar-section">
+            <span class="sidebar-heading">GESTÃO</span>
+
+            <nav>
+                <a href="dashboard.html">
+                    <span class="nav-icon">◈</span>
+                    Dashboard
+                </a>
+
+                
+
+                <a href="marketing.html">
+                    <span class="nav-icon">✦</span>
+                    Marketing
+                </a>
+
+                <a href="embaixadores.html" class="active">
+                    <span class="nav-icon">♛</span>
+                    Embaixadores
+                </a>
+            </nav>
+        </div>
+
+        <div class="sidebar-bottom">
+
+            <div class="event-mini">
+                <span>EVENTO OFICIAL</span>
+                <strong>RUN & SAMBA</strong>
+                <small>2ª EDIÇÃO • 2026</small>
+            </div>
+
+            <button class="logout" id="logoutBtn" type="button">
+                Sair do sistema
+            </button>
+
+        </div>
+
+    </aside>
+
+
+    <!-- CONTEÚDO -->
+    <main class="content">
+
+        <!-- TOPO -->
+        <header class="topbar">
+
+            <div>
+                <span class="eyebrow">GESTÃO DE PARCEIROS</span>
+
+                <h1>Embaixadores</h1>
+
+                <p class="subtitle">
+                    Gerencie indicações, divulgação e resultados dos embaixadores Run & Samba.
+                </p>
+            </div>
+
+            <div class="top-actions">
+                <a href="#novo-embaixador" class="outline-btn">
+                    <span>＋</span>
+                    NOVO EMBAIXADOR
+                </a>
+            </div>
+
+        </header>
+
+
+        <!-- INTRODUÇÃO -->
+        <section class="page-intro">
+            <span class="eyebrow">PROGRAMA OFICIAL</span>
+
+            <p>
+                Cada embaixador representa o evento, recebe um código próprio
+                e ajuda a levar a experiência Run & Samba para novos participantes.
+            </p>
+        </section>
+
+
+        <!-- INDICADORES -->
+        <section class="stats">
+
+            <article class="stat-card">
+                <div class="stat-head">
+                    <span class="stat-label">Embaixadores ativos</span>
+                    <span class="stat-icon">♛</span>
+                </div>
+
+                <strong class="stat-value" id="totalEmbaixadores">0</strong>
+
+                <small class="stat-description">
+                    Parceiros cadastrados e ativos
+                </small>
+            </article>
+
+
+            <article class="stat-card">
+                <div class="stat-head">
+                    <span class="stat-label">Inscrições indicadas</span>
+                    <span class="stat-icon">◎</span>
+                </div>
+
+                <strong class="stat-value" id="totalIndicacoes">0</strong>
+
+                <small class="stat-description">
+                    Inscrições vinculadas aos códigos
+                </small>
+            </article>
+
+
+            <article class="stat-card received">
+                <div class="stat-head">
+                    <span class="stat-label">Inscrições pagas</span>
+                    <span class="stat-icon">✓</span>
+                </div>
+
+                <strong class="stat-value" id="totalPagas">0</strong>
+
+                <small class="stat-description">
+                    Indicações com pagamento confirmado
+                </small>
+            </article>
+
+
+            <article class="stat-card pending-value">
+                <div class="stat-head">
+                    <span class="stat-label">Conversão</span>
+                    <span class="stat-icon">%</span>
+                </div>
+
+                <strong class="stat-value" id="taxaConversao">0%</strong>
+
+                <small class="stat-description">
+                    Pagas em relação às indicadas
+                </small>
+            </article>
+
+        </section>
+
+
+       
+
+
+        <!-- CADASTRO E RANKING -->
+        <section class="ambassador-layout section-spacing">
+
+            <!-- FORMULÁRIO -->
+            <div class="panel" id="novo-embaixador">
+
+                <div class="panel-title">
+                    <div>
+                        <span class="eyebrow">NOVO PARCEIRO</span>
+                        <h2>Cadastrar embaixador</h2>
+                    </div>
+
+                    <span class="panel-caption">
+                        DADOS DO<br>PARTICIPANTE
+                    </span>
+                </div>
+
+
+                <form id="embaixadorForm">
+
+                    <input type="hidden" id="embaixadorId">
+
+                    <div class="form-grid">
+
+                        <div class="form-group full">
+                            <label for="nomeEmbaixador">Nome completo</label>
+
+                            <input
+                                type="text"
+                                id="nomeEmbaixador"
+                                placeholder="Nome do embaixador"
+                                required
+                            >
+                        </div>
+
+
+                        <div class="form-group">
+                            <label for="telefoneEmbaixador">Telefone</label>
+
+                            <input
+                                type="tel"
+                                id="telefoneEmbaixador"
+                                placeholder="(61) 99999-9999"
+                            >
+                        </div>
+
+
+                        <div class="form-group">
+                            <label for="instagramEmbaixador">Instagram</label>
+
+                            <input
+                                type="text"
+                                id="instagramEmbaixador"
+                                placeholder="@usuario"
+                            >
+                        </div>
+
+
+                        <div class="form-group">
+                            <label for="codigoEmbaixador">Código de identificação</label>
+
+                            <input
+                                type="text"
+                                id="codigoEmbaixador"
+                                placeholder="Ex.: SARAH10"
+                                required
+                            >
+                        </div>
+
+
+                        <div class="form-group">
+                            <label for="statusEmbaixador">Status</label>
+
+                            <select id="statusEmbaixador">
+                                <option value="ATIVO">Ativo</option>
+                                <option value="INATIVO">Inativo</option>
+                            </select>
+                        </div>
+
+
+                        
+
+                    </div>
+
+
+                    <div class="form-actions">
+
+                        <button type="submit" class="primary-btn">
+                            SALVAR EMBAIXADOR
+                            <span>＋</span>
+                        </button>
+
+                        <button
+                            type="reset"
+                            class="outline-btn"
+                            id="limparFormulario"
+                        >
+                            LIMPAR CAMPOS
+                        </button>
+
+                    </div>
+
+                    <div class="message" id="mensagemEmbaixador" role="status"></div>
+
+                </form>
+
+            </div>
+
+
+            <!-- RANKING -->
+            <div class="panel">
+
+                <div class="panel-title">
+                    <div>
+                        <span class="eyebrow">DESEMPENHO</span>
+                        <h2>Ranking de embaixadores</h2>
+                    </div>
+
+                    <span class="panel-caption">
+                        POR INSCRIÇÕES<br>PAGAS
+                    </span>
+                </div>
+
+                <div class="ranking-list" id="rankingEmbaixadores">
+
+                    <div class="empty-state">
+                        Os resultados aparecerão aqui após as primeiras indicações.
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- LINK DE DIVULGAÇÃO -->
+        <section class="panel section-spacing">
+
+            <div class="panel-title">
+                <div>
+                    <span class="eyebrow">DIVULGAÇÃO OFICIAL</span>
+                    <h2>Link de inscrição</h2>
+                </div>
+            </div>
+
+            <p class="subtitle">
+                Selecione um embaixador na lista para gerar ou copiar seu link individual.
+            </p>
+
+            <div class="link-box">
+
+                <input
+                    type="text"
+                    id="linkCompartilhamento"
+                    placeholder="O link individual será exibido aqui..."
+                    readonly
+                >
+
+                <button type="button" id="copiarLinkBtn">
+                    COPIAR LINK
+                </button>
+
+            </div>
+
+            <div class="message" id="mensagemLink" role="status"></div>
+
+        </section>
+
+
+        <!-- LISTAGEM -->
+        <section class="panel section-spacing">
+
+            <div class="panel-title">
+
+                <div>
+                    <span class="eyebrow">BASE DE PARCEIROS</span>
+                    <h2>Embaixadores cadastrados</h2>
+                </div>
+
+                <span class="panel-caption">
+                    GESTÃO DE<br>INDICAÇÕES
+                </span>
+
+            </div>
+
+
+            <div class="table-wrapper">
+
+                <table class="ambassador-table">
+
+                    <thead>
+                        <tr>
+                            <th>Embaixador</th>
+                            <th>Código</th>
+                            <th>Indicações</th>
+                            <th>Pagas</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="listaEmbaixadores">
+
+                        <tr>
+                            <td colspan="6" class="empty-state">
+                                Carregando embaixadores...
+                            </td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            <div class="message" id="mensagemLista" role="status"></div>
+
+        </section>
+
+
+        
+
+
+<!-- SCRIPTS DO PROJETO -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/embaixadores.js"></script>
+
+</body>
+</html>
