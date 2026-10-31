@@ -1928,3 +1928,162 @@ textarea {
     }
 
 }
+
+
+/* =========================================================
+   AJUSTE FINAL — BASE DE PARCEIROS NO CELULAR
+========================================================= */
+
+@media (max-width: 760px) {
+
+    /* Área da base de parceiros */
+    .panel {
+        overflow: hidden;
+    }
+
+    .panel h2 {
+        font-size: 17px;
+        line-height: 1.4;
+        margin-bottom: 6px;
+    }
+
+    .panel h3 {
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    /* Tabela */
+    .ambassador-table {
+        display: block !important;
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    .ambassador-table tbody {
+        display: flex !important;
+        flex-direction: column;
+        gap: 14px;
+        width: 100%;
+    }
+
+    /* Cada embaixador vira um cartão */
+    .ambassador-table tbody tr {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr;
+        gap: 13px 12px;
+        width: 100%;
+        padding: 16px !important;
+        margin: 0;
+        background: #fff;
+        border: 1px solid #e8e4da;
+        border-radius: 14px;
+        box-shadow: 0 4px 14px rgba(0,0,0,.04);
+    }
+
+    .ambassador-table tbody td {
+        display: flex !important;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+        min-width: 0;
+        padding: 0 !important;
+        border: 0 !important;
+        font-size: 13px;
+        overflow-wrap: anywhere;
+    }
+
+    /* Nome do embaixador */
+    .ambassador-table tbody td:first-child {
+        grid-column: 1 / -1;
+        padding-bottom: 12px !important;
+        border-bottom: 1px solid #eee9df !important;
+    }
+
+    .ambassador-name {
+        font-size: 15px;
+        font-weight: 800;
+        color: #171717;
+    }
+
+    /* Informações */
+    .ambassador-table tbody td:nth-child(2)::before {
+        content: "CÓDIGO";
+    }
+
+    .ambassador-table tbody td:nth-child(3)::before {
+        content: "INDICAÇÕES";
+    }
+
+    .ambassador-table tbody td:nth-child(4)::before {
+        content: "PAGAS";
+    }
+
+    .ambassador-table tbody td:nth-child(5)::before {
+        content: "STATUS";
+    }
+
+    .ambassador-table tbody td:nth-child(n+2):nth-child(-n+5)::before {
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 1px;
+        color: #999;
+        margin-bottom: 5px;
+    }
+
+    /* Área dos botões */
+    .ambassador-table tbody td:nth-child(6) {
+        grid-column: 1 / -1;
+        padding-top: 12px !important;
+        border-top: 1px solid #eee9df !important;
+    }
+
+    .ambassador-table tbody td:nth-child(6)::before {
+        content: "GERENCIAR EMBAIXADOR";
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 1px;
+        color: #999;
+        margin-bottom: 10px;
+    }
+
+    .ambassador-table .table-actions {
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 7px !important;
+        width: 100%;
+    }
+
+    .ambassador-table .table-actions button {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 100% !important;
+        min-width: 0;
+        min-height: 42px;
+        padding: 8px 3px !important;
+        margin: 0 !important;
+        font-size: 10px !important;
+        line-height: 1.2;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        border-radius: 8px;
+    }
+
+}
+
+/* Celulares estreitos */
+@media (max-width: 380px) {
+
+    .ambassador-table tbody tr {
+        padding: 12px !important;
+    }
+
+    .ambassador-table .table-actions {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .ambassador-table .table-actions button:last-child {
+        grid-column: 1 / -1;
+    }
+
+}
