@@ -2496,3 +2496,19 @@ body.modal-open {
         0 0 5px rgba(124, 255, 155, 0.75),
         0 0 12px rgba(124, 255, 155, 0.4);
 }
+
+/* =========================================================
+   CORREÇÃO — ZOOM AUTOMÁTICO NOS CAMPOS DE CADASTRO
+========================================================= */
+
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+input,
+select,
+textarea {
+    font-size: 16px !important;
+    touch-action: manipulation;
+}
