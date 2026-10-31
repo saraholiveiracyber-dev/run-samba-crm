@@ -3858,3 +3858,16 @@ textarea:focus-visible {
     cursor: not-allowed;
     transform: none;
 }
+
+/* CORREÇÃO DE ZOOM AUTOMÁTICO AO CLICAR NOS CAMPOS */
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+input,
+select,
+textarea {
+    font-size: 16px !important;
+    touch-action: manipulation;
+}

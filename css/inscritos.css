@@ -1,36 +1,35 @@
 
 /* =========================================================
    RUN & SAMBA CRM 2026
-   INSCRITOS — IDENTIDADE VISUAL PREMIUM
+   INSCRITOS — PREMIUM EDITION
    Preto • Dourado • Branco
    Arquivo: css/inscritos.css
 ========================================================= */
 
-
 /* =========================================================
-   1. VARIÁVEIS GLOBAIS
+   01. IDENTIDADE VISUAL
 ========================================================= */
 
 :root {
     --black: #050505;
-    --black-2: #090909;
-    --black-3: #101010;
-    --black-4: #171717;
-    --black-5: #222222;
+    --black-2: #0b0b0b;
+    --black-3: #111111;
+    --black-4: #191919;
+    --black-5: #242424;
 
     --gold: #c9a85d;
-    --gold-light: #e2c477;
+    --gold-light: #e5ca83;
     --gold-dark: #927334;
-    --gold-soft: rgba(201, 168, 93, 0.10);
-    --gold-border: rgba(201, 168, 93, 0.28);
+    --gold-soft: rgba(201, 168, 93, .10);
+    --gold-border: rgba(201, 168, 93, .27);
 
     --white: #ffffff;
     --background: #f4f3ef;
     --surface: #ffffff;
     --surface-soft: #faf9f6;
 
-    --text: #171717;
-    --text-2: #454545;
+    --text: #191919;
+    --text-2: #505050;
     --text-soft: #777777;
     --muted: #999999;
 
@@ -60,19 +59,18 @@
     --radius: 16px;
     --radius-sm: 10px;
 
-    --shadow-xs: 0 2px 8px rgba(0, 0, 0, 0.025);
-    --shadow-sm: 0 5px 18px rgba(0, 0, 0, 0.045);
-    --shadow-md: 0 15px 40px rgba(0, 0, 0, 0.12);
-    --shadow-lg: 0 25px 80px rgba(0, 0, 0, 0.28);
-    --gold-shadow: 0 8px 20px rgba(201, 168, 93, 0.18);
+    --shadow-xs: 0 2px 8px rgba(0, 0, 0, .025);
+    --shadow-sm: 0 6px 20px rgba(0, 0, 0, .045);
+    --shadow-md: 0 15px 40px rgba(0, 0, 0, .12);
+    --shadow-lg: 0 25px 80px rgba(0, 0, 0, .28);
+    --gold-shadow: 0 8px 22px rgba(201, 168, 93, .18);
 
-    --transition: 0.2s ease;
+    --transition: .22s ease;
     --content-width: 1500px;
 }
 
-
 /* =========================================================
-   2. RESET
+   02. RESET E CONFIGURAÇÕES GERAIS
 ========================================================= */
 
 * {
@@ -83,6 +81,7 @@ html {
     min-height: 100%;
     scroll-behavior: smooth;
     -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
 }
 
 body {
@@ -102,7 +101,7 @@ body {
         sans-serif;
 
     font-size: 13px;
-    line-height: 1.5;
+    line-height: 1.55;
 
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
@@ -112,16 +111,17 @@ button,
 input,
 select,
 textarea {
-    font: inherit;
+    font-family: inherit;
 }
 
 button {
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
 }
 
 button:disabled {
     cursor: not-allowed;
-    opacity: 0.55;
+    opacity: .55;
 }
 
 input,
@@ -132,6 +132,7 @@ textarea {
 
 a {
     color: inherit;
+    -webkit-tap-highlight-color: transparent;
 }
 
 img,
@@ -145,13 +146,12 @@ svg {
 }
 
 ::selection {
-    background: rgba(201, 168, 93, 0.28);
     color: var(--black);
+    background: rgba(201, 168, 93, .28);
 }
 
-
 /* =========================================================
-   3. ACESSIBILIDADE
+   03. ACESSIBILIDADE
 ========================================================= */
 
 button:focus-visible,
@@ -171,15 +171,14 @@ textarea:focus-visible {
     *,
     *::before,
     *::after {
-        animation-duration: 0.01ms !important;
+        animation-duration: .01ms !important;
         animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
+        transition-duration: .01ms !important;
     }
 }
 
-
 /* =========================================================
-   4. TIPOGRAFIA E ELEMENTOS GERAIS
+   04. TIPOGRAFIA
 ========================================================= */
 
 .eyebrow {
@@ -189,7 +188,7 @@ textarea:focus-visible {
 
     font-size: 9px;
     font-weight: 900;
-    letter-spacing: 2px;
+    letter-spacing: 1.8px;
     line-height: 1.6;
 
     text-transform: uppercase;
@@ -204,17 +203,8 @@ textarea:focus-visible {
     line-height: 1.8;
 }
 
-button,
-a,
-input,
-select,
-textarea {
-    -webkit-tap-highlight-color: transparent;
-}
-
-
 /* =========================================================
-   5. TELA DE ACESSO RESTRITO
+   05. TELA DE ACESSO RESTRITO
 ========================================================= */
 
 .admin-guard {
@@ -227,15 +217,16 @@ textarea {
     justify-content: center;
 
     min-height: 100vh;
+    min-height: 100dvh;
     padding: 24px;
 
     overflow-y: auto;
 
     background:
         radial-gradient(
-            ellipse at 50% 30%,
-            rgba(201, 168, 93, 0.09),
-            transparent 42%
+            ellipse at 50% 25%,
+            rgba(201, 168, 93, .12),
+            transparent 43%
         ),
         var(--black);
 
@@ -256,17 +247,12 @@ textarea {
 
     text-align: center;
 
-    background:
-        linear-gradient(
-            145deg,
-            #151515,
-            #0b0b0b
-        );
+    background: linear-gradient(145deg, #171717, #090909);
 
     border: 1px solid var(--gold-border);
     border-radius: 20px;
 
-    box-shadow: 0 25px 90px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 25px 90px rgba(0, 0, 0, .5);
 }
 
 .admin-guard-card::before {
@@ -279,13 +265,12 @@ textarea {
     width: 50%;
     height: 2px;
 
-    background:
-        linear-gradient(
-            90deg,
-            transparent,
-            var(--gold),
-            transparent
-        );
+    background: linear-gradient(
+        90deg,
+        transparent,
+        var(--gold),
+        transparent
+    );
 }
 
 .admin-guard-icon {
@@ -297,10 +282,9 @@ textarea {
 
     margin: 0 auto 23px;
 
+    background: var(--gold-soft);
     border: 1px solid var(--gold-border);
     border-radius: 22px;
-
-    background: var(--gold-soft);
 
     font-size: 32px;
 }
@@ -322,14 +306,12 @@ textarea {
 
 .admin-guard-card p {
     color: #a5a5a5;
-
     font-size: 12px;
     line-height: 1.8;
 }
 
 #guardStatus {
     display: inline-block;
-
     margin-top: 12px;
 
     color: var(--gold-light);
@@ -343,40 +325,31 @@ textarea {
     padding: 12px;
 
     color: #ffb5b5;
+    background: rgba(199, 53, 53, .10);
 
-    background: rgba(199, 53, 53, 0.10);
-    border: 1px solid rgba(199, 53, 53, 0.24);
+    border: 1px solid rgba(199, 53, 53, .24);
     border-radius: 9px;
 
     font-size: 11px;
 }
 
 #guardLogout {
-    min-height: 42px;
-
+    min-height: 43px;
     margin-top: 22px;
     padding: 0 22px;
 
     color: var(--black);
-
-    background:
-        linear-gradient(
-            135deg,
-            var(--gold-light),
-            var(--gold)
-        );
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
 
     border: 0;
     border-radius: 9px;
 
     font-size: 10px;
     font-weight: 900;
-    letter-spacing: 0.7px;
+    letter-spacing: .7px;
     text-transform: uppercase;
 
-    transition:
-        transform var(--transition),
-        filter var(--transition);
+    transition: transform var(--transition), filter var(--transition);
 }
 
 #guardLogout:hover {
@@ -384,14 +357,13 @@ textarea {
     filter: brightness(1.08);
 }
 
-
 /* =========================================================
-   6. APLICAÇÃO E CONTEÚDO
+   06. APLICAÇÃO E CONTEÚDO
 ========================================================= */
 
 .app {
-    min-height: 100vh;
     width: 100%;
+    min-height: 100vh;
 }
 
 .app[hidden] {
@@ -401,16 +373,14 @@ textarea {
 .content {
     width: 100%;
     max-width: var(--content-width);
-
     min-height: 100vh;
 
     margin: 0 auto;
     padding: 0 34px 55px;
 }
 
-
 /* =========================================================
-   7. CABEÇALHO
+   07. CABEÇALHO
 ========================================================= */
 
 .topbar {
@@ -421,7 +391,6 @@ textarea {
     gap: 28px;
 
     min-height: 155px;
-
     padding: 30px 0 27px;
 
     border-bottom: 1px solid var(--line);
@@ -440,7 +409,7 @@ textarea {
 
     color: var(--black);
 
-    font-size: clamp(32px, 4vw, 44px);
+    font-size: clamp(32px, 4vw, 46px);
     font-weight: 900;
     letter-spacing: -2px;
     line-height: 1.05;
@@ -451,7 +420,6 @@ textarea {
     align-items: center;
     justify-content: flex-end;
     flex-wrap: wrap;
-
     gap: 10px;
 }
 
@@ -459,22 +427,20 @@ textarea {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-
     gap: 12px;
 
-    min-height: 43px;
-    padding: 0 17px;
+    min-height: 44px;
+    padding: 0 18px;
 
+    color: var(--text);
     background: var(--white);
 
     border: 1px solid #dcd7ca;
     border-radius: 9px;
 
-    color: var(--text);
-
     font-size: 9px;
     font-weight: 900;
-    letter-spacing: 0.8px;
+    letter-spacing: .8px;
 
     transition:
         transform var(--transition),
@@ -485,10 +451,8 @@ textarea {
 
 .outline-btn:hover {
     transform: translateY(-2px);
-
     border-color: var(--gold);
     background: #fffdf7;
-
     box-shadow: var(--shadow-sm);
 }
 
@@ -498,9 +462,8 @@ textarea {
     line-height: 1;
 }
 
-
 /* =========================================================
-   8. BARRA DE FILTROS
+   08. PESQUISA E FILTROS
 ========================================================= */
 
 .toolbar {
@@ -508,14 +471,14 @@ textarea {
 
     grid-template-columns:
         minmax(250px, 1.8fr)
-        repeat(3, minmax(145px, 0.8fr));
+        repeat(3, minmax(145px, .8fr));
 
     gap: 10px;
 
     margin: 25px 0 18px;
     padding: 14px;
 
-    background: rgba(255, 255, 255, 0.88);
+    background: rgba(255, 255, 255, .92);
 
     border: 1px solid var(--line);
     border-radius: 15px;
@@ -563,10 +526,8 @@ textarea {
 
 .filter-search input:focus {
     background: var(--white);
-
     border-color: var(--gold);
-
-    box-shadow: 0 0 0 3px rgba(201, 168, 93, 0.13);
+    box-shadow: 0 0 0 3px rgba(201, 168, 93, .13);
 }
 
 .search-icon {
@@ -575,7 +536,6 @@ textarea {
     z-index: 1;
 
     color: var(--gold-dark);
-
     font-size: 22px;
     line-height: 1;
 
@@ -617,55 +577,50 @@ textarea {
 
     cursor: pointer;
 
-    transition:
-        border-color var(--transition),
-        box-shadow var(--transition);
+    transition: border-color var(--transition), box-shadow var(--transition);
 }
 
 .toolbar select:focus,
 .payment-editor select:focus,
 .contact-status-box select:focus {
     border-color: var(--gold);
-    box-shadow: 0 0 0 3px rgba(201, 168, 93, 0.12);
+    box-shadow: 0 0 0 3px rgba(201, 168, 93, .12);
 }
 
-
 /* =========================================================
-   9. RESUMO IZYPASS
+   09. RESUMO IZYPASS
 ========================================================= */
 
 .sales-summary {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-
     gap: 20px;
 
     width: 100%;
     min-width: 0;
 
     margin: 0 0 19px;
-    padding: 18px 20px;
+    padding: 19px 21px;
 
     background:
         radial-gradient(
             ellipse at top right,
-            rgba(201, 168, 93, 0.08),
+            rgba(201, 168, 93, .10),
             transparent 45%
         ),
-        linear-gradient(145deg, #151515, #090909);
+        linear-gradient(145deg, #171717, #090909);
 
     border: 1px solid var(--gold-border);
-    border-radius: 13px;
+    border-radius: 14px;
 
-    box-shadow: 0 5px 18px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 5px 18px rgba(0, 0, 0, .06);
 }
 
 .sales-inline-title {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-
     gap: 9px;
 
     flex-shrink: 0;
@@ -673,7 +628,6 @@ textarea {
 
 .sales-inline-title strong {
     color: #f5f5f5;
-
     font-size: 11px;
     font-weight: 900;
 }
@@ -683,23 +637,22 @@ textarea {
     align-items: center;
     justify-content: center;
 
-    padding: 5px 7px;
+    padding: 5px 8px;
 
     color: var(--gold-light);
-    background: rgba(201, 168, 93, 0.10);
+    background: rgba(201, 168, 93, .10);
 
-    border: 1px solid rgba(201, 168, 93, 0.28);
+    border: 1px solid rgba(201, 168, 93, .28);
     border-radius: 5px;
 
     font-size: 8px;
     font-weight: 900;
-    letter-spacing: 0.7px;
+    letter-spacing: .7px;
 }
 
 .sales-inline-item {
     display: flex;
     flex-direction: column;
-
     gap: 6px;
 
     min-width: 95px;
@@ -708,7 +661,6 @@ textarea {
 .sales-inline-item label,
 .sales-inline-item > span {
     color: #a6a6a6;
-
     font-size: 9px;
     font-weight: 600;
     line-height: 1.5;
@@ -716,7 +668,6 @@ textarea {
 
 .sales-inline-item strong {
     color: #f5f5f5;
-
     font-size: 16px;
     font-weight: 900;
     line-height: 1.3;
@@ -725,7 +676,7 @@ textarea {
 .sales-inline-item input {
     width: 140px;
     max-width: 100%;
-    min-height: 39px;
+    min-height: 40px;
 
     padding: 8px 10px;
 
@@ -740,14 +691,12 @@ textarea {
     font-size: 13px;
     font-weight: 700;
 
-    transition:
-        border-color var(--transition),
-        box-shadow var(--transition);
+    transition: border-color var(--transition), box-shadow var(--transition);
 }
 
 .sales-inline-item input:focus {
     border-color: var(--gold);
-    box-shadow: 0 0 0 3px rgba(201, 168, 93, 0.10);
+    box-shadow: 0 0 0 3px rgba(201, 168, 93, .10);
 }
 
 .sales-inline-value strong,
@@ -759,7 +708,6 @@ textarea {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-
     gap: 7px;
 
     margin-left: auto;
@@ -769,27 +717,19 @@ textarea {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-
     gap: 8px;
 
-    min-height: 39px;
-    padding: 0 14px;
+    min-height: 40px;
+    padding: 0 15px;
 
     color: var(--black);
-
-    background:
-        linear-gradient(
-            135deg,
-            var(--gold-light),
-            var(--gold)
-        );
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
 
     border: 1px solid var(--gold);
     border-radius: 7px;
 
     font-size: 9px;
     font-weight: 900;
-    letter-spacing: 0.3px;
 
     transition:
         transform var(--transition),
@@ -805,7 +745,6 @@ textarea {
 
 #izySalesMessage {
     color: #aaa;
-
     font-size: 9px;
     line-height: 1.5;
 }
@@ -813,7 +752,6 @@ textarea {
 #izySalesMessage.is-saved {
     color: var(--gold-light);
 }
-
 
 /* =========================================================
    10. LEGENDA DE STATUS
@@ -823,13 +761,12 @@ textarea {
     display: flex;
     align-items: center;
     justify-content: space-between;
-
     gap: 22px;
 
     margin-bottom: 18px;
-    padding: 17px 19px;
+    padding: 18px 20px;
 
-    background: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, .90);
 
     border: 1px solid var(--line);
     border-radius: 13px;
@@ -847,11 +784,9 @@ textarea {
 
 .status-legend-header strong {
     display: block;
-
     margin-top: 5px;
 
     color: var(--text);
-
     font-size: 12px;
     font-weight: 900;
 }
@@ -861,21 +796,19 @@ textarea {
     align-items: center;
     justify-content: flex-end;
     flex-wrap: wrap;
-
     gap: 12px 17px;
 }
 
 .status-legend-item {
     display: inline-flex;
     align-items: center;
-
     gap: 7px;
 
     color: #696969;
 
     font-size: 8px;
     font-weight: 900;
-    letter-spacing: 0.3px;
+    letter-spacing: .3px;
 
     white-space: nowrap;
 }
@@ -914,6 +847,10 @@ textarea {
     background: #536782;
 }
 
+.legend-courtesy {
+    background: #7cff9b;
+    box-shadow: 0 0 7px rgba(124, 255, 155, .55);
+}
 
 /* =========================================================
    11. PAINEL DE INSCRITOS
@@ -925,12 +862,7 @@ textarea {
 
     padding: 25px;
 
-    background:
-        linear-gradient(
-            145deg,
-            #ffffff,
-            #fbfaf7
-        );
+    background: linear-gradient(145deg, #fff, #fbfaf7);
 
     border: 1px solid var(--line);
     border-radius: var(--radius);
@@ -942,7 +874,6 @@ textarea {
     display: flex;
     align-items: center;
     justify-content: space-between;
-
     gap: 18px;
 
     margin-bottom: 20px;
@@ -954,19 +885,16 @@ textarea {
 
 .table-title strong {
     display: block;
-
     margin-top: 7px;
 
     color: var(--black);
-
     font-size: 20px;
     font-weight: 900;
-    letter-spacing: -0.5px;
+    letter-spacing: -.5px;
 }
 
 .loading {
     color: var(--muted);
-
     font-size: 10px;
     font-weight: 700;
 }
@@ -989,8 +917,8 @@ textarea {
 
 @keyframes loadingPulse {
     0%, 100% {
-        opacity: 0.35;
-        transform: scale(0.85);
+        opacity: .35;
+        transform: scale(.85);
     }
 
     50% {
@@ -998,7 +926,6 @@ textarea {
         transform: scale(1);
     }
 }
-
 
 /* =========================================================
    12. TABELA
@@ -1045,7 +972,7 @@ table {
 }
 
 thead {
-    background: #111111;
+    background: #111;
 }
 
 thead th {
@@ -1068,7 +995,6 @@ thead th:first-child {
 
 tbody tr {
     background: var(--white);
-
     transition: background var(--transition);
 }
 
@@ -1095,7 +1021,6 @@ tbody td {
     padding: 45px 20px !important;
 
     color: #888 !important;
-
     text-align: center;
     line-height: 1.8;
 }
@@ -1109,7 +1034,6 @@ tbody td a:hover {
     text-decoration: underline;
 }
 
-
 /* =========================================================
    13. IDENTIFICAÇÃO DO PARTICIPANTE
 ========================================================= */
@@ -1121,7 +1045,6 @@ tbody td a:hover {
 .participant-name-line {
     display: flex;
     align-items: center;
-
     gap: 9px;
 
     min-width: 0;
@@ -1149,16 +1072,13 @@ tbody td a:hover {
     text-align: left;
     overflow-wrap: anywhere;
 
-    cursor: pointer;
-
     transition: color var(--transition);
 }
 
 .participant-name-button:hover {
     color: var(--gold-dark);
-
     text-decoration: underline;
-    text-decoration-color: rgba(201, 168, 93, 0.7);
+    text-decoration-color: rgba(201, 168, 93, .7);
     text-underline-offset: 4px;
 }
 
@@ -1173,15 +1093,14 @@ tbody td a:hover {
     color: var(--gold-dark);
     background: var(--gold-soft);
 
-    border: 1px solid rgba(201, 168, 93, 0.3);
+    border: 1px solid rgba(201, 168, 93, .3);
     border-radius: 4px;
 
     font-size: 6px;
     font-weight: 900;
-    letter-spacing: 0.6px;
+    letter-spacing: .6px;
 
     opacity: 0;
-
     transition: opacity var(--transition);
 }
 
@@ -1191,7 +1110,6 @@ tbody td a:hover {
 
 .participant-email {
     display: block;
-
     margin-top: 4px;
 
     color: #929292;
@@ -1202,9 +1120,8 @@ tbody td a:hover {
     overflow-wrap: anywhere;
 }
 
-
 /* =========================================================
-   14. INDICADOR DE STATUS DO PARTICIPANTE
+   14. INDICADORES DE STATUS
 ========================================================= */
 
 .participant-status-dot {
@@ -1216,7 +1133,7 @@ tbody td a:hover {
     min-width: 9px;
     min-height: 9px;
 
-    border: 1px solid rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(0, 0, 0, .08);
     border-radius: 50%;
 
     box-shadow: 0 0 0 2px #fff;
@@ -1255,6 +1172,13 @@ tbody td a:hover {
     border-color: #9ca3af;
 }
 
+.participant-status-dot.courtesy {
+    background: #7cff9b;
+    border-color: #b6ffc5;
+    box-shadow:
+        0 0 5px rgba(124, 255, 155, .75),
+        0 0 12px rgba(124, 255, 155, .4);
+}
 
 /* =========================================================
    15. ETIQUETAS DE STATUS
@@ -1266,7 +1190,7 @@ tbody td a:hover {
     justify-content: center;
 
     min-width: 66px;
-    min-height: 23px;
+    min-height: 24px;
 
     padding: 4px 9px;
 
@@ -1275,8 +1199,8 @@ tbody td a:hover {
 
     font-size: 7px;
     font-weight: 900;
-    line-height: 1.2;
-    letter-spacing: 0.4px;
+    line-height: 1.3;
+    letter-spacing: .4px;
 
     text-align: center;
     text-transform: uppercase;
@@ -1325,9 +1249,8 @@ tbody td a:hover {
     border-color: #d8d7d2;
 }
 
-
 /* =========================================================
-   16. BOTÕES DE AÇÃO DA TABELA
+   16. BOTÕES DE AÇÃO
 ========================================================= */
 
 .action-btn {
@@ -1335,8 +1258,8 @@ tbody td a:hover {
     align-items: center;
     justify-content: center;
 
-    min-height: 32px;
-    padding: 0 11px;
+    min-height: 33px;
+    padding: 0 12px;
 
     color: var(--text-2);
     background: var(--white);
@@ -1365,7 +1288,6 @@ tbody td a:hover {
     border-color: var(--gold-border);
 }
 
-
 /* =========================================================
    17. MENSAGENS DO SISTEMA
 ========================================================= */
@@ -1389,7 +1311,6 @@ tbody td a:hover {
 
 .message.show {
     display: block;
-
     padding: 12px 15px;
 
     background: #fff3f3;
@@ -1398,9 +1319,8 @@ tbody td a:hover {
     border-radius: 9px;
 }
 
-
 /* =========================================================
-   18. MODAL DE PARTICIPANTE
+   18. MODAL
 ========================================================= */
 
 .modal {
@@ -1425,7 +1345,7 @@ tbody td a:hover {
     position: absolute;
     inset: 0;
 
-    background: rgba(0, 0, 0, 0.76);
+    background: rgba(0, 0, 0, .76);
 
     -webkit-backdrop-filter: blur(7px);
     backdrop-filter: blur(7px);
@@ -1437,6 +1357,7 @@ tbody td a:hover {
 
     width: min(680px, 100%);
     max-height: min(92vh, 950px);
+    max-height: min(92dvh, 950px);
 
     padding: 31px;
 
@@ -1444,19 +1365,14 @@ tbody td a:hover {
     overflow-y: auto;
     overscroll-behavior: contain;
 
-    background:
-        linear-gradient(
-            145deg,
-            #ffffff,
-            #f8f7f3
-        );
+    background: linear-gradient(145deg, #fff, #f8f7f3);
 
-    border: 1px solid rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(255, 255, 255, .5);
     border-radius: 18px;
 
     box-shadow: var(--shadow-lg);
 
-    animation: modalEnter 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
+    animation: modalEnter .24s cubic-bezier(.2, .8, .2, 1);
 
     scrollbar-width: thin;
     scrollbar-color: #c3bba9 #f2f0ea;
@@ -1465,7 +1381,7 @@ tbody td a:hover {
 @keyframes modalEnter {
     from {
         opacity: 0;
-        transform: translateY(15px) scale(0.985);
+        transform: translateY(15px) scale(.985);
     }
 
     to {
@@ -1478,9 +1394,8 @@ body.modal-open {
     overflow: hidden;
 }
 
-
 /* =========================================================
-   19. BOTÃO FECHAR MODAL
+   19. FECHAR MODAL
 ========================================================= */
 
 .modal-close {
@@ -1491,8 +1406,8 @@ body.modal-open {
     display: grid;
     place-items: center;
 
-    width: 35px;
-    height: 35px;
+    width: 36px;
+    height: 36px;
 
     padding: 0;
 
@@ -1522,7 +1437,6 @@ body.modal-open {
     border-color: var(--black);
 }
 
-
 /* =========================================================
    20. CABEÇALHO DO MODAL
 ========================================================= */
@@ -1545,12 +1459,11 @@ body.modal-open {
 
     font-size: clamp(22px, 4vw, 29px);
     font-weight: 900;
-    letter-spacing: -0.9px;
+    letter-spacing: -.9px;
     line-height: 1.25;
 
     overflow-wrap: anywhere;
 }
-
 
 /* =========================================================
    21. DADOS CADASTRAIS
@@ -1558,9 +1471,7 @@ body.modal-open {
 
 .detail-grid {
     display: grid;
-
     grid-template-columns: repeat(2, minmax(0, 1fr));
-
     gap: 10px;
 
     margin-bottom: 22px;
@@ -1575,9 +1486,7 @@ body.modal-open {
     border: 1px solid var(--line);
     border-radius: 10px;
 
-    transition:
-        border-color var(--transition),
-        box-shadow var(--transition);
+    transition: border-color var(--transition), box-shadow var(--transition);
 }
 
 .detail-item:hover {
@@ -1600,7 +1509,6 @@ body.modal-open {
 
 .detail-item strong {
     display: block;
-
     margin-top: 6px;
 
     color: var(--text);
@@ -1612,7 +1520,6 @@ body.modal-open {
     overflow-wrap: anywhere;
     word-break: break-word;
 }
-
 
 /* =========================================================
    22. EDITOR DE PAGAMENTO
@@ -1631,7 +1538,6 @@ body.modal-open {
 .contact-status-box label,
 .contact-response-group label {
     display: block;
-
     margin-bottom: 9px;
 
     color: #777;
@@ -1646,10 +1552,9 @@ body.modal-open {
 
 .payment-editor select,
 .contact-status-box select {
-    height: 43px;
+    height: 44px;
     background-color: #fbfaf7;
 }
-
 
 /* =========================================================
    23. BOTÕES PRINCIPAIS
@@ -1658,7 +1563,6 @@ body.modal-open {
 .modal-actions {
     display: flex;
     justify-content: flex-end;
-
     gap: 10px;
 
     margin-top: 12px;
@@ -1668,27 +1572,20 @@ body.modal-open {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-
     gap: 8px;
 
-    min-height: 42px;
-    padding: 0 17px;
+    min-height: 43px;
+    padding: 0 18px;
 
     color: #17120a;
-
-    background:
-        linear-gradient(
-            135deg,
-            var(--gold-light),
-            var(--gold)
-        );
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
 
     border: 1px solid var(--gold);
     border-radius: 8px;
 
     font-size: 9px;
     font-weight: 900;
-    letter-spacing: 0.5px;
+    letter-spacing: .5px;
     line-height: 1.4;
 
     text-align: center;
@@ -1704,16 +1601,13 @@ body.modal-open {
 
 .primary-btn:hover {
     transform: translateY(-1px);
-
-    box-shadow: 0 10px 24px rgba(201, 168, 93, 0.24);
-
+    box-shadow: 0 10px 24px rgba(201, 168, 93, .24);
     filter: brightness(1.04);
 }
 
 .primary-btn:active {
     transform: translateY(0);
 }
-
 
 /* =========================================================
    24. F9 — ACOMPANHAMENTO DE CONTATO
@@ -1723,17 +1617,12 @@ body.modal-open {
     margin-top: 23px;
     padding: 21px;
 
-    background:
-        linear-gradient(
-            145deg,
-            #ffffff,
-            #faf8f1
-        );
+    background: linear-gradient(145deg, #fff, #faf8f1);
 
     border: 1px solid var(--line);
     border-radius: 14px;
 
-    box-shadow: 0 5px 18px rgba(0, 0, 0, 0.025);
+    box-shadow: 0 5px 18px rgba(0, 0, 0, .025);
 }
 
 .contact-followup-header {
@@ -1751,9 +1640,9 @@ body.modal-open {
     margin-bottom: 9px;
 
     color: var(--gold-dark);
-    background: rgba(201, 168, 93, 0.10);
+    background: rgba(201, 168, 93, .10);
 
-    border: 1px solid rgba(201, 168, 93, 0.23);
+    border: 1px solid rgba(201, 168, 93, .23);
     border-radius: 5px;
 
     font-size: 7px;
@@ -1770,7 +1659,7 @@ body.modal-open {
 
     font-size: 18px;
     font-weight: 900;
-    letter-spacing: -0.4px;
+    letter-spacing: -.4px;
     line-height: 1.4;
 }
 
@@ -1782,7 +1671,6 @@ body.modal-open {
     font-size: 10px;
     line-height: 1.8;
 }
-
 
 /* =========================================================
    25. STATUS DA COMUNICAÇÃO
@@ -1796,7 +1684,6 @@ body.modal-open {
     border: 1px solid var(--line);
     border-radius: 10px;
 }
-
 
 /* =========================================================
    26. RESPOSTA DO PARTICIPANTE
@@ -1837,9 +1724,7 @@ body.modal-open {
 
     resize: vertical;
 
-    transition:
-        border-color var(--transition),
-        box-shadow var(--transition);
+    transition: border-color var(--transition), box-shadow var(--transition);
 }
 
 .contact-followup textarea::placeholder {
@@ -1848,9 +1733,8 @@ body.modal-open {
 
 .contact-followup textarea:focus {
     border-color: var(--gold);
-    box-shadow: 0 0 0 3px rgba(201, 168, 93, 0.12);
+    box-shadow: 0 0 0 3px rgba(201, 168, 93, .12);
 }
-
 
 /* =========================================================
    27. RODAPÉ DO ACOMPANHAMENTO
@@ -1860,7 +1744,6 @@ body.modal-open {
     display: flex;
     align-items: center;
     justify-content: space-between;
-
     gap: 15px;
 
     margin-top: 15px;
@@ -1877,13 +1760,11 @@ body.modal-open {
 
 .contact-save-btn {
     flex-shrink: 0;
-
-    min-height: 40px;
+    min-height: 41px;
     padding: 0 14px;
 
     font-size: 8px;
 }
-
 
 /* =========================================================
    28. COMUNICAÇÃO — PAGAMENTO PENDENTE
@@ -1893,12 +1774,7 @@ body.modal-open {
     margin-top: 22px;
     padding: 20px;
 
-    background:
-        linear-gradient(
-            145deg,
-            #fffdf5,
-            #fff8df
-        );
+    background: linear-gradient(145deg, #fffdf5, #fff8df);
 
     border: 1px solid var(--orange-line);
     border-radius: 14px;
@@ -1919,7 +1795,7 @@ body.modal-open {
 
     font-size: 17px;
     font-weight: 900;
-    letter-spacing: -0.4px;
+    letter-spacing: -.4px;
     line-height: 1.5;
 }
 
@@ -1932,16 +1808,13 @@ body.modal-open {
     line-height: 1.8;
 }
 
-
 /* =========================================================
-   29. BOTÕES WHATSAPP E E-MAIL
+   29. WHATSAPP E E-MAIL
 ========================================================= */
 
 .communication-actions {
     display: grid;
-
     grid-template-columns: repeat(2, minmax(0, 1fr));
-
     gap: 10px;
 
     margin-top: 18px;
@@ -1950,10 +1823,10 @@ body.modal-open {
 .communication-btn {
     display: flex;
     align-items: center;
-
     gap: 11px;
 
     min-width: 0;
+    min-height: 62px;
     padding: 13px;
 
     color: var(--text);
@@ -1973,22 +1846,18 @@ body.modal-open {
 
 .communication-btn:hover {
     transform: translateY(-2px);
-
     background: #fffefa;
-
     border-color: var(--gold-border);
-
     box-shadow: var(--shadow-sm);
 }
 
 .communication-icon {
     display: grid;
     place-items: center;
-
     flex-shrink: 0;
 
-    width: 37px;
-    height: 37px;
+    width: 38px;
+    height: 38px;
 
     color: var(--gold-light);
     background: var(--black-3);
@@ -2025,7 +1894,6 @@ body.modal-open {
 
 .communication-text small {
     display: block;
-
     margin-top: 3px;
 
     color: #929292;
@@ -2038,13 +1906,11 @@ body.modal-open {
     flex-shrink: 0;
 
     color: var(--gold-dark);
-
     font-size: 15px;
 }
 
-
 /* =========================================================
-   30. SCROLLBAR GLOBAL
+   30. SCROLLBARS
 ========================================================= */
 
 ::-webkit-scrollbar {
@@ -2065,9 +1931,8 @@ body.modal-open {
     background: #9d9687;
 }
 
-
 /* =========================================================
-   31. RESPONSIVO — NOTEBOOKS
+   31. NOTEBOOKS
 ========================================================= */
 
 @media (max-width: 1200px) {
@@ -2102,9 +1967,8 @@ body.modal-open {
     }
 }
 
-
 /* =========================================================
-   32. RESPONSIVO — TABLETS
+   32. TABLETS
 ========================================================= */
 
 @media (max-width: 900px) {
@@ -2116,7 +1980,6 @@ body.modal-open {
     .topbar {
         min-height: auto;
         padding: 25px 0 23px;
-
         align-items: flex-start;
     }
 
@@ -2131,7 +1994,6 @@ body.modal-open {
     .sales-inline-title {
         width: 100%;
         padding-bottom: 13px;
-
         border-bottom: 1px solid #2c2c2c;
     }
 
@@ -2149,9 +2011,8 @@ body.modal-open {
     }
 }
 
-
 /* =========================================================
-   33. RESPONSIVO — CELULARES
+   33. CELULARES
 ========================================================= */
 
 @media (max-width: 760px) {
@@ -2166,7 +2027,6 @@ body.modal-open {
     .topbar {
         flex-direction: column;
         align-items: stretch;
-
         gap: 18px;
 
         padding: 23px 0 20px;
@@ -2188,12 +2048,11 @@ body.modal-open {
 
     .outline-btn {
         width: 100%;
-        min-height: 44px;
+        min-height: 45px;
     }
 
     .toolbar {
         grid-template-columns: minmax(0, 1fr);
-
         gap: 9px;
 
         margin-top: 17px;
@@ -2206,13 +2065,12 @@ body.modal-open {
 
     .filter-search input,
     .toolbar select {
-        height: 45px;
-        font-size: 11px;
+        height: 46px;
+        font-size: 16px;
     }
 
     .status-legend {
         gap: 14px;
-
         padding: 15px;
     }
 
@@ -2222,7 +2080,7 @@ body.modal-open {
     }
 
     .status-legend-item {
-        font-size: 7px;
+        font-size: 8px;
     }
 
     .sales-summary {
@@ -2250,7 +2108,8 @@ body.modal-open {
 
     .sales-inline-item input {
         width: 100%;
-        min-height: 40px;
+        min-height: 42px;
+        font-size: 16px;
     }
 
     .sales-inline-item strong {
@@ -2264,7 +2123,7 @@ body.modal-open {
 
     #saveIzyPaidCount {
         width: 100%;
-        min-height: 42px;
+        min-height: 44px;
     }
 
     .panel {
@@ -2274,7 +2133,6 @@ body.modal-open {
     .table-meta {
         align-items: flex-start;
         flex-direction: column;
-
         gap: 9px;
     }
 
@@ -2288,13 +2146,13 @@ body.modal-open {
 
     .modal {
         align-items: center;
-
         padding: 12px;
     }
 
     .modal-box {
         width: 100%;
         max-height: 94vh;
+        max-height: 94dvh;
 
         padding: 23px 19px;
 
@@ -2314,8 +2172,8 @@ body.modal-open {
         top: 13px;
         right: 13px;
 
-        width: 33px;
-        height: 33px;
+        width: 34px;
+        height: 34px;
     }
 
     .detail-grid {
@@ -2329,6 +2187,11 @@ body.modal-open {
 
     .payment-editor {
         padding: 14px;
+    }
+
+    .payment-editor select,
+    .contact-status-box select {
+        font-size: 16px;
     }
 
     .modal-actions {
@@ -2347,6 +2210,10 @@ body.modal-open {
         font-size: 17px;
     }
 
+    .contact-followup textarea {
+        font-size: 16px;
+    }
+
     .contact-followup-footer {
         align-items: stretch;
         flex-direction: column;
@@ -2359,7 +2226,7 @@ body.modal-open {
 
     .contact-save-btn {
         width: 100%;
-        min-height: 43px;
+        min-height: 44px;
     }
 
     .pending-communication {
@@ -2373,11 +2240,23 @@ body.modal-open {
     .communication-btn {
         min-height: 62px;
     }
+
+    /* Evita zoom automático ao focar nos campos no iPhone */
+    input,
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+        font-size: 16px !important;
+    }
 }
 
-
 /* =========================================================
-   34. RESPONSIVO — CELULARES PEQUENOS
+   34. CELULARES PEQUENOS
 ========================================================= */
 
 @media (max-width: 420px) {
@@ -2417,7 +2296,7 @@ body.modal-open {
     }
 
     .status-legend-item {
-        font-size: 6.5px;
+        font-size: 7px;
     }
 
     .sales-summary {
@@ -2482,33 +2361,10 @@ body.modal-open {
     .admin-guard-icon {
         width: 65px;
         height: 65px;
-
         font-size: 28px;
     }
 }
 
-
-/* CORTESIA — VERDE-CLARO NEON */
-.participant-status-dot.courtesy {
-    background-color: #7CFF9B;
-    border: 1px solid #B6FFC5;
-    box-shadow:
-        0 0 5px rgba(124, 255, 155, 0.75),
-        0 0 12px rgba(124, 255, 155, 0.4);
-}
-
 /* =========================================================
-   CORREÇÃO — ZOOM AUTOMÁTICO NOS CAMPOS DE CADASTRO
+   FIM — RUN & SAMBA CRM
 ========================================================= */
-
-html {
-    -webkit-text-size-adjust: 100%;
-    text-size-adjust: 100%;
-}
-
-input,
-select,
-textarea {
-    font-size: 16px !important;
-    touch-action: manipulation;
-}
