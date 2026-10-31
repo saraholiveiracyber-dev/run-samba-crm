@@ -1364,3 +1364,567 @@ textarea:focus-visible {
     }
 
 }
+
+
+/* =========================================================
+   RUN & SAMBA CRM — EMBAIXADORES
+   RESPONSIVIDADE MOBILE
+   Atualização: 31/10/2026
+========================================================= */
+
+/* Evita rolagem horizontal */
+html,
+body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+.app,
+.content {
+    min-width: 0;
+    max-width: 100%;
+}
+
+/* Imagens, campos e tabelas */
+input,
+select,
+textarea,
+button {
+    max-width: 100%;
+    font: inherit;
+}
+
+input,
+select,
+textarea {
+    min-width: 0;
+}
+
+/* TABELA DESKTOP */
+.table-wrapper,
+.table-responsive {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.ambassador-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* =========================================================
+   TABLETS
+========================================================= */
+
+@media (max-width: 950px) {
+
+    .app {
+        display: block;
+        width: 100%;
+    }
+
+    .sidebar {
+        width: 100%;
+        max-width: 100%;
+        position: relative;
+        height: auto;
+    }
+
+    .content {
+        width: 100%;
+        margin-left: 0;
+        padding: 24px;
+    }
+
+    .stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ambassador-layout {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+/* =========================================================
+   CELULARES
+========================================================= */
+
+@media (max-width: 760px) {
+
+    body {
+        font-size: 14px;
+    }
+
+    .app {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+
+    /* MENU */
+    .sidebar {
+        position: relative;
+        top: auto;
+        left: auto;
+        width: 100%;
+        height: auto;
+        min-height: auto;
+        padding: 14px 12px;
+        overflow: visible;
+        z-index: 10;
+    }
+
+    .sidebar nav,
+    .sidebar ul {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        gap: 8px;
+        width: 100%;
+        overflow-x: auto;
+        padding: 8px 0;
+        scrollbar-width: thin;
+    }
+
+    .sidebar nav a,
+    .sidebar ul a {
+        flex: 0 0 auto;
+        white-space: nowrap;
+        font-size: 12px;
+        padding: 10px 13px;
+    }
+
+    .content {
+        width: 100%;
+        min-width: 0;
+        margin: 0;
+        padding: 18px 13px 30px;
+    }
+
+    /* CABEÇALHO */
+    .topbar {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        width: 100%;
+        margin-bottom: 20px;
+    }
+
+    .topbar h1 {
+        font-size: clamp(21px, 6vw, 27px);
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+    }
+
+    .topbar p {
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    /* INDICADORES */
+    .stats {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        width: 100%;
+    }
+
+    .stat-card {
+        min-width: 0;
+        padding: 15px 12px;
+        border-radius: 13px;
+    }
+
+    .stat-card h3,
+    .stat-card .stat-title {
+        font-size: 11px;
+        line-height: 1.4;
+    }
+
+    .stat-card strong,
+    .stat-card .stat-value {
+        font-size: clamp(20px, 5vw, 27px);
+        overflow-wrap: anywhere;
+    }
+
+    /* PAINÉIS */
+    .ambassador-layout {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        width: 100%;
+    }
+
+    .panel {
+        width: 100%;
+        min-width: 0;
+        padding: 16px 13px;
+        border-radius: 14px;
+    }
+
+    .panel h2 {
+        font-size: 17px;
+        line-height: 1.3;
+    }
+
+    /* FORMULÁRIO */
+    .form-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 13px;
+        width: 100%;
+    }
+
+    .form-group {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 7px;
+        font-size: 12px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea,
+    #embaixadorForm input,
+    #embaixadorForm select,
+    #embaixadorForm textarea {
+        width: 100%;
+        min-width: 0;
+        min-height: 46px;
+        padding: 12px;
+        font-size: 16px;
+        border-radius: 9px;
+    }
+
+    #embaixadorForm button {
+        min-height: 46px;
+    }
+
+    /* LINK DE COMPARTILHAMENTO */
+    .link-box {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .link-box input {
+        width: 100%;
+        min-width: 0;
+        min-height: 46px;
+        font-size: 13px;
+    }
+
+    .link-box button,
+    #copiarLinkBtn {
+        width: 100%;
+        min-height: 45px;
+    }
+
+    /* =====================================================
+       TABELA TRANSFORMADA EM CARDS
+    ===================================================== */
+
+    .table-wrapper,
+    .table-responsive {
+        width: 100%;
+        overflow: visible;
+    }
+
+    .ambassador-table {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        border: 0;
+    }
+
+    .ambassador-table thead {
+        display: none;
+    }
+
+    .ambassador-table tbody {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 12px;
+        width: 100%;
+    }
+
+    .ambassador-table tbody tr {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px 10px;
+        width: 100%;
+        padding: 15px 12px;
+        border: 1px solid rgba(0, 0, 0, 0.09);
+        border-radius: 13px;
+        background: #fff;
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.035);
+    }
+
+    .ambassador-table tbody td {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-width: 0;
+        padding: 3px 0;
+        border: 0;
+        font-size: 13px;
+        line-height: 1.5;
+        overflow-wrap: anywhere;
+    }
+
+    /* Nome ocupa a largura inteira */
+    .ambassador-table tbody td:nth-child(1) {
+        grid-column: 1 / -1;
+        padding-bottom: 10px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    .ambassador-name {
+        font-size: 15px;
+        font-weight: 700;
+        overflow-wrap: anywhere;
+    }
+
+    .ambassador-table tbody td:nth-child(1) small {
+        margin-top: 3px;
+        font-size: 11px;
+        color: #777;
+    }
+
+    /* Rótulos dos campos */
+    .ambassador-table tbody td:nth-child(2)::before {
+        content: "CÓDIGO";
+    }
+
+    .ambassador-table tbody td:nth-child(3)::before {
+        content: "INDICAÇÕES";
+    }
+
+    .ambassador-table tbody td:nth-child(4)::before {
+        content: "PAGAS";
+    }
+
+    .ambassador-table tbody td:nth-child(5)::before {
+        content: "STATUS";
+    }
+
+    .ambassador-table tbody td:nth-child(2)::before,
+    .ambassador-table tbody td:nth-child(3)::before,
+    .ambassador-table tbody td:nth-child(4)::before,
+    .ambassador-table tbody td:nth-child(5)::before {
+        margin-bottom: 4px;
+        color: #888;
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+    }
+
+    .ambassador-code {
+        font-size: 12px;
+        font-weight: 700;
+        overflow-wrap: anywhere;
+    }
+
+    /* AÇÕES ocupam a largura inteira */
+    .ambassador-table tbody td:nth-child(6) {
+        grid-column: 1 / -1;
+        padding-top: 10px;
+        border-top: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    .ambassador-table tbody td:nth-child(6)::before {
+        content: "AÇÕES";
+        margin-bottom: 8px;
+        color: #888;
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+    }
+
+    .table-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 7px;
+        width: 100%;
+    }
+
+    .table-actions button {
+        width: 100%;
+        min-width: 0;
+        min-height: 40px;
+        padding: 9px 6px;
+        font-size: 10px;
+        font-weight: 700;
+        border-radius: 8px;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+
+    .table-actions button:last-child {
+        grid-column: 1 / -1;
+    }
+
+    /* STATUS */
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: fit-content;
+        max-width: 100%;
+        padding: 5px 10px;
+        font-size: 11px;
+        border-radius: 20px;
+    }
+
+    /* RANKING */
+    .ranking-list {
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+        width: 100%;
+    }
+
+    .ranking-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        width: 100%;
+        min-width: 0;
+        padding: 12px 10px;
+        border-radius: 11px;
+    }
+
+    .ranking-person {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        min-width: 0;
+        flex: 1;
+    }
+
+    .ranking-person > div {
+        min-width: 0;
+    }
+
+    .ranking-person strong {
+        display: block;
+        font-size: 12px;
+        overflow-wrap: anywhere;
+    }
+
+    .ranking-person small {
+        display: block;
+        margin-top: 3px;
+        font-size: 10px;
+        overflow-wrap: anywhere;
+    }
+
+    .ranking-number {
+        flex: 0 0 30px;
+        font-size: 17px;
+        text-align: center;
+    }
+
+    .ranking-result {
+        flex: 0 0 auto;
+        text-align: right;
+    }
+
+    .ranking-total {
+        font-size: 19px;
+    }
+
+    .ranking-result small {
+        display: block;
+        max-width: 95px;
+        font-size: 9px;
+        line-height: 1.3;
+    }
+
+    /* MENSAGENS */
+    #mensagemEmbaixador,
+    #mensagemLista,
+    #mensagemLink,
+    #mensagemAcao {
+        font-size: 12px;
+        line-height: 1.5;
+        overflow-wrap: anywhere;
+    }
+
+    /* BOTÕES GERAIS */
+    button {
+        min-height: 40px;
+        cursor: pointer;
+        touch-action: manipulation;
+    }
+
+}
+
+/* =========================================================
+   CELULARES PEQUENOS
+========================================================= */
+
+@media (max-width: 420px) {
+
+    .content {
+        padding: 14px 10px 25px;
+    }
+
+    .panel {
+        padding: 13px 10px;
+    }
+
+    .stats {
+        gap: 8px;
+    }
+
+    .stat-card {
+        padding: 12px 9px;
+    }
+
+    .ambassador-table tbody tr {
+        padding: 12px 10px;
+        gap: 10px 8px;
+    }
+
+    .table-actions button {
+        font-size: 9px;
+        padding: 8px 4px;
+    }
+
+    .ranking-item {
+        padding: 10px 8px;
+    }
+
+}
+
+/* =========================================================
+   ACESSIBILIDADE
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+
+}
