@@ -2365,6 +2365,232 @@ body.modal-open {
     }
 }
 
+
 /* =========================================================
-   FIM — RUN & SAMBA CRM
+   35. MOBILE — PARTICIPANTES EM CARTÕES
+   Desktop continua com tabela tradicional
 ========================================================= */
+
+@media (max-width: 760px) {
+
+    /* Remove a rolagem horizontal da tabela */
+    .table-wrap {
+        width: 100%;
+        overflow: visible;
+        background: transparent;
+        border: 0;
+        border-radius: 0;
+    }
+
+    table {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        border: 0;
+        border-spacing: 0;
+    }
+
+    /* Cabeçalho tradicional fica oculto visualmente */
+    table thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+
+    table tbody {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 13px;
+        width: 100%;
+    }
+
+    /* Cada participante vira um cartão */
+    table tbody tr {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0;
+        width: 100%;
+        min-width: 0;
+        padding: 10px 13px;
+
+        background: #ffffff;
+        border: 1px solid #e7e4dc;
+        border-radius: 13px;
+
+        box-shadow: 0 5px 16px rgba(0, 0, 0, .045);
+    }
+
+    table tbody td {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+        gap: 5px;
+
+        width: 100%;
+        min-width: 0;
+        min-height: 58px;
+        padding: 10px 7px;
+
+        color: #191919;
+        font-size: 11px;
+        line-height: 1.5;
+
+        border-bottom: 1px solid #efede7 !important;
+
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+
+    /* Nome ocupa toda a largura do cartão */
+    table tbody td:nth-child(1) {
+        grid-column: 1 / -1;
+        min-height: 65px;
+        padding-top: 12px;
+        padding-bottom: 12px;
+        background: #fffdf8;
+        border-bottom: 1px solid #e7e0d0 !important;
+    }
+
+    /* Identificação dos campos */
+    table tbody td:nth-child(1)::before {
+        content: "PARTICIPANTE";
+    }
+
+    table tbody td:nth-child(2)::before {
+        content: "CPF";
+    }
+
+    table tbody td:nth-child(3)::before {
+        content: "TELEFONE";
+    }
+
+    table tbody td:nth-child(4)::before {
+        content: "PERCURSO";
+    }
+
+    table tbody td:nth-child(5)::before {
+        content: "CAMISETA";
+    }
+
+    table tbody td:nth-child(6)::before {
+        content: "PAGAMENTO";
+    }
+
+    table tbody td:nth-child(7)::before {
+        content: "AÇÕES";
+    }
+
+    table tbody td::before {
+        display: block;
+        color: #927334;
+
+        font-size: 8px;
+        font-weight: 900;
+        letter-spacing: 1px;
+        line-height: 1.4;
+    }
+
+    /* Nome do participante */
+    .participant-cell {
+        min-width: 0;
+    }
+
+    .participant-name-line {
+        flex-wrap: wrap;
+        gap: 7px;
+    }
+
+    .participant-name-button {
+        font-size: 12px;
+        font-weight: 900;
+    }
+
+    .participant-name-button::after {
+        opacity: 1;
+    }
+
+    .participant-email {
+        font-size: 9px;
+    }
+
+    /* Status de pagamento */
+    table tbody td:nth-child(6) {
+        align-items: flex-start;
+    }
+
+    .status-badge {
+        min-height: 25px;
+        font-size: 8px;
+    }
+
+    /* Área de ações */
+    table tbody td:nth-child(7) {
+        grid-column: 1 / -1;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-start;
+
+        min-height: 58px;
+        padding-top: 12px;
+        border-bottom: 0 !important;
+    }
+
+    table tbody td:nth-child(7)::before {
+        width: 100%;
+        margin-bottom: 4px;
+    }
+
+    .action-btn {
+        min-height: 38px;
+        padding: 0 13px;
+        font-size: 9px;
+    }
+
+    /* Mensagem de tabela vazia */
+    table tbody td[colspan] {
+        display: block;
+        grid-column: 1 / -1;
+        min-height: auto;
+        padding: 28px 15px !important;
+
+        text-align: center;
+        border: 0 !important;
+    }
+
+    table tbody td[colspan]::before {
+        display: none;
+    }
+}
+
+/* =========================================================
+   36. CELULARES ESTREITOS
+========================================================= */
+
+@media (max-width: 380px) {
+
+    table tbody tr {
+        padding: 8px 10px;
+    }
+
+    table tbody td {
+        padding: 9px 5px;
+        font-size: 10px;
+    }
+
+    .participant-name-button {
+        font-size: 11px;
+    }
+
+    .action-btn {
+        padding: 0 10px;
+        font-size: 8px;
+    }
+}
