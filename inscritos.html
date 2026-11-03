@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 
@@ -15,8 +16,9 @@
 
     <title>Inscritos | Run & Samba CRM</title>
 
-    <link rel="stylesheet" href="css/inscritos.css?v=20261031">
+    <link rel="stylesheet" href="css/inscritos.css?v=20261103">
 
+    <!-- Supabase deve carregar antes dos arquivos do CRM -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
     <script src="js/auth.js"></script>
@@ -357,6 +359,7 @@
         role="dialog"
         aria-modal="true"
         aria-labelledby="modalName"
+        aria-hidden="true"
     >
 
         <div class="modal-overlay"></div>
@@ -470,7 +473,7 @@
                 <div
                     class="contact-response-group"
                     id="clientResponseGroup"
-                    style="display: none;"
+                    hidden
                 >
 
                     <label for="clientResponse">
@@ -508,6 +511,7 @@
                 id="pendingCommunication"
                 class="pending-communication hidden"
                 aria-labelledby="communicationTitle"
+                hidden
             >
 
                 <header class="communication-header">

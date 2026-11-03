@@ -1,14 +1,15 @@
+
 /* =========================================================
    RUN & SAMBA 2026 — CRM INSCRITOS
-   Administração • IzyPass • Pagamentos • Comunicação • F9
+   Administração • Supabase • IzyPass • Comunicação • F9
 
-   STATUS VISUAIS:
-   🟢 PAGO
-   🔴 CANCELADO
-   🔵 MENSAGEM ENVIADA
-   🟡 PENDENTE
-   ⚪ NOVO
-   🟢 NEON CORTESIA
+   STATUS:
+   PAGO
+   PENDENTE
+   CANCELADO
+   CORTESIA
+   MENSAGEM ENVIADA
+   NOVO
 
    RESPONDEU / NÃO RESPONDIDO:
    Exclusivamente no acompanhamento F9.
@@ -37,7 +38,7 @@ const IZY_STORAGE_KEY = "run_samba_izy_paid_count_v1";
 const $ = id => document.getElementById(id);
 
 /* =========================================================
-   INICIALIZAÇÃO E AUTORIZAÇÃO
+   INICIALIZAÇÃO
 ========================================================= */
 
 async function init() {
@@ -170,6 +171,7 @@ function accessError(message) {
 
     if (logout) {
         logout.hidden = false;
+
         logout.onclick = async () => {
             logout.disabled = true;
             logout.textContent = "SAINDO...";
@@ -190,7 +192,124 @@ function accessError(message) {
 }
 
 /* =========================================================
-   IZYPASS — RESUMO DE PAGAMENTOS INFORMADOS
+   EVENTOS
+========================================================= */
+
+function bindEvents() {
+    if (eventsBound) return;
+
+    eventsBound = true;
+
+    // Clique no nome ou no botão VER.
+    // A delegação continua funcionando após renderizações da tabela.
+    const tableBody = $("tableBody");
+
+    if (tableBody) {
+        tableBody.addEventListener("click", event => {
+            const target = event.target instanceof Element
+                ? event.target
+                : null;
+
+            const button = target?.closest(
+                ".participant-name-button, .action-btn"
+            );
+
+            if (!button || !tableBody.contains(button)) return;
+
+            event.preventDefault();
+
+            const id = button.dataset.id;
+
+            if (!id) {
+                showMessage("ID do participante não encontrado.");
+                return;
+            }
+
+            openModal(id);
+        });
+    }
+
+    ["search", "paymentFilter", "routeFilter", "shirtFilter"]
+        .forEach(id => {
+            const element = $(id);
+
+            if (!element) return;
+
+            element.addEventListener("input", render);
+            element.addEventListener("change", render);
+        });
+
+    $("exportBtn")?.addEventListener("click", exportCSV);
+
+    $("closeModal")?.addEventListener("click", closeModal);
+
+    $("savePayment")?.addEventListener("click", savePayment);
+
+    $("saveContactFollowup")?.addEventListener(
+        "click",
+        saveContactFollowup
+    );
+
+    $("editModal")?.addEventListener("click", event => {
+        const modal = $("editModal");
+
+        if (
+            event.target === modal ||
+            event.target.classList.contains("modal-overlay")
+        ) {
+            closeModal();
+        }
+    });
+
+    $("logoutBtn")?.addEventListener("click", logout);
+
+    document.addEventListener("keydown", event => {
+        const modal = $("editModal");
+
+        if (!modal || modal.classList.contains("hidden")) return;
+
+        if (event.key === "Escape") {
+            closeModal();
+        }
+
+        if (event.key === "F9") {
+            event.preventDefault();
+            $("contactStatus")?.focus();
+        }
+    });
+}
+
+async function logout() {
+    const button = $("logoutBtn");
+
+    if (button) {
+        button.disabled = true;
+        button.textContent = "SAINDO...";
+    }
+
+    try {
+        if (window.crmAuth?.logout) {
+            await window.crmAuth.logout();
+        } else if (db) {
+            await db.auth.signOut();
+        }
+
+        window.location.replace("index.html");
+
+    } catch (error) {
+        console.error("Erro ao sair:", error);
+
+        if (button) {
+            button.disabled = false;
+            button.textContent = "SAIR";
+        }
+
+        showMessage("Não foi possível sair. Tente novamente.");
+    }
+}
+
+/* =========================================================
+   IZYPASS — RESUMO LOCAL
 ========================================================= */
 
 function initIzySummary() {
@@ -218,10 +337,7 @@ function initIzySummary() {
             }
         }
     } catch (error) {
-        console.warn(
-            "Não foi possível ler o resumo IzyPass:",
-            error
-        );
+        console.warn("Não foi possível ler o resumo IzyPass:", error);
     }
 
     input.value = String(savedCount);
@@ -251,10 +367,7 @@ function initIzySummary() {
                 message.textContent =
                     "Informe uma quantidade inteira igual ou maior que zero.";
             }
-            return;
         }
-
-        updateIzyTotal();
     });
 
     saveButton?.addEventListener("click", saveIzyPaidCount);
@@ -390,84 +503,6 @@ async function loadRows() {
 }
 
 /* =========================================================
-   EVENTOS GERAIS
-========================================================= */
-
-function bindEvents() {
-    if (eventsBound) return;
-    eventsBound = true;
-
-    ["search", "paymentFilter", "routeFilter", "shirtFilter"]
-        .forEach(id => {
-            const element = $(id);
-            if (!element) return;
-
-            element.addEventListener("input", render);
-            element.addEventListener("change", render);
-        });
-
-    $("exportBtn")?.addEventListener("click", exportCSV);
-    $("closeModal")?.addEventListener("click", closeModal);
-    $("savePayment")?.addEventListener("click", savePayment);
-
-    $("saveContactFollowup")?.addEventListener(
-        "click",
-        saveContactFollowup
-    );
-
-    $("editModal")?.addEventListener("click", event => {
-        if (
-            event.target === $("editModal") ||
-            event.target.classList.contains("modal-overlay")
-        ) {
-            closeModal();
-        }
-    });
-
-    $("logoutBtn")?.addEventListener("click", async () => {
-        const button = $("logoutBtn");
-
-        button.disabled = true;
-        button.textContent = "SAINDO...";
-
-        try {
-            if (window.crmAuth?.logout) {
-                await window.crmAuth.logout();
-            } else if (db) {
-                await db.auth.signOut();
-                window.location.replace("index.html");
-            }
-        } catch (error) {
-            console.error("Erro ao sair:", error);
-
-            button.disabled = false;
-            button.textContent = "SAIR";
-
-            showMessage("Não foi possível sair. Tente novamente.");
-        }
-    });
-
-    document.addEventListener("keydown", event => {
-        if (event.key === "Escape") {
-            const modal = $("editModal");
-
-            if (modal && !modal.classList.contains("hidden")) {
-                closeModal();
-            }
-        }
-
-        if (event.key === "F9") {
-            const modal = $("editModal");
-
-            if (modal && !modal.classList.contains("hidden")) {
-                event.preventDefault();
-                $("contactStatus")?.focus();
-            }
-        }
-    });
-}
-
-/* =========================================================
    NORMALIZAÇÃO
 ========================================================= */
 
@@ -490,9 +525,11 @@ function normalizarPagamento(value) {
 }
 
 function pagamentoEstaVazio(value) {
-    return value === null ||
+    return (
+        value === null ||
         value === undefined ||
-        String(value).trim() === "";
+        String(value).trim() === ""
+    );
 }
 
 function normalizarStatusContato(value) {
@@ -555,7 +592,6 @@ function obterStatusVisualParticipante(row) {
     const pagamento = normalizarTexto(pagamentoBruto);
     const contato = normalizarStatusContato(row.status_contato);
 
-    // Cortesia tem prioridade sobre os estados de contato.
     if (pagamento === "CORTESIA") {
         return {
             status: "CORTESIA",
@@ -722,19 +758,58 @@ function render() {
                         type="button"
                         class="action-btn"
                         data-id="${esc(row.id)}"
+                        aria-label="Ver detalhes de ${esc(row.nome || "participante")}"
                     >VER</button>
                 </td>
             </tr>
         `;
     }).join("");
+}
 
-    body.querySelectorAll(
-        ".action-btn, .participant-name-button"
-    ).forEach(button => {
-        button.addEventListener("click", () => {
-            openModal(button.dataset.id);
-        });
-    });
+/* =========================================================
+   DETALHES DO PARTICIPANTE
+========================================================= */
+
+function renderParticipantDetails(participant) {
+    const container = $("modalData");
+
+    if (!container) return;
+
+    const fields = [
+        ["Nome completo", participant.nome],
+        ["CPF", formatCPF(participant.cpf)],
+        ["Data de nascimento", formatDate(participant.nascimento)],
+        ["E-mail", participant.email],
+        ["Telefone", formatPhone(participant.telefone)],
+        ["Sexo", participant.sexo],
+        ["Percurso", participant.percurso],
+        ["Camiseta", participant.camiseta],
+        ["Valor da inscrição", formatMoney(
+            participant.valor ?? IZY_PRICE
+        )],
+        ["Pagamento", normalizarPagamento(
+            participant.status_pagamento
+        )],
+        ["Cadastro realizado em", formatDateTime(
+            participant.created_at
+        )],
+        ["Última atualização", formatDateTime(
+            participant.updated_at
+        )]
+    ];
+
+    container.innerHTML = fields.map(([label, value]) => `
+        <div class="detail-item">
+            <span class="detail-label">${esc(label)}</span>
+            <strong class="detail-value">${esc(
+                value === null ||
+                value === undefined ||
+                value === ""
+                    ? "—"
+                    : value
+            )}</strong>
+        </div>
+    `).join("");
 }
 
 /* =========================================================
@@ -748,6 +823,13 @@ function openModal(id) {
 
     if (!participant) {
         showMessage("Participante não encontrado.");
+        return;
+    }
+
+    const modal = $("editModal");
+
+    if (!modal) {
+        showMessage("Modal não encontrado. Verifique o HTML.");
         return;
     }
 
@@ -767,41 +849,13 @@ function openModal(id) {
     configurarComunicacao(participant);
     configurarAcompanhamentoContato(participant);
 
-    $("editModal")?.classList.remove("hidden");
+    modal.classList.remove("hidden");
+    modal.hidden = false;
+    modal.setAttribute("aria-hidden", "false");
+
     document.body.classList.add("modal-open");
 
-    setTimeout(() => $("modalPayment")?.focus(), 100);
-}
-
-function renderParticipantDetails(participant) {
-    const fields = [
-        ["CPF", formatCPF(participant.cpf)],
-        ["Nascimento", formatDate(participant.nascimento)],
-        ["E-mail", participant.email],
-        ["Telefone", formatPhone(participant.telefone)],
-        ["Sexo", participant.sexo],
-        ["Camiseta", participant.camiseta],
-        ["Percurso", participant.percurso],
-        ["Valor", formatMoney(participant.valor)],
-        ["Status", participant.status],
-        [
-            "Pagamento",
-            normalizarPagamento(participant.status_pagamento)
-        ],
-        [
-            "Contato",
-            textoStatusContato(participant.status_contato)
-        ]
-    ];
-
-    if ($("modalData")) {
-        $("modalData").innerHTML = fields.map(([label, value]) => `
-            <div class="detail-item">
-                <span>${esc(label)}</span>
-                <strong>${esc(value ?? "—")}</strong>
-            </div>
-        `).join("");
-    }
+    $("closeModal")?.focus();
 }
 
 /* =========================================================
@@ -809,13 +863,21 @@ function renderParticipantDetails(participant) {
 ========================================================= */
 
 function closeModal() {
-    $("editModal")?.classList.add("hidden");
+    const modal = $("editModal");
+
+    if (modal) {
+        modal.classList.add("hidden");
+        modal.hidden = true;
+        modal.setAttribute("aria-hidden", "true");
+    }
+
     document.body.classList.remove("modal-open");
+
     selectedId = null;
 }
 
 /* =========================================================
-   COMUNICAÇÃO — SOMENTE PAGAMENTO PENDENTE
+   COMUNICAÇÃO — PAGAMENTO PENDENTE
 ========================================================= */
 
 function configurarComunicacao(participante) {
@@ -823,30 +885,40 @@ function configurarComunicacao(participante) {
     const whatsapp = $("whatsappBtn");
     const emailBtn = $("emailBtn");
 
-    if (!box || !whatsapp || !emailBtn) return;
+    if (!box || !whatsapp) {
+        console.error(
+            "Elementos de comunicação não encontrados. Verifique o HTML."
+        );
+        return;
+    }
 
     whatsapp.onclick = null;
-    emailBtn.onclick = null;
-
     whatsapp.removeAttribute("href");
-    emailBtn.removeAttribute("href");
+
+    if (emailBtn) {
+        emailBtn.onclick = null;
+        emailBtn.removeAttribute("href");
+    }
 
     const pagamento = normalizarPagamento(
         participante.status_pagamento
     );
 
-    // Cortesia, pago e cancelado não exibem cobrança de pendência.
     if (pagamento !== "PENDENTE") {
         box.classList.add("hidden");
+        box.hidden = true;
         return;
     }
 
     box.classList.remove("hidden");
+    box.hidden = false;
 
-    const mensagem = criarMensagemPagamento(participante.nome);
+    const mensagem = criarMensagemPagamento(participante);
     const numero = normalizarTelefone(participante.telefone);
     const email = String(participante.email || "").trim();
 
+    // WHATSAPP
+    whatsapp.hidden = false;
     whatsapp.target = "_blank";
     whatsapp.rel = "noopener noreferrer";
 
@@ -863,23 +935,31 @@ function configurarComunicacao(participante) {
         };
     }
 
-    emailBtn.target = "_blank";
-    emailBtn.rel = "noopener noreferrer";
+    // E-MAIL
+    if (emailBtn) {
+        emailBtn.hidden = false;
+        emailBtn.target = "_blank";
+        emailBtn.rel = "noopener noreferrer";
 
-    if (email) {
-        emailBtn.href =
-            "https://mail.google.com/mail/?view=cm&fs=1" +
-            "&to=" + encodeURIComponent(email) +
-            "&su=" + encodeURIComponent(criarAssuntoEmail()) +
-            "&body=" + encodeURIComponent(mensagem);
-    } else {
-        emailBtn.onclick = event => {
-            event.preventDefault();
-            showMessage(
-                "Este participante não possui e-mail cadastrado."
-            );
-        };
+        if (email) {
+            emailBtn.href =
+                "https://mail.google.com/mail/?view=cm&fs=1" +
+                "&to=" + encodeURIComponent(email) +
+                "&su=" + encodeURIComponent(criarAssuntoEmail()) +
+                "&body=" + encodeURIComponent(mensagem);
+        } else {
+            emailBtn.onclick = event => {
+                event.preventDefault();
+                showMessage(
+                    "Este participante não possui e-mail cadastrado."
+                );
+            };
+        }
     }
+}
+
+function criarAssuntoEmail() {
+    return "Sua inscrição | RUN & SAMBA — 2ª EDIÇÃO";
 }
 
 function normalizarTelefone(telefone) {
@@ -898,17 +978,87 @@ function normalizarTelefone(telefone) {
     return numero;
 }
 
-function criarMensagemPagamento(nome) {
-    const primeiroNome = String(nome || "participante")
-        .trim()
-        .split(/\s+/)[0];
+function criarMensagemPagamento(participante) {
+    const nome = String(
+        participante?.nome || "Participante"
+    ).trim();
 
-    return `Olá, ${primeiroNome}!
-Tudo bem?`;
-}
+    const cpf = String(
+        participante?.cpf || ""
+    ).replace(/\D/g, "");
 
-function criarAssuntoEmail() {
-    return "Última chance: 2º lote da Run & Samba está chegando!";
+    const cpfMascarado = cpf.length === 11
+    ? `***.${cpf.slice(3, 6)}.**`
+    : "***.***.**";
+
+    const percurso = String(
+        participante?.percurso || "Não informado"
+    );
+
+    const valor = formatMoney(
+        participante?.valor ?? IZY_PRICE
+    );
+
+    const linkPagamento =
+        "https://izypass.com.br/evento/run-and-samba-2-edicao_luziania_20-11-2026";
+
+    const instagram =
+        "https://www.instagram.com/runesamba.oficial";
+
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+
+    const viradaLote = new Date(2026, 10, 6);
+    viradaLote.setHours(0, 0, 0, 0);
+
+    const diasRestantes = Math.ceil(
+        (viradaLote - hoje) / 86400000
+    );
+
+    let avisoVirada;
+
+    if (diasRestantes > 1) {
+        avisoVirada =
+            `🚨 FALTAM ${diasRestantes} DIAS PARA A VIRADA DE LOTE (06/11)!`;
+    } else if (diasRestantes === 1) {
+        avisoVirada =
+            "🚨 AMANHÃ, 06/11, ACONTECE A VIRADA DE LOTE!";
+    } else if (diasRestantes === 0) {
+        avisoVirada = "🚨 HOJE É DIA DE VIRADA DE LOTE!";
+    } else {
+        avisoVirada =
+            "Confira as novidades sobre as inscrições em nosso Instagram!";
+    }
+
+    return `Olá, ${nome}! Tudo bem?
+
+Sua inscrição no RUN & SAMBA — 2ª EDIÇÃO está aguardando a confirmação do pagamento.
+
+Confira os dados da sua inscrição:
+
+*Participante:* ${nome}
+*CPF:* ${cpfMascarado}
+*Percurso:* ${percurso}
+*Valor pendente:* ${valor}
+
+DATA: 20 DE NOVEMBRO DE 2026
+LOCAL: SETOR AEROPORTO — LUZIÂNIA/GO
+
+${avisoVirada}
+
+Estamos nos aproximando do grande dia! Não deixe para a última hora a confirmação da sua participação.
+
+Sua inscrição somente estará confirmada após a identificação do pagamento.
+
+*FINALIZE SEU PAGAMENTO PELO LINK:*
+${linkPagamento}
+
+O percurso oficial será anunciado em breve!
+
+Acompanhe todas as informações pelo Instagram:
+${instagram}
+
+Será uma alegria ter você na linha de largada!`;
 }
 
 /* =========================================================
@@ -1025,10 +1175,11 @@ function configurarAcompanhamentoContato(participante) {
 function atualizarCampoRespostaContato(status, responseGroup) {
     if (!responseGroup) return;
 
-    responseGroup.style.display =
-        normalizarStatusContato(status) === "RESPONDEU"
-            ? "block"
-            : "none";
+    const mostrar =
+        normalizarStatusContato(status) === "RESPONDEU";
+
+    responseGroup.hidden = !mostrar;
+    responseGroup.style.display = mostrar ? "block" : "none";
 }
 
 async function saveContactFollowup() {
@@ -1097,8 +1248,6 @@ async function saveContactFollowup() {
         }
 
         // RESPONDEU / NÃO RESPONDIDO não alteram a bolinha.
-        // MENSAGEM ENVIADA continua representada em azul,
-        // exceto quando o pagamento é CORTESIA, PAGO ou CANCELADO.
         render();
 
         showMessage("Acompanhamento salvo com sucesso.");
@@ -1186,7 +1335,7 @@ function csvCell(value) {
 }
 
 /* =========================================================
-   FORMATAÇÃO DE DADOS
+   FORMATAÇÃO
 ========================================================= */
 
 function formatCPF(cpf) {
@@ -1253,6 +1402,21 @@ function formatDate(date) {
     return value;
 }
 
+function formatDateTime(date) {
+    if (!date) return "—";
+
+    const parsed = new Date(date);
+
+    if (Number.isNaN(parsed.getTime())) {
+        return String(date);
+    }
+
+    return parsed.toLocaleString("pt-BR", {
+        dateStyle: "short",
+        timeStyle: "short"
+    });
+}
+
 function formatMoney(value) {
     if (value === null || value === undefined || value === "") {
         return "—";
@@ -1296,7 +1460,7 @@ function paymentClass(value) {
 }
 
 /* =========================================================
-   ESCAPE HTML
+   SEGURANÇA — ESCAPE HTML
 ========================================================= */
 
 function esc(value) {
