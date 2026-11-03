@@ -44,11 +44,14 @@ function setMoney(id, valueInCents) {
 function setPercent(id, percent) {
     const element = getElement(id);
 
-    if (element) {
-        element.textContent = `${percent.toLocaleString("pt-BR", {
-            maximumFractionDigits: 1
-        })}%`;
-    }
+    if (!element) return;
+
+    const valor = Number(percent) || 0;
+
+    element.textContent = `${valor.toLocaleString("pt-BR", {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1
+    })}%`;
 }
 
 function setBarWidth(id, percent) {
@@ -467,10 +470,16 @@ setBarWidth(
     ----------------------------------------------------- */
 
     setText("paidCount", NUMERO.format(paid));
-    setText("pendingCount", NUMERO.format(pending));
+setText("pendingCount", NUMERO.format(pending));
 
-    setPercent("paidPercent", paidPercent);
-    setBarWidth("paidProgress", paidPercent);
+const totalPagamentos = paid + pending + cancelled;
+
+const paidPercent = totalPagamentos > 0
+    ? (paid / totalPagamentos) * 100
+    : 0;
+
+setPercent("paidPercent", paidPercent);
+setBarWidth("paidProgress", paidPercent);
 
 
     /* -----------------------------------------------------
@@ -545,27 +554,20 @@ setBarWidth(
        RESUMO NO CONSOLE
     ----------------------------------------------------- */
 
-    console.group("RUN & SAMBA CRM — Dashboard");
+  console.table({
+    "Recebido": MOEDA.format(paidValueCents / 100),
+    "A receber": MOEDA.format(pendingValueCents / 100),
+    "Cortesias (referência)": MOEDA.format(courtesyValueCents / 100),
+    "Cancelados (referência)": MOEDA.format(cancelledValueCents / 100),
+    "Total financeiro válido": MOEDA.format(totalValueCents / 100)
+});
 
-    console.table({
-        "Total de inscrições": total,
-        "Pagamentos confirmados": paid,
-        "Pagamentos pendentes": pending,
-        "Cortesias": courtesies,
-        "Cancelados": cancelled,
-        "Outros status": other
-    });
-
-    console.table({
-        "Recebido": MOEDA.format(paidValueCents / 100),
-        "A receber": MOEDA.format(pendingValueCents / 100),
-        "Cortesias (referência)": MOEDA.format(courtesyValueCents / 100),
-        "Cancelados (referência)": MOEDA.format(cancelledValueCents / 100),
-        "Total financeiro válido": MOEDA.format(totalValueCents / 100),
-        "Meta": MOEDA.format(goalCents / 100),
-        "Falta para a meta": MOEDA.format(remainingCents / 100),
-        "Percentual da meta": `${goalPercent.toFixed(2)}%`
-    });
+console.table({
+    "Meta de participantes": META_PARTICIPANTES,
+    "Participantes confirmados": participantesConfirmados,
+    "Participantes restantes": participantesRestantes,
+    "Percentual da meta": `${percentualMetaParticipantes.toFixed(1)}%`
+});
 
     if (other > 0) {
         console.warn(
