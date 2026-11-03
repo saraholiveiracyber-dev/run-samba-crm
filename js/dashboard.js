@@ -7,7 +7,7 @@
 ========================================================= */
 
 const VALOR_INSCRICAO = 89.90;
-const META_FINANCEIRA = 50000.00;
+const META_PARTICIPANTES = 150;
 
 const MOEDA = new Intl.NumberFormat("pt-BR", {
     style: "currency",
@@ -400,23 +400,17 @@ async function loadDashboard() {
     // Total financeiro válido: somente pagos + pendentes.
     const totalValueCents = paidValueCents + pendingValueCents;
 
-    const goalCents = Math.round(META_FINANCEIRA * 100);
+    /* META DE PARTICIPANTES */
 
-    const remainingCents = Math.max(
-        0,
-        goalCents - paidValueCents
-    );
+const participantesConfirmados = paid;
 
-    const goalPercent = goalCents > 0
-        ? (paidValueCents / goalCents) * 100
-        : 0;
+const participantesRestantes = Math.max(
+    0,
+    META_PARTICIPANTES - participantesConfirmados
+);
 
-    // Percentual de pagamentos confirmados entre pagos e pendentes.
-    const paymentBase = paid + pending;
-
-    const paidPercent = paymentBase > 0
-        ? (paid / paymentBase) * 100
-        : 0;
+const percentualMetaParticipantes =
+    (participantesConfirmados / META_PARTICIPANTES) * 100;
 
 
     /* -----------------------------------------------------
@@ -433,16 +427,40 @@ async function loadDashboard() {
 
 
     /* -----------------------------------------------------
-       META FINANCEIRA
-    ----------------------------------------------------- */
+   META DE PARTICIPANTES — 150 INSCRIÇÕES
+----------------------------------------------------- */
 
-    setMoney("goalReceived", paidValueCents);
-    setMoney("goalTarget", goalCents);
-    setMoney("goalRemaining", remainingCents);
+setText(
+    "goalParticipants",
+    NUMERO.format(participantesConfirmados)
+);
 
-    setPercent("goalPercent", goalPercent);
-    setBarWidth("goalProgressBar", goalPercent);
+setText(
+    "goalTargetParticipants",
+    NUMERO.format(META_PARTICIPANTES)
+);
 
+setText(
+    "goalPercent",
+    `${percentualMetaParticipantes.toLocaleString("pt-BR", {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1
+    })}% da meta alcançada`
+);
+
+setText(
+    "goalRemaining",
+    participantesRestantes > 0
+        ? `Faltam ${NUMERO.format(participantesRestantes)} participantes`
+        : `Meta atingida! ${NUMERO.format(
+            participantesConfirmados - META_PARTICIPANTES
+        )} acima do objetivo`
+);
+
+setBarWidth(
+    "goalProgressBar",
+    percentualMetaParticipantes
+);
 
     /* -----------------------------------------------------
        RECEBIMENTO DAS INSCRIÇÕES
