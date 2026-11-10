@@ -942,17 +942,17 @@ function closeModal() {
    COMUNICAÇÃO — PAGAMENTO PENDENTE
 ========================================================= */
 
+
+/* =========================================================
+   COMUNICAÇÃO — WHATSAPP E E-MAIL
+========================================================= */
+
 function configurarComunicacao(participante) {
     const box = $("pendingCommunication");
     const whatsapp = $("whatsappBtn");
     const emailBtn = $("emailBtn");
 
-    if (!box || !whatsapp) {
-        console.error(
-            "Elementos de comunicação não encontrados. Verifique o HTML."
-        );
-        return;
-    }
+    if (!box || !whatsapp) return;
 
     whatsapp.onclick = null;
     whatsapp.removeAttribute("href");
@@ -966,7 +966,13 @@ function configurarComunicacao(participante) {
         participante.status_pagamento
     );
 
-    if (pagamento !== "PENDENTE") {
+    const podeEnviar = [
+        "PAGO",
+        "PAGO_PARCEIRO",
+        "PENDENTE"
+    ].includes(pagamento);
+
+    if (!podeEnviar) {
         box.classList.add("hidden");
         box.hidden = true;
         return;
@@ -976,20 +982,22 @@ function configurarComunicacao(participante) {
     box.hidden = false;
 
     const mensagem = criarMensagemPagamento(participante);
-    const numero = normalizarTelefone(participante.telefone);
-    const email = String(participante.email || "").trim();
+    const telefone = normalizarTelefone(participante.telefone);
 
     whatsapp.hidden = false;
     whatsapp.target = "_blank";
     whatsapp.rel = "noopener noreferrer";
 
-    if (numero) {
+    if (telefone) {
         whatsapp.href =
-            "https://wa.me/" + numero +
-            "?text=" + encodeURIComponent(mensagem);
+            "https://wa.me/" +
+            telefone +
+            "?text=" +
+            encodeURIComponent(mensagem);
     } else {
         whatsapp.onclick = event => {
             event.preventDefault();
+
             showMessage(
                 "Este participante não possui telefone cadastrado."
             );
@@ -997,128 +1005,99 @@ function configurarComunicacao(participante) {
     }
 
     if (emailBtn) {
-        emailBtn.hidden = false;
-        emailBtn.target = "_blank";
-        emailBtn.rel = "noopener noreferrer";
+        const email = String(participante.email || "").trim();
 
         if (email) {
+            emailBtn.hidden = false;
             emailBtn.href =
-                "https://mail.google.com/mail/?view=cm&fs=1" +
-                "&to=" + encodeURIComponent(email) +
-                "&su=" + encodeURIComponent(criarAssuntoEmail()) +
-                "&body=" + encodeURIComponent(mensagem);
+                "mailto:" +
+                encodeURIComponent(email) +
+                "?subject=" +
+                encodeURIComponent("RUN & SAMBA — Confirmação de inscrição") +
+                "&body=" +
+                encodeURIComponent(mensagem);
         } else {
-            emailBtn.onclick = event => {
-                event.preventDefault();
-                showMessage(
-                    "Este participante não possui e-mail cadastrado."
-                );
-            };
+            emailBtn.hidden = true;
         }
     }
 }
 
-function criarAssuntoEmail() {
-    return "Sua inscrição | RUN & SAMBA — 2ª EDIÇÃO";
-}
+/* =========================================================
+   MENSAGEM DE CONFIRMAÇÃO DOS DADOS
+========================================================= */
+
+function criarMensagemPagamento(participante) {
+    const pagamento = normalizarPagamento(
+        participante?.status_pagamento
+    );
+
+    const nomeCompleto = String(
+        participante?.nome || "Participante"
+    ).trim();
+
+    const partesNome = nomeCompleto
+        .split(/\s+/)
+        .filter(Boolean);
+
+    const primeiroSegundoETerceiroNome = partesNome
+    .slice(0, 3)
+    .join(" ");
+
+    // PARTICIPANTES COM PAGAMENTO CONFIRMADO
+    if (
+        pagamento === "PAGO" ||
+        pagamento === "PAGO_PARCEIRO"
+    ) {
+        const cpf = formatCPF(participante?.cpf);
+
+        const percurso = String(
+            participante?.percurso || "Não informado"
+        ).trim();
+
+        const camiseta = String(
+            participante?.camiseta || "Não informado"
+        ).trim();
+
+        return `Olá, ${primeiroESegundoNome}! Tudo bem?
+
+Estamos passando para confirmar seus dados da corrida RUN & SAMBA — 2ª EDIÇÃO.
+
+Confira se está tudo certinho:
+
+*Nome completo:* ${nomeCompleto}
+*CPF:* ${cpf}
+*Percurso:* ${percurso}
+*Tamanho da camiseta:* ${camiseta}
+
+Está tudo correto com seus dados?
+
+Se precisar de alguma correção, é só nos avisar por aqui!`;
+    }
+
+    // PARTICIPANTES COM PAGAMENTO PENDENTE
+return `Olá, ${primeiroSegundoETerceiroNome}! Tudo bem?`;}
+
+/* =========================================================
+   NORMALIZAR TELEFONE PARA WHATSAPP
+========================================================= */
 
 function normalizarTelefone(telefone) {
     let numero = String(telefone || "").replace(/\D/g, "");
 
     if (!numero) return "";
 
-    if (numero.startsWith("55")) {
-        return numero;
+    // Remove o código internacional duplicado, se necessário.
+    if (numero.startsWith("55") && numero.length > 11) {
+        numero = numero.substring(2);
     }
 
-    if (numero.length === 10 || numero.length === 11) {
-        return "55" + numero;
+    // Números brasileiros com DDD.
+    if (numero.length !== 10 && numero.length !== 11) {
+        return "";
     }
 
-    return numero;
-}
-
-function criarMensagemPagamento(participante) {
-    const nome = String(
-        participante?.nome || "Participante"
-    ).trim();
-
-    const cpf = String(
-        participante?.cpf || ""
-    ).replace(/\D/g, "");
-
-    const cpfMascarado = cpf.length === 11
-        ? `***.${cpf.slice(3, 6)}.**`
-        : "***.***.**";
-
-    const percurso = String(
-        participante?.percurso || "Não informado"
-    );
-
-    const valor = formatMoney(
-        participante?.valor ?? IZY_PRICE
-    );
-
-    const linkPagamento =
-        "https://izypass.com.br/evento/run-and-samba-2-edicao_luziania_20-11-2026";
-
-    const instagram =
-        "https://www.instagram.com/runesamba.oficial";
-
-    const hoje = new Date();
-    hoje.setHours(0, 0, 0, 0);
-
-    const viradaLote = new Date(2026, 10, 6);
-    viradaLote.setHours(0, 0, 0, 0);
-
-    const diasRestantes = Math.ceil(
-        (viradaLote - hoje) / 86400000
-    );
-
-    let avisoVirada;
-
-    if (diasRestantes > 1) {
-        avisoVirada =
-            `🚨 FALTAM ${diasRestantes} DIAS PARA A VIRADA DE LOTE (06/11)!`;
-    } else if (diasRestantes === 1) {
-        avisoVirada =
-            "🚨 AMANHÃ, 06/11, ACONTECE A VIRADA DE LOTE!";
-    } else if (diasRestantes === 0) {
-        avisoVirada = "🚨 HOJE É DIA DE VIRADA DE LOTE!";
-    } else {
-        avisoVirada =
-            "Confira as novidades sobre as inscrições em nosso Instagram!";
-    }
-
-    return `Olá, ${nome}! Tudo bem?
-
-Sua inscrição no RUN & SAMBA — 2ª EDIÇÃO está aguardando a confirmação do pagamento.
-
-Confira os dados da sua inscrição:
-
-*Participante:* ${nome}
-*CPF:* ${cpfMascarado}
-*Percurso:* ${percurso}
-*Valor pendente:* ${valor}
-
-DATA: 20 DE NOVEMBRO DE 2026
-LOCAL: SETOR AEROPORTO — LUZIÂNIA/GO
-
-${avisoVirada}
-
-Estamos nos aproximando do grande dia! Não deixe para a última hora a confirmação da sua participação.
-
-Sua inscrição somente estará confirmada após a identificação do pagamento.
-
-*FINALIZE SEU PAGAMENTO PELO LINK:*
-${linkPagamento}
-
-O percurso oficial será anunciado em breve!
-
-Acompanhe todas as informações pelo Instagram:
-${instagram}
-
-Será uma alegria ter você na linha de largada!`;
+    // Acrescenta o código do Brasil.
+    return "55" + numero;
 }
 
 /* =========================================================
