@@ -2663,3 +2663,47 @@ textarea:focus-visible {
         text-align: left;
     }
 }
+
+
+/* =========================================================
+   PAGO PARCEIRO — DASHBOARD VERDE NEON
+========================================================= */
+
+.partner-stat {
+    border-color: rgba(57, 255, 20, 0.30);
+}
+
+.partner-stat .stat-label,
+.partner-stat .stat-icon,
+.partner-stat .stat-value,
+.partner-stat .stat-extra,
+.partner-text {
+    color: #39ff14;
+}
+
+.partner-stat .stat-icon {
+    text-shadow:
+        0 0 7px rgba(57, 255, 20, 0.85),
+        0 0 16px rgba(57, 255, 20, 0.45);
+}
+
+.partner-stat .stat-value,
+.partner-stat .stat-extra {
+    text-shadow: 0 0 10px rgba(57, 255, 20, 0.25);
+}
+
+.partner-paid-bar {
+    background: #39ff14;
+    box-shadow:
+        0 0 7px rgba(57, 255, 20, 0.85),
+        0 0 15px rgba(57, 255, 20, 0.45);
+}
+
+.partner-payment-item .payment-info strong {
+    color: #39ff14;
+    text-shadow: 0 0 8px rgba(57, 255, 20, 0.35);
+}
+
+.partner-text {
+    font-weight: 700;
+}

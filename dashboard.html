@@ -1,115 +1,67 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
-
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <meta
-        name="description"
-        content="Dashboard administrativo Run & Samba CRM 2026."
-    >
+    <meta name="description" content="Dashboard administrativo Run & Samba CRM 2026.">
+    <meta name="theme-color" content="#050505">
+    <meta name="robots" content="noindex, nofollow">
 
     <title>Dashboard | Run & Samba CRM</title>
 
-<link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/dashboard.css?v=20261109-2">
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
     <script src="js/config.js"></script>
-
     <script src="js/auth.js"></script>
-
-    <script
-        src="js/dashboard.js"
-        defer
-    ></script>
-
+    <script src="js/dashboard.js?v=20261109-2" defer></script>
 </head>
-
 
 <body>
 
 <div class="app">
 
-
     <!-- SIDEBAR -->
-
     <aside class="sidebar">
 
         <div class="brand">
-
-            <div class="logo">
-                RUN <span>&</span> SAMBA
-            </div>
-
-            <div class="side-label">
-                CRM 2026
-            </div>
-
+            <div class="logo">RUN <span>&</span> SAMBA</div>
+            <div class="side-label">CRM 2026</div>
         </div>
 
-
         <div class="sidebar-section">
-
-            <span class="sidebar-heading">
-                GESTÃO
-            </span>
+            <span class="sidebar-heading">GESTÃO</span>
 
             <nav>
-
-                <a
-                    class="active"
-                    href="dashboard.html"
-                >
+                <a class="active" href="dashboard.html">
                     <span class="nav-icon">◈</span>
                     Dashboard
                 </a>
-               
 
                 <a href="marketing.html">
-    <span class="nav-icon">✦</span>
-    Marketing
-</a>
+                    <span class="nav-icon">✦</span>
+                    Marketing
+                </a>
 
-<a href="embaixadores.html">
-    <span class="nav-icon">♛</span>
-    Embaixadores
-</a>
-
+                <a href="embaixadores.html">
+                    <span class="nav-icon">♛</span>
+                    Parceiros
+                </a>
             </nav>
-
         </div>
-
 
         <div class="sidebar-bottom">
 
             <div class="event-mini">
-
-                <span>
-                    EVENTO
-                </span>
-
-                <strong>
-                    RUN & SAMBA
-                </strong>
-
-                <small>
-                    2ª EDIÇÃO • 2026
-                </small>
-
+                <span>EVENTO</span>
+                <strong>RUN & SAMBA</strong>
+                <small>2ª EDIÇÃO • 2026</small>
             </div>
 
-
-            <button
-                id="logoutBtn"
-                class="logout"
-            >
+            <button id="logoutBtn" class="logout" type="button">
                 SAIR
             </button>
 
@@ -117,375 +69,257 @@
 
     </aside>
 
-
-
     <!-- CONTEÚDO -->
-
     <main class="content">
 
-
         <!-- HEADER -->
-
         <header class="topbar">
 
             <div>
-
-                <span class="eyebrow">
-                    RUN & SAMBA • 2026
-                </span>
-
-                <h1>
-                    Dashboard
-                </h1>
+                <span class="eyebrow">RUN & SAMBA • 2026</span>
+                <h1>Dashboard</h1>
 
                 <p class="subtitle">
                     Visão geral da operação, inscrições e financeiro.
                 </p>
-
             </div>
 
-
             <div class="top-actions">
-
-                <a
-                    class="outline-btn"
-                    href="inscritos.html"
-                >
+                <a class="outline-btn" href="inscritos.html">
                     GERENCIAR INSCRITOS
                     <span>→</span>
                 </a>
-
             </div>
 
         </header>
 
-
-
-        <!-- INDICADORES -->
-
+        <!-- INDICADORES PRINCIPAIS -->
         <section class="stats">
 
-
             <article class="stat-card">
-
                 <div class="stat-head">
-
-                    <span class="stat-label">
-                        INSCRITOS
-                    </span>
-
-                    <span class="stat-icon">
-                        ◉
-                    </span>
-
+                    <span class="stat-label">INSCRITOS</span>
+                    <span class="stat-icon">◉</span>
                 </div>
 
-                <strong
-                    id="total"
-                    class="stat-value"
-                >
-                    —
-                </strong>
+                <strong id="total" class="stat-value">—</strong>
 
                 <span class="stat-description">
                     participantes cadastrados
                 </span>
-
             </article>
 
-            <!-- CORTESIAS -->
-<article class="stat-card">
-
-    <div class="stat-head">
-        <span class="stat-label">
-            CORTESIAS
-        </span>
-
-        <span class="stat-icon">
-            ♡
-        </span>
-    </div>
-
-    <strong
-        id="courtesies"
-        class="stat-value"
-    >
-        0
-    </strong>
-
-    <span class="stat-description">
-        inscrições cortesia
-    </span>
-
-</article>
-
-
-            <article class="stat-card financial received">
-
+            <article class="stat-card">
                 <div class="stat-head">
-
-                    <span class="stat-label">
-                        RECEBIDO
-                    </span>
-
-                    <span class="stat-icon">
-                        R$
-                    </span>
-
+                    <span class="stat-label">CORTESIAS</span>
+                    <span class="stat-icon">♡</span>
                 </div>
 
-                <strong
-                    id="paidValue"
-                    class="stat-value"
-                >
-                    R$ 0,00
-                </strong>
+                <strong id="courtesies" class="stat-value">0</strong>
 
                 <span class="stat-description">
-                    pagamentos confirmados
+                    inscrições cortesia
                 </span>
-
             </article>
 
-
-
-            <article class="stat-card financial pending-value">
-
+            <article class="stat-card financial received">
                 <div class="stat-head">
-
-                    <span class="stat-label">
-                        A RECEBER
-                    </span>
-
-                    <span class="stat-icon">
-                        ◷
-                    </span>
-
+                    <span class="stat-label">RECEBIDO TOTAL</span>
+                    <span class="stat-icon">R$</span>
                 </div>
 
-                <strong
-                    id="pendingValue"
-                    class="stat-value"
-                >
+                <strong id="paidValue" class="stat-value">R$ 0,00</strong>
+
+                <span class="stat-description">
+                    pagamentos normais + parceiros
+                </span>
+            </article>
+
+            <article class="stat-card partner-stat">
+                <div class="stat-head">
+                    <span class="stat-label">PAGO PARCEIRO</span>
+                    <span class="stat-icon partner-icon">✦</span>
+                </div>
+
+                <strong id="partnerPaid" class="stat-value">0</strong>
+
+                <span class="stat-description">
+                    participantes · R$ 60,00 cada
+                </span>
+
+                <strong id="partnerPaidValue" class="stat-extra">
                     R$ 0,00
                 </strong>
+            </article>
+
+            <article class="stat-card financial pending-value">
+                <div class="stat-head">
+                    <span class="stat-label">A RECEBER</span>
+                    <span class="stat-icon">◷</span>
+                </div>
+
+                <strong id="pendingValue" class="stat-value">R$ 0,00</strong>
 
                 <span class="stat-description">
                     pagamentos pendentes
                 </span>
-
             </article>
 
-
-
             <article class="stat-card">
-
                 <div class="stat-head">
-
-                    <span class="stat-label">
-                        CANCELADOS
-                    </span>
-
-                    <span class="stat-icon">
-                        ×
-                    </span>
-
+                    <span class="stat-label">CANCELADOS</span>
+                    <span class="stat-icon">×</span>
                 </div>
 
-                <strong
-                    id="cancelled"
-                    class="stat-value"
-                >
-                    —
-                </strong>
+                <strong id="cancelled" class="stat-value">—</strong>
 
                 <span class="stat-description">
                     inscrições canceladas
                 </span>
-
             </article>
 
         </section>
 
+        <!-- FINANCEIRO -->
+        <section class="financial-summary">
 
+            <div class="finance-main">
 
+                <div>
+                    <span class="eyebrow">FINANCEIRO</span>
+                    <h2>Visão financeira</h2>
+                </div>
 
-<!-- FINANCEIRO -->
-<section class="financial-summary">
+                <div class="finance-total">
+                    <span>VALOR TOTAL DAS INSCRIÇÕES</span>
+                    <strong id="totalValue">R$ 0,00</strong>
+                </div>
 
-    <div class="finance-main">
-        <div>
-            <span class="eyebrow">FINANCEIRO</span>
-            <h2>Visão financeira</h2>
-            
-        </div>
+            </div>
 
-        <div class="finance-total">
-            <span>VALOR TOTAL DAS INSCRIÇÕES</span>
-            <strong id="totalValue">R$ 9.709,20</strong>
-        </div>
-    </div>
+            <!-- META DE PARTICIPANTES -->
+            <div class="goal-card">
 
-    <!-- META DE PARTICIPANTES -->
-<div class="goal-card">
+                <div class="goal-header">
+                    <div>
+                        <span class="eyebrow">OBJETIVO DO EVENTO</span>
+                        <h3>Meta de participantes</h3>
+                    </div>
 
-    <div class="goal-header">
-        <div>
-            <span class="eyebrow">OBJETIVO DO EVENTO</span>
-            <h3>Meta de participantes</h3>
-        </div>
+                    <span class="goal-badge">META 2026</span>
+                </div>
 
-        <span class="goal-badge">META 2026</span>
-    </div>
+                <div class="goal-values">
 
-    <div class="goal-values">
-        <div>
-            <span>Participantes confirmados</span>
-            <strong id="goalParticipants">0</strong>
-        </div>
+                    <div>
+                        <span>Participantes confirmados</span>
+                        <strong id="goalParticipants">0</strong>
+                    </div>
 
-        <div class="goal-target">
-            <span>Meta estabelecida</span>
-            <strong id="goalTargetParticipants">150</strong>
-        </div>
-    </div>
+                    <div class="goal-target">
+                        <span>Meta estabelecida</span>
+                        <strong id="goalTargetParticipants">150</strong>
+                    </div>
 
-    <div class="goal-progress-track">
-        <div
-            id="goalProgressBar"
-            class="goal-progress-bar"
-            style="width: 0%"
-        ></div>
-    </div>
+                </div>
 
-    <div class="goal-progress-footer">
-        <strong id="goalPercent">0% da meta alcançada</strong>
-        <span id="goalRemaining">Faltam 150 participantes</span>
-    </div>
+                <div class="goal-progress-track">
+                    <div
+                        id="goalProgressBar"
+                        class="goal-progress-bar"
+                        style="width: 0%"
+                    ></div>
+                </div>
 
-</div>
+                <div class="goal-progress-footer">
+                    <strong id="goalPercent">0% da meta alcançada</strong>
+                    <span id="goalRemaining">Faltam 150 participantes</span>
+                </div>
 
-    <!-- RECEBIMENTOS -->
-    <div class="finance-progress">
+            </div>
 
-        <div class="progress-header">
-            <span>RECEBIMENTO DAS INSCRIÇÕES</span>
-            <strong id="paidPercent">15%</strong>
-        </div>
+            <!-- RECEBIMENTOS -->
+            <div class="finance-progress">
 
-        <div class="progress">
-            <div
-                id="paidProgress"
-                class="progress-bar"
-                style="width: 15%"
-            ></div>
-        </div>
+                <div class="progress-header">
+                    <span>RECEBIMENTO DAS INSCRIÇÕES</span>
+                    <strong id="paidPercent">0%</strong>
+                </div>
 
-        <div class="progress-footer">
-            <span>
-                <b id="paidCount">16</b> pagos
-            </span>
+                <div class="progress">
+                    <div
+                        id="paidProgress"
+                        class="progress-bar"
+                        style="width: 0%"
+                    ></div>
+                </div>
 
-            <span>
-                <b id="pendingCount">0</b> pendentes
-            </span>
-        </div>
+                <div class="progress-footer">
+                    <span>
+                        <b id="paidCount">0</b> pagos normais
+                    </span>
 
-    </div>
+                    <span class="partner-text">
+                        <b id="partnerPaidCount">0</b> parceiros
+                    </span>
 
-</section>
+                    <span>
+                        <b id="pendingCount">0</b> pendentes
+                    </span>
+                </div>
 
+            </div>
 
-
+        </section>
 
         <!-- GRÁFICOS -->
-
         <section class="dashboard-grid">
 
-
             <!-- PERCURSOS -->
-
             <article class="panel chart-panel">
 
                 <div class="panel-title">
-
                     <div>
-
-                        <span class="eyebrow">
-                            PARTICIPAÇÃO
-                        </span>
-
-                        <h2>
-                            Percursos
-                        </h2>
-
+                        <span class="eyebrow">PARTICIPAÇÃO</span>
+                        <h2>Percursos</h2>
                     </div>
 
                     <span class="panel-caption">
                         Distribuição dos atletas
                     </span>
-
                 </div>
-
 
                 <div class="route-chart">
 
                     <div class="donut">
-
                         <div class="donut-center">
-
-                            <strong id="routeTotal">
-                                0
-                            </strong>
-
-                            <span>
-                                atletas
-                            </span>
-
+                            <strong id="routeTotal">0</strong>
+                            <span>atletas</span>
                         </div>
-
                     </div>
-
 
                     <div class="chart-legend">
 
                         <div class="legend-item">
-
                             <span class="legend-dot km5-dot"></span>
 
                             <div>
-
-                                <strong>
-                                    5 KM
-                                </strong>
-
+                                <strong>5 KM</strong>
                                 <span>
-                                    <b id="km5">0</b>
-                                    participantes
+                                    <b id="km5">0</b> participantes
                                 </span>
-
                             </div>
-
                         </div>
 
-
                         <div class="legend-item">
-
                             <span class="legend-dot km10-dot"></span>
 
                             <div>
-
-                                <strong>
-                                    10 KM
-                                </strong>
-
+                                <strong>10 KM</strong>
                                 <span>
-                                    <b id="km10">0</b>
-                                    participantes
+                                    <b id="km10">0</b> participantes
                                 </span>
-
                             </div>
-
                         </div>
 
                     </div>
@@ -494,141 +328,88 @@
 
             </article>
 
-
-
             <!-- PAGAMENTOS -->
-
             <article class="panel chart-panel">
 
                 <div class="panel-title">
-
                     <div>
-
-                        <span class="eyebrow">
-                            FINANCEIRO
-                        </span>
-
-                        <h2>
-                            Status dos pagamentos
-                        </h2>
-
+                        <span class="eyebrow">FINANCEIRO</span>
+                        <h2>Status dos pagamentos</h2>
                     </div>
-
                 </div>
-
 
                 <div class="payment-chart">
 
-
                     <div class="payment-item">
-
                         <div class="payment-info">
-
-                            <span>
-                                Pagos
-                            </span>
-
-                            <strong id="paid">
-                                0
-                            </strong>
-
+                            <span>Pagos normais</span>
+                            <strong id="paid">0</strong>
                         </div>
 
                         <div class="payment-track">
-
-                            <div
-                                id="paidBar"
-                                class="payment-bar paid-bar"
-                            ></div>
-
+                            <div id="paidBar" class="payment-bar paid-bar"></div>
                         </div>
-
                     </div>
 
-
-
-                    <div class="payment-item">
-
+                    <div class="payment-item partner-payment-item">
                         <div class="payment-info">
-
-                            <span>
-                                Pendentes
-                            </span>
-
-                            <strong id="pending">
-                                0
-                            </strong>
-
+                            <span>Pagos parceiros</span>
+                            <strong id="partnerPaidChart">0</strong>
                         </div>
 
                         <div class="payment-track">
+                            <div
+                                id="partnerPaidBar"
+                                class="payment-bar partner-paid-bar"
+                            ></div>
+                        </div>
+                    </div>
 
+                    <div class="payment-item">
+                        <div class="payment-info">
+                            <span>Pendentes</span>
+                            <strong id="pending">0</strong>
+                        </div>
+
+                        <div class="payment-track">
                             <div
                                 id="pendingBar"
                                 class="payment-bar pending-bar"
                             ></div>
-
                         </div>
-
                     </div>
 
-
-
                     <div class="payment-item">
-
                         <div class="payment-info">
-
-                            <span>
-                                Cancelados
-                            </span>
-
-                            <strong id="cancelledChart">
-                                0
-                            </strong>
-
+                            <span>Cancelados</span>
+                            <strong id="cancelledChart">0</strong>
                         </div>
 
                         <div class="payment-track">
-
                             <div
                                 id="cancelledBar"
                                 class="payment-bar cancelled-bar"
                             ></div>
-
                         </div>
-
                     </div>
 
                 </div>
 
             </article>
 
-
-
             <!-- CAMISETAS -->
-
             <article class="panel chart-panel shirt-panel">
 
                 <div class="panel-title">
-
                     <div>
-
-                        <span class="eyebrow">
-                            PRODUÇÃO
-                        </span>
-
-                        <h2>
-                            Camisetas
-                        </h2>
-
+                        <span class="eyebrow">PRODUÇÃO</span>
+                        <h2>Camisetas</h2>
                     </div>
 
                     <span class="panel-caption">
                         Distribuição por tamanho
                     </span>
-
                 </div>
-
 
                 <div class="shirt-grid premium">
 
@@ -656,85 +437,52 @@
 
             </article>
 
-
-
             <!-- OPERAÇÃO -->
-
             <article class="panel operation-panel">
 
                 <div class="panel-title">
-
                     <div>
-
-                        <span class="eyebrow">
-                            OPERAÇÃO
-                        </span>
-
-                        <h2>
-                            Resumo da corrida
-                        </h2>
-
+                        <span class="eyebrow">OPERAÇÃO</span>
+                        <h2>Resumo da corrida</h2>
                     </div>
-
                 </div>
-
 
                 <div class="operation-list">
 
-
                     <div class="operation-row">
-
                         <div>
                             <span>Participantes</span>
                             <small>Total de inscritos</small>
                         </div>
 
-                        <strong id="operationTotal">
-                            0
-                        </strong>
-
+                        <strong id="operationTotal">0</strong>
                     </div>
 
-
                     <div class="operation-row">
-
                         <div>
                             <span>5 KM</span>
                             <small>Percurso curto</small>
                         </div>
 
-                        <strong id="operation5km">
-                            0
-                        </strong>
-
+                        <strong id="operation5km">0</strong>
                     </div>
 
-
                     <div class="operation-row">
-
                         <div>
                             <span>10 KM</span>
                             <small>Percurso principal</small>
                         </div>
 
-                        <strong id="operation10km">
-                            0
-                        </strong>
-
+                        <strong id="operation10km">0</strong>
                     </div>
 
-
                     <div class="operation-row">
-
                         <div>
-                            <span>Pagamentos</span>
-                            <small>Confirmados</small>
+                            <span>Pagamentos confirmados</span>
+                            <small>Normais + parceiros</small>
                         </div>
 
-                        <strong id="operationPaid">
-                            0
-                        </strong>
-
+                        <strong id="operationPaid">0</strong>
                     </div>
 
                 </div>

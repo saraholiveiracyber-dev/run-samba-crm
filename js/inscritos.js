@@ -1,3 +1,4 @@
+"use strict";
 
 /* =========================================================
    RUN & SAMBA 2026 — CRM INSCRITOS
@@ -5,22 +6,21 @@
 
    STATUS:
    PAGO
+   PAGO_PARCEIRO — R$ 60,00
    PENDENTE
    CANCELADO
    CORTESIA
-   MENSAGEM ENVIADA
+
+   F9:
+   MENSAGEM_ENVIADA
+   RESPONDEU
+   NAO_RESPONDIDO
    NOVO
 
-   RESPONDEU / NÃO RESPONDIDO:
-   Exclusivamente no acompanhamento F9.
-
-   IzyPass:
-   - Valor de referência: R$ 89,90
-   - Total = quantidade informada x R$ 89,90
-   - Persistência local, sem alterar o banco.
+   IZYPASS:
+   Valor de referência: R$ 89,90
+   Total local = quantidade x R$ 89,90
 ========================================================= */
-
-"use strict";
 
 /* =========================================================
    ESTADO
@@ -33,6 +33,8 @@ let loadingRows = false;
 let eventsBound = false;
 
 const IZY_PRICE = 89.90;
+const PARTNER_PRICE = 60.00;
+
 const IZY_STORAGE_KEY = "run_samba_izy_paid_count_v1";
 
 const $ = id => document.getElementById(id);
@@ -200,8 +202,6 @@ function bindEvents() {
 
     eventsBound = true;
 
-    // Clique no nome ou no botão VER.
-    // A delegação continua funcionando após renderizações da tabela.
     const tableBody = $("tableBody");
 
     if (tableBody) {
@@ -278,6 +278,10 @@ function bindEvents() {
         }
     });
 }
+
+/* =========================================================
+   SAIR
+========================================================= */
 
 async function logout() {
     const button = $("logoutBtn");
@@ -515,8 +519,10 @@ function normalizarTexto(value) {
 }
 
 function normalizarPagamento(value) {
-    const status = normalizarTexto(value);
+    const status = normalizarTexto(value)
+        .replace(/[\s-]+/g, "_");
 
+    if (status === "PAGO_PARCEIRO") return "PAGO_PARCEIRO";
     if (status === "PAGO") return "PAGO";
     if (status === "CANCELADO") return "CANCELADO";
     if (status === "CORTESIA") return "CORTESIA";
@@ -584,12 +590,40 @@ function contactClass(status) {
 }
 
 /* =========================================================
+   VALOR INDIVIDUAL DA INSCRIÇÃO
+========================================================= */
+
+function obterValorParticipante(participant) {
+    const pagamento = normalizarPagamento(
+        participant?.status_pagamento
+    );
+
+    if (pagamento === "PAGO_PARCEIRO") {
+        return PARTNER_PRICE;
+    }
+
+    if (pagamento === "PAGO") {
+        return IZY_PRICE;
+    }
+
+    const valor = participant?.valor;
+
+    if (valor === null || valor === undefined || valor === "") {
+        return IZY_PRICE;
+    }
+
+    const parsed = Number(valor);
+
+    return Number.isFinite(parsed) ? parsed : IZY_PRICE;
+}
+
+/* =========================================================
    STATUS VISUAL DOS PARTICIPANTES
 ========================================================= */
 
 function obterStatusVisualParticipante(row) {
     const pagamentoBruto = row.status_pagamento;
-    const pagamento = normalizarTexto(pagamentoBruto);
+    const pagamento = normalizarPagamento(pagamentoBruto);
     const contato = normalizarStatusContato(row.status_contato);
 
     if (pagamento === "CORTESIA") {
@@ -600,11 +634,19 @@ function obterStatusVisualParticipante(row) {
         };
     }
 
+    if (pagamento === "PAGO_PARCEIRO") {
+        return {
+            status: "PAGO PARCEIRO",
+            classe: "paid-partner",
+            titulo: "Pagamento parceiro confirmado — R$ 60,00"
+        };
+    }
+
     if (pagamento === "PAGO") {
         return {
             status: "PAGO",
             classe: "paid",
-            titulo: "Pagamento confirmado"
+            titulo: "Pagamento confirmado — R$ 89,90"
         };
     }
 
@@ -646,7 +688,7 @@ function obterStatusVisualParticipante(row) {
 function filtered() {
     const q = normalizarTexto($("search")?.value || "");
 
-    const payment = normalizarTexto(
+    const payment = normalizarPagamentoFiltro(
         $("paymentFilter")?.value || ""
     );
 
@@ -679,6 +721,14 @@ function filtered() {
             (!shirt || camiseta === shirt)
         );
     });
+}
+
+function normalizarPagamentoFiltro(value) {
+    const raw = String(value ?? "").trim();
+
+    if (!raw) return "";
+
+    return normalizarPagamento(raw);
 }
 
 /* =========================================================
@@ -749,7 +799,7 @@ function render() {
 
                 <td>
                     <span class="status-badge ${paymentClass(pagamento)}">
-                        ${esc(pagamento)}
+                        ${esc(textoPagamento(pagamento))}
                     </span>
                 </td>
 
@@ -764,6 +814,18 @@ function render() {
             </tr>
         `;
     }).join("");
+}
+
+function textoPagamento(status) {
+    const labels = {
+        PAGO: "PAGO",
+        PAGO_PARCEIRO: "PAGO PARCEIRO",
+        PENDENTE: "PENDENTE",
+        CANCELADO: "CANCELADO",
+        CORTESIA: "CORTESIA"
+    };
+
+    return labels[status] || status;
 }
 
 /* =========================================================
@@ -785,10 +847,10 @@ function renderParticipantDetails(participant) {
         ["Percurso", participant.percurso],
         ["Camiseta", participant.camiseta],
         ["Valor da inscrição", formatMoney(
-            participant.valor ?? IZY_PRICE
+            obterValorParticipante(participant)
         )],
-        ["Pagamento", normalizarPagamento(
-            participant.status_pagamento
+        ["Pagamento", textoPagamento(
+            normalizarPagamento(participant.status_pagamento)
         )],
         ["Cadastro realizado em", formatDateTime(
             participant.created_at
@@ -917,7 +979,6 @@ function configurarComunicacao(participante) {
     const numero = normalizarTelefone(participante.telefone);
     const email = String(participante.email || "").trim();
 
-    // WHATSAPP
     whatsapp.hidden = false;
     whatsapp.target = "_blank";
     whatsapp.rel = "noopener noreferrer";
@@ -935,7 +996,6 @@ function configurarComunicacao(participante) {
         };
     }
 
-    // E-MAIL
     if (emailBtn) {
         emailBtn.hidden = false;
         emailBtn.target = "_blank";
@@ -988,8 +1048,8 @@ function criarMensagemPagamento(participante) {
     ).replace(/\D/g, "");
 
     const cpfMascarado = cpf.length === 11
-    ? `***.${cpf.slice(3, 6)}.**`
-    : "***.***.**";
+        ? `***.${cpf.slice(3, 6)}.**`
+        : "***.***.**";
 
     const percurso = String(
         participante?.percurso || "Não informado"
@@ -1085,12 +1145,32 @@ async function savePayment() {
     try {
         const agora = new Date().toISOString();
 
+        const dadosAtualizacao = {
+            status_pagamento: value,
+            updated_at: agora
+        };
+
+        /*
+         * VALORES:
+         * PAGO = R$ 89,90
+         * PAGO_PARCEIRO = R$ 60,00
+         *
+         * PENDENTE, CANCELADO e CORTESIA
+         * não alteram o valor armazenado.
+         */
+
+        if (value === "PAGO_PARCEIRO") {
+    dadosAtualizacao.valor = PARTNER_PRICE;
+} else if (
+    value === "PAGO" ||
+    value === "PENDENTE"
+) {
+    dadosAtualizacao.valor = IZY_PRICE;
+}
+
         const { data, error } = await db
             .from("inscricoes")
-            .update({
-                status_pagamento: value,
-                updated_at: agora
-            })
+            .update(dadosAtualizacao)
             .eq("id", selectedId)
             .select("*");
 
@@ -1103,26 +1183,34 @@ async function savePayment() {
             );
         }
 
-        const item = allRows.find(
+        const atualizado = data[0];
+
+        const index = allRows.findIndex(
             row => String(row.id) === String(selectedId)
         );
 
-        if (item) {
-            item.status_pagamento = value;
-            item.updated_at = agora;
+        if (index !== -1) {
+            allRows[index] = {
+                ...allRows[index],
+                ...atualizado
+            };
         }
 
         render();
 
-        if (item) {
-            renderParticipantDetails(item);
-            configurarComunicacao(item);
-        }
+        renderParticipantDetails(atualizado);
+        configurarComunicacao(atualizado);
 
         showMessage(
-            value === "CORTESIA"
-                ? "Inscrição atualizada para CORTESIA."
-                : "Pagamento atualizado com sucesso."
+            value === "PAGO_PARCEIRO"
+                ? "Pagamento parceiro confirmado: R$ 60,00."
+                : value === "PAGO"
+                    ? "Pagamento confirmado: R$ 89,90."
+                    : value === "CORTESIA"
+                        ? "Inscrição atualizada para CORTESIA."
+                        : value === "CANCELADO"
+                            ? "Inscrição atualizada para CANCELADO."
+                            : "Pagamento atualizado para PENDENTE."
         );
 
     } catch (error) {
@@ -1133,7 +1221,7 @@ async function savePayment() {
             (error?.message || "Erro desconhecido.") +
             (
                 error?.code === "23514"
-                    ? " A coluna status_pagamento pode ter uma restrição CHECK que ainda não permite CORTESIA."
+                    ? " A restrição CHECK da coluna status_pagamento pode não permitir PAGO_PARCEIRO."
                     : ""
             )
         );
@@ -1247,7 +1335,6 @@ async function saveContactFollowup() {
             renderParticipantDetails(participant);
         }
 
-        // RESPONDEU / NÃO RESPONDIDO não alteram a bolinha.
         render();
 
         showMessage("Acompanhamento salvo com sucesso.");
@@ -1453,6 +1540,7 @@ function paymentClass(value) {
     const status = normalizarPagamento(value);
 
     if (status === "PAGO") return "paid";
+    if (status === "PAGO_PARCEIRO") return "paid-partner";
     if (status === "CANCELADO") return "cancelled";
     if (status === "CORTESIA") return "courtesy";
 
