@@ -12,12 +12,12 @@
 
     <title>Dashboard | Run & Samba CRM</title>
 
-    <link rel="stylesheet" href="css/dashboard.css?v=20261109-2">
+    <link rel="stylesheet" href="css/dashboard.css?v=20261111-1">
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
     <script src="js/auth.js"></script>
-    <script src="js/dashboard.js?v=20261109-2" defer></script>
+    <script src="js/dashboard.js?v=20261111-1" defer></script>
 </head>
 
 <body>
@@ -131,7 +131,7 @@
                 <strong id="paidValue" class="stat-value">R$ 0,00</strong>
 
                 <span class="stat-description">
-                    pagamentos normais + parceiros
+                    normais + PIX + parceiros
                 </span>
             </article>
 
@@ -148,6 +148,24 @@
                 </span>
 
                 <strong id="partnerPaidValue" class="stat-extra">
+                    R$ 0,00
+                </strong>
+            </article>
+
+            <!-- PAGO PIX -->
+            <article class="stat-card pix-stat">
+                <div class="stat-head">
+                    <span class="stat-label">PAGO PIX</span>
+                    <span class="stat-icon pix-icon">◆</span>
+                </div>
+
+                <strong id="pixPaid" class="stat-value">0</strong>
+
+                <span class="stat-description">
+                    participantes · R$ 89,90 cada
+                </span>
+
+                <strong id="pixPaidValue" class="stat-extra">
                     R$ 0,00
                 </strong>
             </article>
@@ -255,6 +273,7 @@
                 </div>
 
                 <div class="progress-footer">
+
                     <span>
                         <b id="paidCount">0</b> pagos normais
                     </span>
@@ -263,9 +282,14 @@
                         <b id="partnerPaidCount">0</b> parceiros
                     </span>
 
+                    <span class="pix-text">
+                        <b id="pixPaidCount">0</b> PIX
+                    </span>
+
                     <span>
                         <b id="pendingCount">0</b> pendentes
                     </span>
+
                 </div>
 
             </div>
@@ -365,6 +389,21 @@
                         </div>
                     </div>
 
+                    <!-- PAGOS VIA PIX -->
+                    <div class="payment-item pix-payment-item">
+                        <div class="payment-info">
+                            <span>Pagos via PIX</span>
+                            <strong id="pixPaidChart">0</strong>
+                        </div>
+
+                        <div class="payment-track">
+                            <div
+                                id="pixPaidBar"
+                                class="payment-bar pix-paid-bar"
+                            ></div>
+                        </div>
+                    </div>
+
                     <div class="payment-item">
                         <div class="payment-info">
                             <span>Pendentes</span>
@@ -394,6 +433,21 @@
                     </div>
 
                 </div>
+
+                <div class="payment-item courtesy-payment-item">
+    <div class="payment-info">
+        <span class="payment-dot courtesy-dot"></span>
+        <span>Cortesias</span>
+        <strong id="courtesiesChart">0</strong>
+    </div>
+
+    <div class="payment-track">
+        <div
+            class="payment-bar courtesy-bar"
+            id="courtesyBar"
+        ></div>
+    </div>
+</div>
 
             </article>
 
@@ -479,7 +533,7 @@
                     <div class="operation-row">
                         <div>
                             <span>Pagamentos confirmados</span>
-                            <small>Normais + parceiros</small>
+                            <small>Normais + PIX + parceiros</small>
                         </div>
 
                         <strong id="operationPaid">0</strong>

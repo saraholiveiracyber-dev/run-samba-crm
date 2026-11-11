@@ -7,13 +7,17 @@
 
    PAGAMENTOS:
    PAGO          = R$ 89,90
+   PAGO_PIX      = R$ 89,90
    PAGO_PARCEIRO = R$ 60,00
    PENDENTE      = valor cadastrado ou R$ 89,90
    CANCELADO     = não entra no recebido
-   CORTESIA      = não entra no recebido
+   CORTESIA      = não entra no financeiro
 
    PARTICIPANTES CONFIRMADOS:
-   PAGO + PAGO_PARCEIRO
+   PAGO + PAGO_PIX + PAGO_PARCEIRO + CORTESIA
+
+   CAMISETAS:
+   PAGO + PAGO_PIX + PAGO_PARCEIRO + CORTESIA
 ========================================================= */
 
 
@@ -124,7 +128,6 @@ function parseMoneyToCents(value) {
 
     if (!text) return null;
 
-    // Formato brasileiro: 1.234,56
     if (text.includes(",")) {
         text = text
             .replace(/\./g, "")
@@ -149,14 +152,13 @@ function classifyRegistration(row) {
     const payment = normalizeStatus(row.status_pagamento);
     const status = normalizeStatus(row.status);
 
-    /*
-     * IMPORTANTE:
-     * PAGO_PARCEIRO precisa ser identificado primeiro.
-     * Assim, nunca será confundido com PAGO.
-     */
-
+    // Pagamentos específicos.
     if (payment === "PAGO_PARCEIRO") {
         return "PAGO_PARCEIRO";
+    }
+
+    if (payment === "PAGO_PIX") {
+        return "PAGO_PIX";
     }
 
     if (payment === "PAGO") {
@@ -181,11 +183,7 @@ function classifyRegistration(row) {
         return "PENDENTE";
     }
 
-    /*
-     * Compatibilidade com registros antigos
-     * que possam utilizar a coluna status.
-     */
-
+    // Compatibilidade com registros antigos.
     if (
         status === "CANCELADO" ||
         status === "CANCELADA" ||
@@ -251,28 +249,30 @@ function getRegistrationValueCents(item) {
     const category = item.category;
     const row = item.row;
 
-    // Pagamento normal: R$ 89,90.
     if (category === "PAGO") {
         return CENTAVOS_INSCRICAO;
     }
 
-    // Pagamento parceiro: R$ 60,00.
+    if (category === "PAGO_PIX") {
+        return CENTAVOS_INSCRICAO;
+    }
+
     if (category === "PAGO_PARCEIRO") {
         return CENTAVOS_PARCEIRO;
     }
 
-    /*
-     * Para pendentes, utiliza o valor registrado.
-     * Se não houver valor, utiliza R$ 89,90.
-     */
+    if (category === "PENDENTE") {
+        const value = parseMoneyToCents(row?.valor);
 
-    const value = parseMoneyToCents(row?.valor);
+        if (value === null || value < 0) {
+            return CENTAVOS_INSCRICAO;
+        }
 
-    if (value === null || value < 0) {
-        return CENTAVOS_INSCRICAO;
+        return value;
     }
 
-    return value;
+    // Cortesia, cancelado e outros não geram valor financeiro.
+    return 0;
 }
 
 function sumRegistrationValuesCents(items) {
@@ -342,35 +342,28 @@ function normalizeShirtSize(value) {
 function updatePaymentBars(
     paid,
     partnerPaid,
+    pixPaid,
     pending,
-    cancelled
+    cancelled,
+    courtesies
 ) {
     const total =
         paid +
         partnerPaid +
+        pixPaid +
         pending +
-        cancelled;
+        cancelled +
+        courtesies;
 
-    const paidPercent = total > 0
-        ? (paid / total) * 100
-        : 0;
+    const percent = value =>
+        total > 0 ? (value / total) * 100 : 0;
 
-    const partnerPercent = total > 0
-        ? (partnerPaid / total) * 100
-        : 0;
-
-    const pendingPercent = total > 0
-        ? (pending / total) * 100
-        : 0;
-
-    const cancelledPercent = total > 0
-        ? (cancelled / total) * 100
-        : 0;
-
-    setBarWidth("paidBar", paidPercent);
-    setBarWidth("partnerPaidBar", partnerPercent);
-    setBarWidth("pendingBar", pendingPercent);
-    setBarWidth("cancelledBar", cancelledPercent);
+    setBarWidth("paidBar", percent(paid));
+    setBarWidth("partnerPaidBar", percent(partnerPaid));
+    setBarWidth("pixPaidBar", percent(pixPaid));
+    setBarWidth("pendingBar", percent(pending));
+    setBarWidth("cancelledBar", percent(cancelled));
+    setBarWidth("courtesyBar", percent(courtesies));
 }
 
 
@@ -487,10 +480,6 @@ async function loadDashboard() {
 
         const rows = Array.isArray(data) ? data : [];
 
-        /*
-         * Cada inscrição é classificada uma única vez.
-         */
-
         const classified = rows.map(row => ({
             row,
             category: classifyRegistration(row)
@@ -503,6 +492,10 @@ async function loadDashboard() {
 
         const paidRows = classified.filter(
             item => item.category === "PAGO"
+        );
+
+        const pixPaidRows = classified.filter(
+            item => item.category === "PAGO_PIX"
         );
 
         const partnerPaidRows = classified.filter(
@@ -528,15 +521,19 @@ async function loadDashboard() {
         const total = rows.length;
 
         const paid = paidRows.length;
+        const pixPaid = pixPaidRows.length;
         const partnerPaid = partnerPaidRows.length;
         const pending = pendingRows.length;
         const cancelled = cancelledRows.length;
         const courtesies = courtesyRows.length;
         const other = otherRows.length;
 
-        // Total de participantes com pagamento confirmado.
+        // Pagos + PIX + parceiros + cortesias.
         const participantesConfirmados =
-            paid + partnerPaid;
+            paid +
+            pixPaid +
+            partnerPaid +
+            courtesies;
 
 
         /* =================================================
@@ -546,25 +543,24 @@ async function loadDashboard() {
         const paidValueCents =
             sumRegistrationValuesCents(paidRows);
 
+        const pixPaidValueCents =
+            sumRegistrationValuesCents(pixPaidRows);
+
         const partnerPaidValueCents =
             sumRegistrationValuesCents(partnerPaidRows);
 
         const pendingValueCents =
             sumRegistrationValuesCents(pendingRows);
 
-        const cancelledValueCents =
-            sumRegistrationValuesCents(cancelledRows);
-
-        const courtesyValueCents =
-            sumRegistrationValuesCents(courtesyRows);
-
-        // Recebido: pagos normais + parceiros.
+        // Cortesias e cancelados não entram no financeiro.
         const receivedValueCents =
-            paidValueCents + partnerPaidValueCents;
+            paidValueCents +
+            pixPaidValueCents +
+            partnerPaidValueCents;
 
-        // Total financeiro válido: recebido + pendente.
         const totalValueCents =
-            receivedValueCents + pendingValueCents;
+            receivedValueCents +
+            pendingValueCents;
 
 
         /* =================================================
@@ -583,25 +579,17 @@ async function loadDashboard() {
             NUMERO.format(cancelled)
         );
 
-        // Recebido total.
         setMoney("paidValue", receivedValueCents);
-
-        // Valor pendente.
         setMoney("pendingValue", pendingValueCents);
-
-        // Total de inscrições válidas.
         setMoney("totalValue", totalValueCents);
 
-        // Parceiros.
-        setText(
-            "partnerPaid",
-            NUMERO.format(partnerPaid)
-        );
+        setText("paidCount", NUMERO.format(paid));
 
-        setMoney(
-            "partnerPaidValue",
-            partnerPaidValueCents
-        );
+        setText("pixPaid", NUMERO.format(pixPaid));
+        setMoney("pixPaidValue", pixPaidValueCents);
+
+        setText("partnerPaid", NUMERO.format(partnerPaid));
+        setMoney("partnerPaidValue", partnerPaidValueCents);
 
 
         /* =================================================
@@ -615,26 +603,21 @@ async function loadDashboard() {
            11.5 RECEBIMENTOS
         ================================================= */
 
-        setText(
-            "paidCount",
-            NUMERO.format(paid)
-        );
+        setText("paidCount", NUMERO.format(paid));
+        setText("partnerPaidCount", NUMERO.format(partnerPaid));
+        setText("pixPaidCount", NUMERO.format(pixPaid));
+        setText("pendingCount", NUMERO.format(pending));
 
-        setText(
-            "partnerPaidCount",
-            NUMERO.format(partnerPaid)
-        );
-
-        setText(
-            "pendingCount",
-            NUMERO.format(pending)
-        );
-
+        // Inclui cortesias no denominador porque elas
+        // também fazem parte dos participantes confirmados.
         const totalPagamentos =
             paid +
+            pixPaid +
             partnerPaid +
             pending +
-            cancelled;
+            cancelled +
+            courtesies +
+            other;
 
         const paidPercent = totalPagamentos > 0
             ? (participantesConfirmados / totalPagamentos) * 100
@@ -648,10 +631,7 @@ async function loadDashboard() {
            11.6 GRÁFICO DE PAGAMENTOS
         ================================================= */
 
-        setText(
-            "paid",
-            NUMERO.format(paid)
-        );
+        setText("paid", NUMERO.format(paid));
 
         setText(
             "partnerPaidChart",
@@ -659,20 +639,29 @@ async function loadDashboard() {
         );
 
         setText(
-            "pending",
-            NUMERO.format(pending)
+            "pixPaidChart",
+            NUMERO.format(pixPaid)
         );
+
+        setText("pending", NUMERO.format(pending));
 
         setText(
             "cancelledChart",
             NUMERO.format(cancelled)
         );
 
+        setText(
+            "courtesiesChart",
+            NUMERO.format(courtesies)
+        );
+
         updatePaymentBars(
             paid,
             partnerPaid,
+            pixPaid,
             pending,
-            cancelled
+            cancelled,
+            courtesies
         );
 
 
@@ -680,7 +669,7 @@ async function loadDashboard() {
            11.7 PERCURSOS
         ================================================= */
 
-        // Cancelados não entram na distribuição dos atletas.
+        // Cancelados não entram na distribuição.
         const operationalRows = classified.filter(
             item => item.category !== "CANCELADO"
         );
@@ -700,7 +689,7 @@ async function loadDashboard() {
 
         /* =================================================
            11.8 CAMISETAS
-           PAGOS + PAGO PARCEIRO
+           PAGOS + PIX + PARCEIROS + CORTESIAS
         ================================================= */
 
         const shirtCounts = {
@@ -712,7 +701,9 @@ async function loadDashboard() {
 
         const confirmedRows = [
             ...paidRows,
-            ...partnerPaidRows
+            ...pixPaidRows,
+            ...partnerPaidRows,
+            ...courtesyRows
         ];
 
         confirmedRows.forEach(item => {
@@ -730,36 +721,20 @@ async function loadDashboard() {
             }
         });
 
-        setText(
-            "shirtP",
-            NUMERO.format(shirtCounts.P)
-        );
+        setText("shirtP", NUMERO.format(shirtCounts.P));
+        setText("shirtM", NUMERO.format(shirtCounts.M));
+        setText("shirtG", NUMERO.format(shirtCounts.G));
+        setText("shirtGG", NUMERO.format(shirtCounts.GG));
 
-        setText(
-            "shirtM",
-            NUMERO.format(shirtCounts.M)
-        );
-
-        setText(
-            "shirtG",
-            NUMERO.format(shirtCounts.G)
-        );
-
-        setText(
-            "shirtGG",
-            NUMERO.format(shirtCounts.GG)
-        );
-
-        const totalCamisetasPagas =
+        const totalCamisetasConfirmadas =
             shirtCounts.P +
             shirtCounts.M +
             shirtCounts.G +
             shirtCounts.GG;
 
-        // Atualiza somente se o elemento existir no HTML.
         setText(
             "shirtTotal",
-            NUMERO.format(totalCamisetasPagas)
+            NUMERO.format(totalCamisetasConfirmadas)
         );
 
 
@@ -767,22 +742,12 @@ async function loadDashboard() {
            11.9 RESUMO DA OPERAÇÃO
         ================================================= */
 
-        setText(
-            "operationTotal",
-            NUMERO.format(total)
-        );
+        setText("operationTotal", NUMERO.format(total));
 
-        setText(
-            "operation5km",
-            NUMERO.format(km5)
-        );
+        setText("operation5km", NUMERO.format(km5));
+        setText("operation10km", NUMERO.format(km10));
 
-        setText(
-            "operation10km",
-            NUMERO.format(km10)
-        );
-
-        // Pagos normais + parceiros.
+        // Pagos + cortesias.
         setText(
             "operationPaid",
             NUMERO.format(participantesConfirmados)
@@ -800,12 +765,15 @@ async function loadDashboard() {
             "Valor dos pagamentos normais":
                 MOEDA.format(paidValueCents / 100),
 
+            "Pagamentos via PIX": pixPaid,
+            "Valor dos pagamentos via PIX":
+                MOEDA.format(pixPaidValueCents / 100),
+
             "Pagamentos parceiros": partnerPaid,
             "Valor dos pagamentos parceiros":
                 MOEDA.format(partnerPaidValueCents / 100),
 
-            "Total de pagamentos confirmados":
-                participantesConfirmados,
+            "Participantes confirmados": participantesConfirmados,
 
             "Recebido total":
                 MOEDA.format(receivedValueCents / 100),
@@ -816,6 +784,7 @@ async function loadDashboard() {
 
             "Cortesias": courtesies,
             "Cancelados": cancelled,
+            "Outros status": other,
 
             "Total financeiro válido":
                 MOEDA.format(totalValueCents / 100)
@@ -841,7 +810,8 @@ async function loadDashboard() {
             "Camisetas M": shirtCounts.M,
             "Camisetas G": shirtCounts.G,
             "Camisetas GG": shirtCounts.GG,
-            "Total de camisetas": totalCamisetasPagas
+            "Total de camisetas confirmadas":
+                totalCamisetasConfirmadas
         });
 
         if (other > 0) {

@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 
@@ -15,7 +16,7 @@
 
     <title>Inscritos | Run & Samba CRM</title>
 
-    <link rel="stylesheet" href="css/inscritos.css?v=20261109-1">
+    <link rel="stylesheet" href="css/inscritos.css?v=20261111-1">
 
     <!-- SUPABASE -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -25,21 +26,17 @@
     <script src="js/auth.js"></script>
 
     <!-- CRM -->
-    <script src="js/inscritos.js?v=20261109-1" defer></script>
+    <script src="js/inscritos.js?v=20261111-1" defer></script>
 </head>
 
 <body>
 
-    <!-- =====================================================
-         CONTROLE DE ACESSO
-    ====================================================== -->
-
+    <!-- CONTROLE DE ACESSO -->
     <section
         id="adminGuard"
         class="admin-guard"
         aria-labelledby="guardTitle"
     >
-
         <div class="admin-guard-card">
 
             <div class="admin-guard-icon" aria-hidden="true">
@@ -81,27 +78,15 @@
             </button>
 
         </div>
-
     </section>
 
 
-    <!-- =====================================================
-         APLICAÇÃO
-    ====================================================== -->
-
-    <div
-        class="app"
-        id="adminApp"
-        hidden
-    >
+    <!-- APLICAÇÃO -->
+    <div class="app" id="adminApp" hidden>
 
         <main class="content">
 
-
-            <!-- =================================================
-                 CABEÇALHO
-            ================================================== -->
-
+            <!-- CABEÇALHO -->
             <header class="topbar">
 
                 <div class="page-heading">
@@ -129,10 +114,7 @@
                         type="button"
                         aria-label="Exportar participantes para CSV"
                     >
-
-                        <span>
-                            EXPORTAR CSV
-                        </span>
+                        <span>EXPORTAR CSV</span>
 
                         <span
                             class="button-arrow"
@@ -140,7 +122,6 @@
                         >
                             ↓
                         </span>
-
                     </button>
 
                 </div>
@@ -148,10 +129,7 @@
             </header>
 
 
-            <!-- =================================================
-                 PESQUISA E FILTROS
-            ================================================== -->
-
+            <!-- PESQUISA E FILTROS -->
             <section
                 class="toolbar"
                 aria-label="Pesquisa e filtros de participantes"
@@ -178,7 +156,6 @@
 
 
                 <!-- FILTRO DE PAGAMENTO -->
-
                 <select
                     id="paymentFilter"
                     aria-label="Filtrar por situação do pagamento"
@@ -190,6 +167,10 @@
 
                     <option value="PAGO">
                         PAGO · R$ 89,90
+                    </option>
+
+                    <option value="PAGO_PIX">
+                        PAGO VIA PIX · R$ 89,90
                     </option>
 
                     <option value="PAGO_PARCEIRO">
@@ -212,7 +193,6 @@
 
 
                 <!-- FILTRO DE PERCURSO -->
-
                 <select
                     id="routeFilter"
                     aria-label="Filtrar por percurso"
@@ -234,7 +214,6 @@
 
 
                 <!-- FILTRO DE CAMISETA -->
-
                 <select
                     id="shirtFilter"
                     aria-label="Filtrar por tamanho da camiseta"
@@ -244,126 +223,17 @@
                         Todos os tamanhos
                     </option>
 
-                    <option value="P">
-                        Camiseta P
-                    </option>
-
-                    <option value="M">
-                        Camiseta M
-                    </option>
-
-                    <option value="G">
-                        Camiseta G
-                    </option>
-
-                    <option value="GG">
-                        Camiseta GG
-                    </option>
+                    <option value="P">Camiseta P</option>
+                    <option value="M">Camiseta M</option>
+                    <option value="G">Camiseta G</option>
+                    <option value="GG">Camiseta GG</option>
 
                 </select>
 
             </section>
 
 
-            <!-- =================================================
-                 RESUMO IZYPASS
-            ================================================== -->
-
-            <section
-                class="sales-summary"
-                aria-labelledby="salesSummaryTitle"
-            >
-
-                <div class="sales-inline-title">
-
-                    <span class="sales-source">
-                        IZYPASS
-                    </span>
-
-                    <strong id="salesSummaryTitle">
-                        Resumo de inscrições pagas
-                    </strong>
-
-                </div>
-
-
-                <div class="sales-inline-item sales-input-group">
-
-                    <label for="izyPaidCount">
-                        Quantidade de pagamentos confirmados
-                    </label>
-
-                    <input
-                        type="number"
-                        id="izyPaidCount"
-                        min="0"
-                        step="1"
-                        value="0"
-                        inputmode="numeric"
-                        placeholder="0"
-                    >
-
-                </div>
-
-
-                <div class="sales-inline-item">
-
-                    <span>
-                        Valor por inscrição
-                    </span>
-
-                    <strong>
-                        R$ 89,90
-                    </strong>
-
-                </div>
-
-
-                <div class="sales-inline-item sales-total">
-
-                    <span>
-                        Total recebido informado
-                    </span>
-
-                    <strong id="izyTotalReceived">
-                        R$ 0,00
-                    </strong>
-
-                </div>
-
-
-                <div class="sales-actions">
-
-                    <button
-                        type="button"
-                        id="saveIzyPaidCount"
-                    >
-
-                        <span aria-hidden="true">
-                            ✓
-                        </span>
-
-                        Salvar quantidade
-
-                    </button>
-
-                    <span
-                        id="izySalesMessage"
-                        role="status"
-                        aria-live="polite"
-                    >
-                        Valores não alterados
-                    </span>
-
-                </div>
-
-            </section>
-
-
-            <!-- =================================================
-                 LEGENDA DE STATUS
-            ================================================== -->
-
+            <!-- LEGENDA DE STATUS -->
             <section
                 class="status-legend"
                 aria-labelledby="statusLegendTitle"
@@ -384,132 +254,84 @@
 
                 <div class="status-legend-items">
 
-
-                    <!-- PAGO -->
-
                     <div class="status-legend-item">
-
                         <span
                             class="legend-dot legend-paid"
                             aria-hidden="true"
                         ></span>
-
-                        <span>
-                            PAGO
-                        </span>
-
+                        <span>PAGO</span>
                     </div>
 
 
-                    <!-- PAGO PARCEIRO -->
+                    <div class="status-legend-item">
+                        <span
+                            class="legend-dot legend-paid"
+                            aria-hidden="true"
+                        ></span>
+                        <span>PAGO VIA PIX · R$ 89,90</span>
+                    </div>
+
 
                     <div class="status-legend-item">
-
                         <span
                             class="legend-dot legend-paid-partner"
                             aria-hidden="true"
                         ></span>
-
-                        <span>
-                            PAGO PARCEIRO · R$ 60,00
-                        </span>
-
+                        <span>PAGO PARCEIRO · R$ 60,00</span>
                     </div>
 
 
-                    <!-- PENDENTE -->
-
                     <div class="status-legend-item">
-
                         <span
                             class="legend-dot legend-pending"
                             aria-hidden="true"
                         ></span>
-
-                        <span>
-                            PENDENTE
-                        </span>
-
+                        <span>PENDENTE</span>
                     </div>
 
 
-                    <!-- CORTESIA -->
-
                     <div class="status-legend-item">
-
                         <span
                             class="legend-dot legend-courtesy"
                             aria-hidden="true"
                         ></span>
-
-                        <span>
-                            CORTESIA
-                        </span>
-
+                        <span>CORTESIA</span>
                     </div>
 
 
-                    <!-- MENSAGEM ENVIADA -->
-
                     <div class="status-legend-item">
-
                         <span
                             class="legend-dot legend-message"
                             aria-hidden="true"
                         ></span>
-
-                        <span>
-                            MENSAGEM ENVIADA
-                        </span>
-
+                        <span>MENSAGEM ENVIADA</span>
                     </div>
 
 
-                    <!-- CANCELADO -->
-
                     <div class="status-legend-item">
-
                         <span
                             class="legend-dot legend-cancelled"
                             aria-hidden="true"
                         ></span>
-
-                        <span>
-                            CANCELADO
-                        </span>
-
+                        <span>CANCELADO</span>
                     </div>
 
 
-                    <!-- NOVO -->
-
                     <div class="status-legend-item">
-
                         <span
                             class="legend-dot legend-new"
                             aria-hidden="true"
                         ></span>
-
-                        <span>
-                            NOVO
-                        </span>
-
+                        <span>NOVO</span>
                     </div>
 
 
-                    <!-- RESPONDEU -->
-
                     <div class="status-legend-item">
-
                         <span
                             class="legend-dot legend-replied"
                             aria-hidden="true"
                         ></span>
-
-                        <span>
-                            CLIENTE RESPONDEU
-                        </span>
-
+                        <span>CLIENTE RESPONDEU</span>
                     </div>
 
                 </div>
@@ -517,10 +339,7 @@
             </section>
 
 
-            <!-- =================================================
-                 TABELA DE PARTICIPANTES
-            ================================================== -->
-
+            <!-- TABELA DE PARTICIPANTES -->
             <section
                 class="panel"
                 aria-labelledby="participantsTitle"
@@ -542,7 +361,6 @@
                         </strong>
 
                     </div>
-
 
                     <span
                         id="loading"
@@ -567,55 +385,26 @@
                             pagamento e ações administrativas.
                         </caption>
 
-
                         <thead>
-
                             <tr>
 
-                                <th scope="col">
-                                    PARTICIPANTE
-                                </th>
-
-                                <th scope="col">
-                                    CPF
-                                </th>
-
-                                <th scope="col">
-                                    TELEFONE
-                                </th>
-
-                                <th scope="col">
-                                    PERCURSO
-                                </th>
-
-                                <th scope="col">
-                                    CAMISETA
-                                </th>
-
-                                <th scope="col">
-                                    PAGAMENTO
-                                </th>
-
-                                <th scope="col">
-                                    AÇÕES
-                                </th>
+                                <th scope="col">PARTICIPANTE</th>
+                                <th scope="col">CPF</th>
+                                <th scope="col">TELEFONE</th>
+                                <th scope="col">PERCURSO</th>
+                                <th scope="col">CAMISETA</th>
+                                <th scope="col">PAGAMENTO</th>
+                                <th scope="col">AÇÕES</th>
 
                             </tr>
-
                         </thead>
-
 
                         <tbody id="tableBody">
 
                             <tr>
-
-                                <td
-                                    colspan="7"
-                                    class="empty-cell"
-                                >
+                                <td colspan="7" class="empty-cell">
                                     Carregando participantes...
                                 </td>
-
                             </tr>
 
                         </tbody>
@@ -627,10 +416,7 @@
             </section>
 
 
-            <!-- =================================================
-                 MENSAGENS DO SISTEMA
-            ================================================== -->
-
+            <!-- MENSAGENS DO SISTEMA -->
             <div
                 id="message"
                 class="message"
@@ -638,16 +424,12 @@
                 aria-live="polite"
             ></div>
 
-
         </main>
 
     </div>
 
 
-    <!-- =====================================================
-         MODAL DE PARTICIPANTE
-    ====================================================== -->
-
+    <!-- MODAL DE PARTICIPANTE -->
     <div
         id="editModal"
         class="modal hidden"
@@ -660,12 +442,10 @@
 
         <div class="modal-overlay"></div>
 
-
         <div class="modal-box">
 
 
             <!-- FECHAR MODAL -->
-
             <button
                 id="closeModal"
                 class="modal-close"
@@ -677,7 +457,6 @@
 
 
             <!-- CABEÇALHO -->
-
             <header class="modal-header">
 
                 <span class="eyebrow">
@@ -691,10 +470,7 @@
             </header>
 
 
-            <!-- =================================================
-                 DADOS CADASTRAIS
-            ================================================== -->
-
+            <!-- DADOS CADASTRAIS -->
             <section aria-label="Dados do participante">
 
                 <div
@@ -705,10 +481,7 @@
             </section>
 
 
-            <!-- =================================================
-                 ADMINISTRAÇÃO DO PAGAMENTO
-            ================================================== -->
-
+            <!-- ADMINISTRAÇÃO DO PAGAMENTO -->
             <section
                 class="payment-editor"
                 aria-label="Administração do pagamento"
@@ -718,7 +491,6 @@
                     SITUAÇÃO DO PAGAMENTO
                 </label>
 
-
                 <select id="modalPayment">
 
                     <option value="PENDENTE">
@@ -727,6 +499,10 @@
 
                     <option value="PAGO">
                         PAGO — R$ 89,90
+                    </option>
+
+                    <option value="PAGO_PIX">
+                        PAGO VIA PIX — R$ 89,90
                     </option>
 
                     <option value="PAGO_PARCEIRO">
@@ -759,10 +535,7 @@
             </div>
 
 
-            <!-- =================================================
-                 F9 — ACOMPANHAMENTO DE CONTATO
-            ================================================== -->
-
+            <!-- F9 — ACOMPANHAMENTO DE CONTATO -->
             <section
                 class="contact-followup"
                 aria-labelledby="followupTitle"
@@ -796,12 +569,9 @@
                         STATUS DA COMUNICAÇÃO
                     </label>
 
-
                     <select id="contactStatus">
 
-                        <option value="NOVO">
-                            NOVO
-                        </option>
+                        <option value="NOVO">NOVO</option>
 
                         <option value="MENSAGEM_ENVIADA">
                             MENSAGEM ENVIADA
@@ -830,7 +600,6 @@
                         REGISTRO DA RESPOSTA
                     </label>
 
-
                     <textarea
                         id="clientResponse"
                         rows="4"
@@ -846,7 +615,6 @@
                         Registre o andamento da comunicação neste cadastro.
                     </span>
 
-
                     <button
                         type="button"
                         class="primary-btn contact-save-btn"
@@ -860,10 +628,7 @@
             </section>
 
 
-            <!-- =================================================
-                 COMUNICAÇÃO DE PAGAMENTO PENDENTE
-            ================================================== -->
-
+            <!-- COMUNICAÇÃO DE PAGAMENTO PENDENTE -->
             <section
                 id="pendingCommunication"
                 class="pending-communication hidden"
@@ -896,9 +661,7 @@
 
                 <div class="communication-actions">
 
-
                     <!-- WHATSAPP -->
-
                     <a
                         id="whatsappBtn"
                         class="communication-btn whatsapp-btn"
@@ -917,9 +680,7 @@
 
                         <span class="communication-text">
 
-                            <strong>
-                                WhatsApp
-                            </strong>
+                            <strong>WhatsApp</strong>
 
                             <small>
                                 Entrar em contato
@@ -938,7 +699,6 @@
 
 
                     <!-- E-MAIL -->
-
                     <a
                         id="emailBtn"
                         class="communication-btn email-btn"
@@ -957,9 +717,7 @@
 
                         <span class="communication-text">
 
-                            <strong>
-                                E-mail
-                            </strong>
+                            <strong>E-mail</strong>
 
                             <small>
                                 Enviar comunicação
@@ -980,11 +738,9 @@
 
             </section>
 
-
         </div>
 
     </div>
 
 </body>
-
 </html>

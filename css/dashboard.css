@@ -2665,12 +2665,15 @@ textarea:focus-visible {
 }
 
 
+
 /* =========================================================
-   PAGO PARCEIRO — DASHBOARD VERDE NEON
+   PAGAMENTOS — PADRÃO BLACK + GOLD PREMIUM
 ========================================================= */
 
+/* PAGO PARCEIRO */
 .partner-stat {
-    border-color: rgba(57, 255, 20, 0.30);
+    border-color: rgba(201, 168, 93, .35);
+    border-top: 3px solid var(--gold);
 }
 
 .partner-stat .stat-label,
@@ -2678,32 +2681,87 @@ textarea:focus-visible {
 .partner-stat .stat-value,
 .partner-stat .stat-extra,
 .partner-text {
-    color: #39ff14;
+    color: var(--gold);
 }
 
 .partner-stat .stat-icon {
-    text-shadow:
-        0 0 7px rgba(57, 255, 20, 0.85),
-        0 0 16px rgba(57, 255, 20, 0.45);
+    background: rgba(201, 168, 93, .15);
+    text-shadow: 0 0 10px rgba(201, 168, 93, .25);
 }
 
 .partner-stat .stat-value,
 .partner-stat .stat-extra {
-    text-shadow: 0 0 10px rgba(57, 255, 20, 0.25);
-}
-
-.partner-paid-bar {
-    background: #39ff14;
-    box-shadow:
-        0 0 7px rgba(57, 255, 20, 0.85),
-        0 0 15px rgba(57, 255, 20, 0.45);
-}
-
-.partner-payment-item .payment-info strong {
-    color: #39ff14;
-    text-shadow: 0 0 8px rgba(57, 255, 20, 0.35);
+    text-shadow: 0 0 10px rgba(201, 168, 93, .18);
 }
 
 .partner-text {
-    font-weight: 700;
+    font-weight: 800;
+}
+
+.partner-paid-bar {
+    background: linear-gradient(90deg, #947536, #c9a85d);
+    box-shadow: 0 0 10px rgba(201, 168, 93, .25);
+}
+
+.partner-payment-item .payment-info strong {
+    color: var(--gold-dark);
+}
+
+/* PAGO NORMAL */
+.paid-bar {
+    background: linear-gradient(90deg, #24784e, #43a875);
+}
+
+/* PAGO PIX */
+.pix-payment-item .payment-info strong {
+    color: var(--gold-dark);
+}
+
+.pix-paid-bar {
+    background: linear-gradient(90deg, #947536, #ead49a);
+}
+
+/* PAGO PARCEIRO */
+.partner-payment-item .payment-info strong {
+    color: var(--gold-dark);
+}
+
+/* PENDENTE */
+.pending-bar {
+    background: linear-gradient(90deg, #947536, #e2c477);
+}
+
+/* CANCELADO */
+.cancelled-bar {
+    background: linear-gradient(90deg, #8e3030, #c75b5b);
+}
+
+/* CORTESIA */
+.courtesy-payment-item .payment-info strong {
+    color: var(--gold-dark);
+}
+
+.courtesy-dot {
+    background: var(--gold);
+}
+
+.courtesy-bar {
+    background: linear-gradient(90deg, #947536, #ead49a);
+}
+
+/* BARRAS DE PAGAMENTO */
+.payment-bar {
+    min-width: 0;
+    transition: width .8s ease;
+}
+
+/* RESPONSIVO */
+@media (max-width: 600px) {
+    .partner-stat .stat-value {
+        font-size: 25px;
+    }
+
+    .payment-chart {
+        gap: 20px;
+    }
 }
