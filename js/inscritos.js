@@ -912,19 +912,31 @@ function criarMensagemPagamento(participante) {
         ).trim();
 
         return `Olá, ${primeiroSegundoETerceiroNome}! Tudo bem?
+        Me chamo Sarah responsável pela organização do RUN & SAMBA — 2ª EDIÇÃO e estou entrando em contato para confirmar os dados da sua inscrição.
+*Sua inscrição no RUN & SAMBA — 2ª EDIÇÃO está confirmada!*
 
-Estamos passando para confirmar seus dados da corrida RUN & SAMBA — 2ª EDIÇÃO.
-
-Confira se está tudo certinho:
+Confira se seus dados estão corretos:
 
 *Nome completo:* ${nomeCompleto}
 *CPF:* ${cpf}
 *Percurso:* ${percurso}
 *Tamanho da camiseta:* ${camiseta}
 
+*RETIRADA DOS KITS*
+
+A retirada dos kits será realizada no dia *18 DE NOVEMBRO*, na:
+
+*Barbearia Los Michelitos no centro de Luziânia*
+
+Pedimos que fique atento(a) à data para não perder a retirada do seu kit!
+(Caso não consiga retirar no dia 18 de novembro , pode ser feita a retirada no dia da corrida.)
 Está tudo correto com seus dados?
 
-Se precisar de alguma correção, é só nos avisar por aqui!`;
+Se precisar de alguma correção, é só nos avisar por aqui.
+
+
+*RUN & SAMBA — 2ª EDIÇÃO*
+20 de novembro de 2026`;
     }
 
     return `Olá, ${primeiroSegundoETerceiroNome}! Tudo bem?`;
